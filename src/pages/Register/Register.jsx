@@ -58,7 +58,7 @@ const Register = () => {
           <input
             type="text"
             name="username"
-            placeholder="Tên đăng nhập độc nhất cho trẻ"
+            placeholder="Tên đăng nhập"
             value={form.username}
             onChange={handleChange}
             style={styles.input}
