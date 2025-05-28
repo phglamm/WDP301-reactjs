@@ -1,10 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn } from 'react-icons/fa';
 import logo from '../../assets/logo/campusmedix.png';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect screen width để xử lý responsive
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleSubscribe = (e) => {
     e.preventDefault();
@@ -15,35 +26,96 @@ const Footer = () => {
     }
   };
 
+  // Kết hợp style responsive
+  const dynamicStyles = {
+    inputContainer: {
+      display: 'flex',
+      gap: '12px',
+      alignItems: 'stretch',
+      flexWrap: isMobile ? 'wrap' : 'nowrap',
+      justifyContent: 'center',
+    },
+    emailInput: {
+      flex: isMobile ? 'unset' : 1,
+      width: isMobile ? '100%' : 'auto',
+      minWidth: '280px',
+      padding: '14px 16px',
+      border: '2px solid #e5e7eb',
+      borderRadius: '12px',
+      fontSize: '16px',
+      outline: 'none',
+      transition: 'all 0.3s ease',
+      fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
+      boxSizing: 'border-box',
+    },
+    subscribeButton: {
+      padding: '14px 28px',
+      backgroundColor: '#407CE2',
+      color: 'white',
+      border: 'none',
+      borderRadius: '12px',
+      fontSize: '16px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      transition: 'all 0.3s ease',
+      fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
+      whiteSpace: 'nowrap',
+      width: isMobile ? '100%' : 'auto',
+      marginTop: isMobile ? '12px' : '0',
+    },
+    bottomSection: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingTop: '30px',
+      borderTop: '1px solid #e5e7eb',
+      flexWrap: 'wrap',
+      gap: '20px',
+      flexDirection: isMobile ? 'column' : 'row',
+      textAlign: isMobile ? 'center' : 'left',
+    },
+    leftSection: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '20px',
+      flexWrap: 'wrap',
+      justifyContent: isMobile ? 'center' : 'flex-start',
+    },
+    socialSection: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '16px',
+      justifyContent: isMobile ? 'center' : 'flex-end',
+    },
+  };
+
   return (
     <footer style={styles.footer}>
       <div style={styles.container}>
         <div style={styles.logoSection}>
-  <div style={styles.logoContainer}>
-    <img src={logo} alt="Logo Theo Dõi Sức Khỏe Trẻ Em" style={styles.logoImage} />
-    <span style={styles.logoText}>CampusMedix</span>
-  </div>
-</div>
-ß
+          <div style={styles.logoContainer}>
+            <img src={logo} alt="Logo Theo Dõi Sức Khỏe Trẻ Em" style={styles.logoImage} />
+            <span style={styles.logoText}>CampusMedix</span>
+          </div>
+        </div>
 
-        {/* Newsletter Section */}
         <div style={styles.newsletterSection}>
           <h3 style={styles.newsletterTitle}>Cập Nhật Thông Tin Sức Khỏe Con Bạn</h3>
           <p style={styles.newsletterSubtitle}>
             Nhận thông báo về lịch tiêm chủng, lời khuyên sức khỏe và cập nhật quan trọng
           </p>
-          
+
           <form onSubmit={handleSubscribe} style={styles.subscribeForm}>
-            <div style={styles.inputContainer}>
+            <div style={dynamicStyles.inputContainer}>
               <input
                 type="email"
                 placeholder="Nhập địa chỉ email của bạn"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                style={styles.emailInput}
+                style={dynamicStyles.emailInput}
                 required
               />
-              <button type="submit" style={styles.subscribeButton}>
+              <button type="submit" style={dynamicStyles.subscribeButton}>
                 {isSubscribed ? 'Đã Đăng Ký!' : 'Đăng Ký'}
               </button>
             </div>
@@ -56,14 +128,14 @@ const Footer = () => {
           )}
         </div>
 
-        <div style={styles.bottomSection}>
-          <div style={styles.leftSection}>
+        <div style={dynamicStyles.bottomSection}>
+          <div style={dynamicStyles.leftSection}>
             <span style={styles.copyright}>
               © 2024 Theo Dõi Sức Khỏe Trẻ Em. Tất cả quyền được bảo lưu.
             </span>
           </div>
 
-          <div style={styles.socialSection}>
+          <div style={dynamicStyles.socialSection}>
             <span style={styles.followText}>Theo dõi chúng tôi:</span>
             <div style={styles.socialIcons}>
               <a href="#" style={styles.socialIcon} aria-label="Facebook">
@@ -103,19 +175,14 @@ const styles = {
     marginBottom: '40px',
   },
   logoImage: {
-  width: '55px',  
-  height: 'auto',
-  objectFit: 'contain',
-},
+    width: '55px',
+    height: 'auto',
+    objectFit: 'contain',
+  },
   logoContainer: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '12px',
-  },
-  logoIcon: {
-    display: 'flex',
-    gap: '4px',
-    alignItems: 'center',
   },
   logoText: {
     fontSize: '24px',
@@ -149,36 +216,6 @@ const styles = {
     maxWidth: '500px',
     margin: '0 auto',
   },
-  inputContainer: {
-    display: 'flex',
-    gap: '12px',
-    alignItems: 'stretch',
-    flexWrap: 'wrap',
-  },
-  emailInput: {
-    flex: 1,
-    minWidth: '280px',
-    padding: '14px 16px',
-    border: '2px solid #e5e7eb',
-    borderRadius: '12px',
-    fontSize: '16px',
-    outline: 'none',
-    transition: 'all 0.3s ease',
-    fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
-  },
-  subscribeButton: {
-    padding: '14px 28px',
-    backgroundColor: '#407CE2',
-    color: 'white',
-    border: 'none',
-    borderRadius: '12px',
-    fontSize: '16px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
-    whiteSpace: 'nowrap',
-  },
   successMessage: {
     marginTop: '16px',
     padding: '12px 20px',
@@ -188,31 +225,12 @@ const styles = {
     fontSize: '14px',
     fontWeight: '500',
     display: 'inline-block',
-  },
-  bottomSection: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: '30px',
-    borderTop: '1px solid #e5e7eb',
-    flexWrap: 'wrap',
-    gap: '20px',
-  },
-  leftSection: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '20px',
-    flexWrap: 'wrap',
+    textAlign: 'center',
   },
   copyright: {
     fontSize: '14px',
     color: '#6b7280',
     fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
-  },
-  socialSection: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
   },
   followText: {
     fontSize: '14px',
