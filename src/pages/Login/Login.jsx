@@ -20,7 +20,6 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Xử lý đăng nhập bằng số điện thoại và mật khẩu
     console.log('Dữ liệu đăng nhập:', form);
   };
 

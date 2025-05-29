@@ -1,0 +1,315 @@
+/* Animation */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Layout */
+.health-profile {
+  display: flex;
+  min-height: 100vh;
+  font-family: "Inter", system-ui, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 320px;
+  padding: 32px 24px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 32px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.student-card {
+  cursor: pointer;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1f2937;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  font-weight: 600;
+  transition: all 0.4s ease;
+}
+
+.student-card.selected {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+  transform: scale(1.02);
+}
+
+.student-sub {
+  font-size: 13px;
+  opacity: 0.8;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+/* Main */
+.main-content {
+  flex: 1;
+  padding: 32px;
+  overflow: auto;
+}
+
+.main-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Header */
+.profile-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+}
+
+.profile-header-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.profile-header-top h1 {
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #f43f5e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.profile-header-info {
+  font-size: 14px;
+  color: #1f2937;
+}
+
+/* Form */
+.new-profile-form {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 40px;
+  margin-bottom: 40px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+  color: #1f2937;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 90%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  transition: 0.3s;
+}
+
+.form-group select {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.save-button {
+  margin-top: 32px;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 16px;
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.save-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(59, 130, 246, 0.4);
+}
+
+/* History */
+.history-section h2 {
+  font-size: 24px;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  color: white;
+}
+
+/* ProfileCard */
+.profile-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  transition: all 0.4s ease;
+}
+
+.profile-card-header {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.update-date {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #6b7280;
+  gap: 6px;
+}
+
+.bmi-box {
+  text-align: center;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
+  padding: 20px;
+  border-radius: 16px;
+  border: 2px solid #e0e7ff;
+}
+
+.bmi-value {
+  font-weight: 800;
+  font-size: 28px;
+  color: #3b82f6;
+}
+
+.bmi-status.normal {
+  color: #16a34a;
+}
+
+.bmi-status.alert {
+  color: #dc2626;
+}
+
+.bmi-label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.profile-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.profile-details > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(229, 231, 235, 0.3);
+}
+
+.allergy-box {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  padding: 16px;
+  border-radius: 12px;
+  color: #991b1b;
+  font-weight: 600;
+  border: 1px solid #fecaca;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.note-box {
+  background: rgba(156, 163, 175, 0.1);
+  color: #374151;
+  font-size: 14px;
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+/* EmptyState */
+.empty-state {
+  color: #6b7280;
+  font-style: italic;
+  text-align: center;
+  padding: 40px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.empty-state > div {
+  margin-top: 8px;
+}

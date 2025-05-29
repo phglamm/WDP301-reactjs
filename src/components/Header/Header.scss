@@ -1,0 +1,149 @@
+/* Header.scss */
+
+/* Header container */
+.header {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 4px 20px rgba(64, 124, 226, 0.15);
+  border-bottom: 1px solid rgba(64, 124, 226, 0.1);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-sizing: border-box;
+  backdrop-filter: blur(10px);
+}
+
+/* Nav */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Logo container */
+.logo {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 16px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.logo img {
+  height: 45px;
+  width: auto;
+  margin-right: 12px;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.logoText {
+  background: linear-gradient(135deg, #407ce2, #223a6a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+}
+
+/* Menu list */
+.menu {
+  display: flex;
+  list-style: none;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+}
+
+/* Ẩn menu trên mobile */
+@media (max-width: 768px) {
+  .menu {
+    display: none;
+  }
+}
+
+/* Menu mở trên mobile */
+.menuMobileOpen {
+  position: absolute;
+  top: 64px;
+  left: 0;
+  right: 0;
+  background-color: white;
+  flex-direction: column;
+  display: flex !important;
+  gap: 0;
+  padding: 12px 0;
+  box-shadow: 0 4px 20px rgba(64, 124, 226, 0.15);
+  border-radius: 0 0 8px 8px;
+}
+
+/* Menu item wrapper */
+.menuItemWrapper {
+  margin: 0;
+}
+
+/* Menu item link */
+.menuItem {
+  text-decoration: none;
+  color: #374151;
+  font-weight: 500;
+  font-size: 14px;
+  padding: 8px 20px;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  display: block;
+}
+
+.menuItem:hover,
+.menuItem.hovered {
+  background-color: rgba(64, 124, 226, 0.1);
+  color: #407ce2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(64, 124, 226, 0.2);
+}
+
+/* User icons container */
+.userIcons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Icons */
+.icon {
+  color: #6b7280;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 8px;
+  border-radius: 50%;
+}
+
+.icon:hover,
+.icon.hovered {
+  color: #407ce2;
+  background-color: rgba(64, 124, 226, 0.1);
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(64, 124, 226, 0.2);
+}
+
+/* Hamburger icon */
+.hamburger {
+  display: none;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+}

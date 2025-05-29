@@ -7,6 +7,7 @@ import UserLayout from "./layouts/UserLayout/UserLayout";
 import Homepage from "./pages/Homepage/Homepage";
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
+import HealthProfile from "./pages/HealthProfile/HealthProfile";
 
 function App() {
   const route = createBrowserRouter([
@@ -25,6 +26,10 @@ function App() {
         {
           path: "/login",
           element: <Login />,
+        },
+        {
+          path: "/health-profile",
+          element: <HealthProfile />,
         },
       ],
     },
