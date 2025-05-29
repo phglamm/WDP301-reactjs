@@ -20,7 +20,8 @@
   display: flex;
   min-height: 100vh;
   font-family: "Inter", system-ui, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+//   background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+background: linear-gradient(to bottom right, #ffffff, #d4e4ff, #b3ccff);
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
 }
@@ -39,7 +40,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: white;
+  color: rgb(0, 0, 0);
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 32px;
@@ -206,7 +207,7 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 24px;
-  color: white;
+  color: rgb(0, 0, 0);
 }
 
 /* ProfileCard */

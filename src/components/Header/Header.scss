@@ -42,6 +42,7 @@
   margin-right: 12px;
   transition: transform 0.3s ease;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .logoText {
@@ -50,7 +51,18 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: -0.5px;
+  text-decoration: none; 
+  cursor: pointer;
+  color: inherit;
+  display: inline-block; 
+  text-underline-offset: 0; 
+  text-decoration-thickness: 0; 
 }
+
+a {
+  text-decoration: none;
+}
+
 
 /* Menu list */
 .menu {

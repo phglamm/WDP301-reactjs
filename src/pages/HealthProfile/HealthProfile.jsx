@@ -140,7 +140,7 @@ const HealthProfile = () => {
           <section className="history-section">
             <div className="history-header">
               <FaHistory />
-              <h2>Lịch sử hồ sơ</h2>
+              <h2 style={{color: 'black'}}>Lịch sử hồ sơ</h2>
             </div>
             {selectedChild?.profiles.length > 0 ? (
               selectedChild.profiles.map((p, idx) => (

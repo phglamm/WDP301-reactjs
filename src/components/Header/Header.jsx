@@ -26,7 +26,7 @@ const Header = () => {
   };
   const paths = {
     profile: '/health-profile',
-    medication: '/medication-information',
+    medication: '/drug-information',
     vaccination: '/vaccination-reminders',
     history: '/health-history',
   };
@@ -34,7 +34,8 @@ const Header = () => {
   return (
     <header className="header">
       <nav className="nav">
-        <div className="logo">
+        <Link to="/">
+        <div className="logo" >
           <img
             src={logo}
             alt="Logo"
@@ -45,6 +46,7 @@ const Header = () => {
           />
           <span className="logoText">CampusMedix</span>
         </div>
+        </Link>
 
         {/* Hamburger cho mobile */}
         <div className="hamburger" onClick={toggleMenu}>

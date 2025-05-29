@@ -8,6 +8,7 @@ import Homepage from "./pages/Homepage/Homepage";
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
 import HealthProfile from "./pages/HealthProfile/HealthProfile";
+import DrugInfo from "./pages/DrugInfo/DrugInfo";
 
 function App() {
   const route = createBrowserRouter([
@@ -31,6 +32,10 @@ function App() {
           path: "/health-profile",
           element: <HealthProfile />,
         },
+        {
+          path: "/drug-information",
+          element: <DrugInfo/>,
+        }
       ],
     },
   ]);
