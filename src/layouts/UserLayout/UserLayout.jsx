@@ -8,7 +8,7 @@ export default function UserLayout() {
     <>
       <Header />
       <Outlet />
-      <Footer />
+      {/* <Footer /> */}
     </>
   );
 }
