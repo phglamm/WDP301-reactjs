@@ -27,7 +27,7 @@ const Header = () => {
   const paths = {
     profile: '/health-profile',
     medication: '/drug-information',
-    vaccination: '/vaccination-reminders',
+    vaccination: '/vaccine-reminder',
     history: '/health-history',
   };
 
