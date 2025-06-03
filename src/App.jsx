@@ -9,6 +9,7 @@ import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
 import HealthProfile from "./pages/HealthProfile/HealthProfile";
 import DrugInfo from "./pages/DrugInfo/DrugInfo";
+import VaccineReminder from "./pages/VaccineReminder/VaccineReminder";
 
 function App() {
   const route = createBrowserRouter([
@@ -35,6 +36,10 @@ function App() {
         {
           path: "/drug-information",
           element: <DrugInfo/>,
+        },
+        {
+          path: "/vaccine-reminder",
+          element: <VaccineReminder/>,
         }
       ],
     },
