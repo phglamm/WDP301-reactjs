@@ -1,6 +1,3 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import UserLayout from "./layouts/UserLayout/UserLayout";
@@ -10,6 +7,10 @@ import Register from "./pages/Register/Register";
 import HealthProfile from "./pages/HealthProfile/HealthProfile";
 import DrugInfo from "./pages/DrugInfo/DrugInfo";
 import VaccineReminder from "./pages/VaccineReminder/VaccineReminder";
+import "./App.css";
+import NurseLayout from "./layouts/NurseLayout/NurseLayout";
+import StudentListPage from "./pages/Nurse/StudentListPage/StudentListPage";
+import ParentRequest from "./pages/Nurse/ParentRequest/ParentRequest";
 
 function App() {
   const route = createBrowserRouter([
@@ -18,7 +19,7 @@ function App() {
       element: <UserLayout />,
       children: [
         {
-          path: "/",
+          path: "",
           element: <Homepage />,
         },
         {
@@ -35,12 +36,30 @@ function App() {
         },
         {
           path: "/drug-information",
-          element: <DrugInfo/>,
+          element: <DrugInfo />,
         },
         {
           path: "/vaccine-reminder",
-          element: <VaccineReminder/>,
-        }
+          element: <VaccineReminder />,
+        },
+      ],
+    },
+    {
+      path: "/nurse",
+      element: <NurseLayout />,
+      children: [
+        {
+          path: "",
+          element: <Homepage />,
+        },
+        {
+          path: "studentlist",
+          element: <StudentListPage />,
+        },
+        {
+          path: "parentrequest",
+          element: <ParentRequest />,
+        },
       ],
     },
   ]);
