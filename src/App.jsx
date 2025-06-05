@@ -7,7 +7,6 @@ import Register from "./pages/Register/Register";
 import HealthProfile from "./pages/HealthProfile/HealthProfile";
 import DrugInfo from "./pages/DrugInfo/DrugInfo";
 import VaccineReminder from "./pages/VaccineReminder/VaccineReminder";
-import "./App.css";
 import NurseLayout from "./layouts/NurseLayout/NurseLayout";
 import StudentListPage from "./pages/Nurse/StudentListPage/StudentListPage";
 import ParentRequest from "./pages/Nurse/ParentRequest/ParentRequest";
