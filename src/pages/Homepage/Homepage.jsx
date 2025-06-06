@@ -6,6 +6,7 @@ import tiemchung from '../../assets/homepage/tiemchung.png';
 import lichsu from '../../assets/homepage/lichsu.png';
 import baomat from '../../assets/homepage/baomat.png';
 import truycap from '../../assets/homepage/truycap.png';
+import Footer from '../../components/Footer/Footer';
 
 const features = [
   {
@@ -208,7 +209,7 @@ const Homepage = () => {
     Tham Gia Ngay
   </button>
 </section>
-
+<Footer/>
     </div>
   );
 };
