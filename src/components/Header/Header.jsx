@@ -74,12 +74,14 @@ const Header = () => {
 
         <div className="userIcons">
           <FaUserCircle
+            size={40}
             className={`icon ${hoveredIcon === 'user' ? 'hovered' : ''}`}
             title="Tài khoản"
             onMouseEnter={() => setHoveredIcon('user')}
             onMouseLeave={() => setHoveredIcon(null)}
           />
           <FaSignOutAlt
+            size={40}
             className={`icon ${hoveredIcon === 'logout' ? 'hovered' : ''}`}
             title="Đăng xuất"
             onMouseEnter={() => setHoveredIcon('logout')}
