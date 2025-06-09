@@ -11,6 +11,7 @@ import NurseLayout from "./layouts/NurseLayout/NurseLayout";
 import StudentListPage from "./pages/Nurse/StudentListPage/StudentListPage";
 import ParentRequest from "./pages/Nurse/ParentRequest/ParentRequest";
 import MedicineStorage from "./pages/Nurse/MedicineStorage/MedicineStorage";
+import HealthHistory from "./pages/HealthHistory/HealthHistory";
 
 function App() {
   const route = createBrowserRouter([
@@ -62,8 +63,12 @@ function App() {
         },
         {
           path: "medicine",
-          element: <MedicineStorage/>
-        }
+          element: <MedicineStorage />,
+        },
+        {
+          path: "/health-history",
+          element: <HealthHistory />,
+        },
       ],
     },
   ]);

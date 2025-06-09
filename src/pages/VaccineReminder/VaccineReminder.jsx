@@ -211,50 +211,69 @@ const VaccineReminder = () => {
         </div>
 
         {/* Student Selector */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-          <div className="flex items-center space-x-4 mb-4">
-            <User className="w-5 h-5" style={{color: '#223A6A'}} />
-            <h2 className="text-lg font-semibold text-gray-800">Chọn học sinh</h2>
-          </div>
-          
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => setSelectedStudent('all')}
-              className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                selectedStudent === 'all' 
-                  ? 'text-white shadow-lg' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-              style={selectedStudent === 'all' ? {backgroundColor: '#223A6A'} : {}}
-            >
-              <span className="text-xl">👨‍👩‍👧‍👦</span>
-              <div className="text-left">
-                <p className="font-medium">Tất cả</p>
-                <p className="text-xs opacity-75">Xem tổng quan</p>
-              </div>
-            </button>
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-8">
+          <div className="p-6 border-b border-gray-100">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2" style={{ color: '#223A6A' }}>
+              <User className="w-5 h-5" style={{ color: '#407CE2' }} />
+              Chọn học sinh
+            </h2>
             
-            {students.map(student => (
-              <button
-                key={student.id}
-                onClick={() => setSelectedStudent(student.id)}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                  selectedStudent === student.id 
-                    ? 'text-white shadow-lg' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+              {/* Tất cả option */}
+              <div 
+                onClick={() => handleStudentSelect('')}
+                className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 ${
+                  selectedStudent === '' 
+                    ? 'shadow-lg' 
+                    : 'border-gray-200 hover:border-opacity-50'
                 }`}
-                style={selectedStudent === student.id ? {backgroundColor: '#407CE2'} : {}}
+                style={{
+                  borderColor: selectedStudent === '' ? '#407CE2' : undefined,
+                  backgroundColor: selectedStudent === '' ? '#f0f6ff' : undefined,
+                  borderWidth: selectedStudent === '' ? '2px' : '1px'
+                }}
               >
-                <span className="text-xl">{student.avatar}</span>
-                <div className="text-left">
-                  <p className="font-medium">{student.name}</p>
-                  <p className="text-xs opacity-75">{student.age} tuổi - {student.class}</p>
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{
+                    background: 'linear-gradient(135deg, #407CE2 0%, #223A6A 100%)'
+                  }}>
+                    <span className="text-2xl">📊</span>
+                  </div>
+                  <div className="font-medium" style={{ color: '#223A6A' }}>Tất cả</div>
+                  <div className="text-sm text-gray-500">Xem tổng quan</div>
                 </div>
-              </button>
-            ))}
+              </div>
+
+              {/* Student options */}
+              {students.map(student => (
+                <div 
+                  key={student.id}
+                  onClick={() => handleStudentSelect(student.id)}
+                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 ${
+                    selectedStudent == student.id 
+                      ? 'shadow-lg' 
+                      : 'border-gray-200 hover:border-opacity-50'
+                  }`}
+                  style={{
+                    borderColor: selectedStudent == student.id ? '#407CE2' : undefined,
+                    backgroundColor: selectedStudent == student.id ? '#f0f6ff' : undefined,
+                    borderWidth: selectedStudent == student.id ? '2px' : '1px'
+                  }}
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{
+                      background: 'linear-gradient(135deg, #407CE2 0%, #223A6A 100%)'
+                    }}>
+                      <span className="text-2xl">{student.avatar}</span>
+                    </div>
+                    <div className="font-medium" style={{ color: '#223A6A' }}>{student.name}</div>
+                    <div className="text-sm text-gray-500">{student.age} - {student.class}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-md p-6">

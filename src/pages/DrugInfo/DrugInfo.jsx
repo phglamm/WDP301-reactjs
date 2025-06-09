@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, FileText, Calendar } from 'lucide-react';
-import { FaUserMd } from 'react-icons/fa';
+import { Plus, Calendar, FileText, User, Edit, Trash2, Camera } from 'lucide-react';
 
 const DrugInfo = () => {
-  const [medications, setMedications] = useState([]);
-  const [formData, setFormData] = useState({
+  const [selectedStudent, setSelectedStudent] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [drugs, setDrugs] = useState([]);
+  const [newDrug, setNewDrug] = useState({
     name: '',
     dosage: '',
     unit: 'mg',
@@ -14,23 +15,14 @@ const DrugInfo = () => {
     notes: ''
   });
 
-  const units = ['mg', 'ml', 'tablets', 'capsules', 'drops', 'grams'];
-
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleAddMedication = () => {
-    if (formData.name && formData.dosage && formData.frequency && formData.startDate) {
-      const newMedication = {
-        id: Date.now(),
-        ...formData
-      };
-      setMedications([...medications, newMedication]);
-      setFormData({
+  const students = [
+    { id: 'sophie', name: 'Sophie Miller', age: 8, class: 'Lớp 3A', avatar: '👧' },
+    { id: 'john', name: 'John Smith', age: 6, class: 'Lớp 1B', avatar: '👦' }
+  ];
+  const handleAddDrug = () => {
+    if (newDrug.name && newDrug.dosage && newDrug.frequency) {
+      setDrugs([...drugs, { ...newDrug, id: Date.now() }]);
+      setNewDrug({
         name: '',
         dosage: '',
         unit: 'mg',
@@ -39,266 +31,295 @@ const DrugInfo = () => {
         endDate: '',
         notes: ''
       });
+      setShowAddForm(false);
     }
   };
 
-  const handleDeleteMedication = (id) => {
-    setMedications(medications.filter(med => med.id !== id));
+  const handleDeleteDrug = (id) => {
+    setDrugs(drugs.filter(drug => drug.id !== id));
+  };
+
+  const handleStudentSelect = (studentId) => {
+    setSelectedStudent(studentId);
   };
 
   return (
-    <div
-      className="min-h-screen"
-      style={{
-        background: 'linear-gradient(135deg, #ffffff 0%, #d4e4ff 50%, #b3ccff 100%)',
-      }}
-    >
-      <div className="flex min-h-screen">
-        {/* Sidebar - Student Selection */}
-        <div
-          className="w-[320px] p-8 border-r border-white border-opacity-20 backdrop-blur-md min-h-screen shadow-[4px_0_20px_rgba(0,0,0,0.1)]"
-          style={{
-            background: 'transparent', // trong suốt nhìn xuyên nền cha
-          }}
-        >
-          {/* Header */}
-          <div
-            className="flex items-center gap-3 text-black text-[20px] font-semibold mb-6 select-none"
-            style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}
-          >
-            <FaUserMd className="w-6 h-6 " />
-            <h2 className="text-2xl	">Học sinh</h2>
-          </div>
-
-          {/* Student Cards */}
-          <div className="space-y-3">
-            {/* Selected Student */}
-            <div className="cursor-pointer p-4 rounded-[16px] bg-gradient-to-tr from-blue-500 to-blue-700 text-white shadow-[0_10px_25px_rgba(59,130,246,0.4)] transform scale-[1.02] font-semibold transition-all">
-              <h3 className="text-base">Nguyễn Khánh Tùng</h3>
-              <div className="flex justify-between text-[12px] opacity-80 mt-1 font-semibold">
-                <span>MSSV: SS160730</span>
-                <span>1 hồ sơ</span>
-              </div>
-            </div>
-
-            {/* Other Students */}
-            <div className="cursor-pointer p-4 rounded-[16px] bg-white bg-opacity-[0.9] text-gray-800 shadow-[0_4px_15px_rgba(0,0,0,0.1)] font-semibold transition-all hover:shadow-lg">
-              <h3 className="text-base">Nguyễn Quốc Huy</h3>
-              <div className="flex justify-between text-[12px] opacity-80 mt-1 font-semibold">
-                <span>MSSV: SE444444</span>
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen p-6" style={{
+      background: 'linear-gradient(135deg, #ffffff 0%, #d4e4ff 50%, #b3ccff 100%)'
+    }}>
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2" style={{ color: '#223A6A' }}>
+            Quản Lý Thông Tin Thuốc
+          </h1>
+          <p className="text-gray-600">Theo dõi và quản lý thuốc cho con em</p>
         </div>
 
-
-        {/* Main Content */}
-        <div className="flex-1 p-8">
-          {/* Add New Medication Form */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 mb-10">
-            <h2 className="text-3xl font-bold text-black mb-8 flex items-center">
-              <FileText className="w-8 h-8 mr-3 text-blue-600" />
-              Thêm Thuốc Mới
+        {/* Student Selection */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-8">
+          <div className="p-6 border-b border-gray-100">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2" style={{ color: '#223A6A' }}>
+              <User className="w-5 h-5" style={{ color: '#407CE2' }} />
+              Chọn học sinh
             </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div>
-                <label className="block text-sm font-semibold text-black mb-3">
-                  Tên Thuốc
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="VD: Paracetamol"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-black"
-                />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+              {/* Tất cả option */}
+              <div 
+                onClick={() => handleStudentSelect('')}
+                className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 ${
+                  selectedStudent === '' 
+                    ? 'shadow-lg' 
+                    : 'border-gray-200 hover:border-opacity-50'
+                }`}
+                style={{
+                  borderColor: selectedStudent === '' ? '#407CE2' : undefined,
+                  backgroundColor: selectedStudent === '' ? '#f0f6ff' : undefined,
+                  borderWidth: selectedStudent === '' ? '2px' : '1px'
+                }}
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{
+                    background: 'linear-gradient(135deg, #407CE2 0%, #223A6A 100%)'
+                  }}>
+                    <span className="text-2xl">📊</span>
+                  </div>
+                  <div className="font-medium" style={{ color: '#223A6A' }}>Tất cả</div>
+                  <div className="text-sm text-gray-500">Xem tổng quan</div>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-black mb-3">
-                  Liều Lượng
-                </label>
-                <input
-                  type="text"
-                  name="dosage"
-                  value={formData.dosage}
-                  onChange={handleInputChange}
-                  placeholder="VD: 500"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-black"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-black mb-3">
-                  Đơn Vị
-                </label>
-                <select
-                  name="unit"
-                  value={formData.unit}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-black"
+              {/* Student options */}
+              {students.map(student => (
+                <div 
+                  key={student.id}
+                  onClick={() => handleStudentSelect(student.id)}
+                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 ${
+                    selectedStudent === student.id 
+                      ? 'shadow-lg' 
+                      : 'border-gray-200 hover:border-opacity-50'
+                  }`}
+                  style={{
+                    borderColor: selectedStudent === student.id ? '#407CE2' : undefined,
+                    backgroundColor: selectedStudent === student.id ? '#f0f6ff' : undefined,
+                    borderWidth: selectedStudent === student.id ? '2px' : '1px'
+                  }}
                 >
-                  {units.map(unit => (
-                    <option key={unit} value={unit}>{unit}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-black mb-3">
-                Tần Suất Sử Dụng
-              </label>
-              <input
-                type="text"
-                name="frequency"
-                value={formData.frequency}
-                onChange={handleInputChange}
-                placeholder="VD: 2 lần/ngày"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-black"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <label className="block text-sm font-semibold text-black mb-3">
-                  Ngày Bắt Đầu
-                </label>
-                <input
-                  type="date"
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-black"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-black mb-3">
-                  Ngày Kết Thúc (Tùy chọn)
-                </label>
-                <input
-                  type="date"
-                  name="endDate"
-                  value={formData.endDate}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-black"
-                />
-              </div>
-            </div>
-
-            <div className="mb-8">
-              <label className="block text-sm font-semibold text-black mb-3">
-                Ghi Chú
-              </label>
-              <textarea
-                name="notes"
-                value={formData.notes}
-                onChange={handleInputChange}
-                rows={4}
-                placeholder="Ghi chú quan trọng về thuốc này..."
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-black"
-              />
-            </div>
-
-            <button
-              onClick={handleAddMedication}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-xl font-semibold flex items-center transition-all shadow-lg hover:shadow-xl"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Thêm Thuốc
-            </button>
-          </div>
-
-          {/* Current & Past Medications */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200">
-            <div className="p-8 border-b border-gray-300">
-              <h2 className="text-3xl font-bold text-black flex items-center">
-                <Calendar className="w-8 h-8 mr-3 text-blue-600" />
-                Thuốc Hiện Tại & Đã Sử Dụng
-              </h2>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-black uppercase tracking-wider">
-                      Tên Thuốc
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-black uppercase tracking-wider">
-                      Liều Lượng
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-black uppercase tracking-wider">
-                      Tần Suất
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-black uppercase tracking-wider">
-                      Ngày Bắt Đầu
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-black uppercase tracking-wider">
-                      Ngày Kết Thúc
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-black uppercase tracking-wider">
-                      Ghi Chú
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-black uppercase tracking-wider">
-                      Thao Tác
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {medications.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-black">
-                        <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                        <p className="text-lg">Chưa có thuốc nào được thêm.</p>
-                        <p className="text-sm">Hãy thêm thuốc đầu tiên ở phía trên.</p>
-                      </td>
-                    </tr>
-                  ) : (
-                    medications.map((medication) => (
-                      <tr key={medication.id} className="hover:bg-gray-100 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-semibold text-black">{medication.name}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-black font-medium">{medication.dosage} {medication.unit}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-black">{medication.frequency}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-black">{medication.startDate}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-black">{medication.endDate || '-'}</div>
-                        </td>
-                        <td className="px-6 py-4 max-w-xs truncate">
-                          <div className="text-sm text-black">{medication.notes || '-'}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex space-x-3">
-                            <button className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-100 rounded-lg transition-all">
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteMedication(medication.id)}
-                              className="text-red-600 hover:text-red-800 p-2 hover:bg-red-100 rounded-lg transition-all"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{
+                      background: 'linear-gradient(135deg, #407CE2 0%, #223A6A 100%)'
+                    }}>
+                      <span className="text-2xl">{student.avatar}</span>
+                    </div>
+                    <div className="font-medium" style={{ color: '#223A6A' }}>{student.name}</div>
+                    <div className="text-sm text-gray-500">{student.age} tuổi - {student.class}</div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
+
+        {(selectedStudent !== null && selectedStudent !== undefined) && (
+          <>
+            {/* Add New Drug Form */}
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <FileText className="w-6 h-6 mr-2" style={{ color: '#407CE2' }} />
+                  <h2 className="text-xl font-semibold" style={{ color: '#223A6A' }}>
+                    Thêm Thuốc Mới
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setShowAddForm(!showAddForm)}
+                  className="flex items-center px-4 py-2 rounded-lg text-white transition-colors duration-200 hover:opacity-90"
+                  style={{ backgroundColor: '#407CE2' }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Thêm Thuốc
+                </button>
+              </div>
+
+              {showAddForm && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: '#223A6A' }}>
+                        Tên Thuốc
+                      </label>
+                      <input
+                        type="text"
+                        value={newDrug.name}
+                        onChange={(e) => setNewDrug({...newDrug, name: e.target.value})}
+                        placeholder="VD: Paracetamol"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: '#223A6A' }}>
+                        Liều Lượng
+                      </label>
+                      <input
+                        type="text"
+                        value={newDrug.dosage}
+                        onChange={(e) => setNewDrug({...newDrug, dosage: e.target.value})}
+                        placeholder="VD: 500"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: '#223A6A' }}>
+                        Đơn Vị
+                      </label>
+                      <select
+                        value={newDrug.unit}
+                        onChange={(e) => setNewDrug({...newDrug, unit: e.target.value})}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="mg">mg</option>
+                        <option value="ml">ml</option>
+                        <option value="viên">viên</option>
+                        <option value="gói">gói</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: '#223A6A' }}>
+                      Tần Suất Sử Dụng
+                    </label>
+                    <input
+                      type="text"
+                      value={newDrug.frequency}
+                      onChange={(e) => setNewDrug({...newDrug, frequency: e.target.value})}
+                      placeholder="VD: 2 lần/ngày"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: '#223A6A' }}>
+                        Ngày Bắt Đầu
+                      </label>
+                      <input
+                        type="date"
+                        value={newDrug.startDate}
+                        onChange={(e) => setNewDrug({...newDrug, startDate: e.target.value})}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: '#223A6A' }}>
+                        Ngày Kết Thúc (Tùy chọn)
+                      </label>
+                      <input
+                        type="date"
+                        value={newDrug.endDate}
+                        onChange={(e) => setNewDrug({...newDrug, endDate: e.target.value})}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: '#223A6A' }}>
+                      Ghi Chú
+                    </label>
+                    <textarea
+                      value={newDrug.notes}
+                      onChange={(e) => setNewDrug({...newDrug, notes: e.target.value})}
+                      placeholder="Ghi chú quan trọng về thuốc này..."
+                      rows={3}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => setShowAddForm(false)}
+                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                    >
+                      Hủy
+                    </button>
+                    <button
+                      onClick={handleAddDrug}
+                      className="px-6 py-2 rounded-lg text-white transition-colors duration-200 hover:opacity-90"
+                      style={{ backgroundColor: '#407CE2' }}
+                    >
+                      Thêm Thuốc
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Current and Used Drugs */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-center mb-6">
+                <Calendar className="w-6 h-6 mr-2" style={{ color: '#407CE2' }} />
+                <h2 className="text-xl font-semibold" style={{ color: '#223A6A' }}>
+                  Thuốc Hiện Tại & Đã Sử Dụng
+                </h2>
+              </div>
+
+              {drugs.length === 0 ? (
+                <div className="text-center py-12">
+                  <FileText className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                  <p className="text-gray-500 text-lg mb-2">Chưa có thuốc nào được thêm.</p>
+                  <p className="text-gray-400">Hãy thêm thuốc đầu tiên ở phía trên.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-semibold" style={{ color: '#223A6A' }}>TÊN THUỐC</th>
+                        <th className="text-left py-3 px-4 font-semibold" style={{ color: '#223A6A' }}>LIỀU LƯỢNG</th>
+                        <th className="text-left py-3 px-4 font-semibold" style={{ color: '#223A6A' }}>TẦN SUẤT</th>
+                        <th className="text-left py-3 px-4 font-semibold" style={{ color: '#223A6A' }}>NGÀY BẮT ĐẦU</th>
+                        <th className="text-left py-3 px-4 font-semibold" style={{ color: '#223A6A' }}>NGÀY KẾT THÚC</th>
+                        <th className="text-left py-3 px-4 font-semibold" style={{ color: '#223A6A' }}>GHI CHÚ</th>
+                        <th className="text-left py-3 px-4 font-semibold" style={{ color: '#223A6A' }}>THAO TÁC</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {drugs.map((drug) => (
+                        <tr key={drug.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-4 px-4 font-medium" style={{ color: '#223A6A' }}>{drug.name}</td>
+                          <td className="py-4 px-4 text-gray-700">{drug.dosage} {drug.unit}</td>
+                          <td className="py-4 px-4 text-gray-700">{drug.frequency}</td>
+                          <td className="py-4 px-4 text-gray-700">{drug.startDate}</td>
+                          <td className="py-4 px-4 text-gray-700">{drug.endDate || '-'}</td>
+                          <td className="py-4 px-4 text-gray-700 max-w-xs truncate">{drug.notes || '-'}</td>
+                          <td className="py-4 px-4">
+                            <div className="flex gap-2">
+                              <button
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                                title="Chỉnh sửa"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteDrug(drug.id)}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                                title="Xóa"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
