@@ -43,6 +43,10 @@ function App() {
           path: "/vaccine-reminder",
           element: <VaccineReminder />,
         },
+        {
+          path: "/health-history",
+          element: <HealthHistory />,
+        },
       ],
     },
     {
@@ -64,10 +68,6 @@ function App() {
         {
           path: "medicine",
           element: <MedicineStorage />,
-        },
-        {
-          path: "/health-history",
-          element: <HealthHistory />,
         },
       ],
     },
