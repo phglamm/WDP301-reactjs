@@ -5,6 +5,7 @@ import Homepage from "./pages/Homepage/Homepage";
 import NurseLayout from "./layouts/NurseLayout/NurseLayout";
 import StudentListPage from "./pages/Nurse/StudentListPage/StudentListPage";
 import ParentRequest from "./pages/Nurse/ParentRequest/ParentRequest";
+import MedicineStorage from "./pages/Nurse/MedicineStorage/MedicineStorage";
 
 function App() {
   const route = createBrowserRouter([
@@ -33,6 +34,10 @@ function App() {
          {
           path:"parentrequest",
           element: <ParentRequest/>
+        },
+        {
+          path: "medicine",
+          element: <MedicineStorage/>
         }
       ],
     },

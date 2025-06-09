@@ -1,12 +1,21 @@
 import Title from "antd/es/skeleton/Title";
 import React from "react";
 import { Space, Table, Tag } from "antd";
-import { students } from "../../Data/Data";
-const AllStudent = () => {
+const AllStudent = ({ students }) => {
   const columns = [
-    { title: "Student ID", dataIndex: "studentId", key: "studentId" },
-    { title: "Name", dataIndex: "name", key: "name" },
+    { title: "Student ID", dataIndex: "studentCode", key: "studentId" },
+    { title: "Name", dataIndex: "fullName", key: "name" },
     { title: "Age", dataIndex: "age", key: "age" },
+    {
+      title: "Gender",
+      dataIndex: "gender",
+      key: "gender",
+      render: (_, { gender }) => (
+        <Tag color={gender === 'male' ? "green" : "red"}>
+          {gender === 'male' ? "Nam" : "Nu"}
+        </Tag>
+      ),
+    },
     { title: "Condition", dataIndex: "condition", key: "condition" },
     { title: "Class", dataIndex: "class", key: "class" },
     

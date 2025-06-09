@@ -9,6 +9,7 @@ import { MdOutlineSupervisorAccount } from "react-icons/md";
 import { TbEdit } from "react-icons/tb";
 import { BiSupport } from "react-icons/bi";
 import * as Texts from './text'; // Import texts
+import NotificationSection from '../NotificationSection/NotificationSection';
 
 // Placeholder menu items
 const menuItems = [
@@ -26,7 +27,7 @@ const menuItems = [
 
 const Sidebar = ({ selectedItem, setSelectedItem }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [user, setUser] = useState(null);
+    const [user] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -161,10 +162,8 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
             </motion.div>
             
             {/* Main Content Area */}
-            <div className=' bg-[#F3F7FF] lg:pl-[6vw] md:pl-[10vw] sm:pl-[12vw]  pl-[15vw] z-10 grow  p-4'> 
-                <h1 className="text-2xl font-semibold">{Texts.MAIN_CONTENT_TITLE}</h1>
-                <p>{Texts.MAIN_CONTENT_SUBTITLE}</p>
-                {/* Replace "Noti" with your actual page content */}
+            <div className=' bg-[#F3F7FF] lg:pl-[5vw] md:pl-[9vw] sm:pl-[11vw]  pl-[14vw] z-10 grow  p-4'> 
+              <NotificationSection/>
             </div>
         </div>
     )
