@@ -11,6 +11,7 @@ import HealthProfile from "./pages/HealthProfile/HealthProfile";
 import DrugInfo from "./pages/DrugInfo/DrugInfo";
 import VaccineReminder from "./pages/VaccineReminder/VaccineReminder";
 import HealthHistory from "./pages/HealthHistory/HealthHistory";
+import Profile from "./pages/Profile/ProfilePage";
 
 function App() {
   const route = createBrowserRouter([
@@ -45,6 +46,10 @@ function App() {
         {
           path: "/health-history",
           element: <HealthHistory/>,
+        },
+        {
+          path: "/profile",
+          element: <Profile/>,
         }
       ],
     },

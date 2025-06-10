@@ -53,163 +53,304 @@ const reasons = [
 
 const Homepage = () => {
   return (
-    <div style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", color: '#223A6A' }}>
-      
-      <section
-        style={{
-          backgroundImage: 'url(https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1470&q=90)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          padding: '120px 24px 100px',
-          textAlign: 'center',
-          color: 'white',
-          fontWeight: '700',
-          textShadow: '0 0 8px rgba(0,0,0,0.5)',
-        }}
-      >
-        <h1 style={{ fontSize: '38px', maxWidth: '700px', margin: '0 auto' }}>
-          Trao Quyền Cho Phụ Huynh – Chăm Sóc Trẻ Em Khỏe Mạnh Hơn
-        </h1>
-        <p style={{ fontWeight: '400', marginTop: '16px', fontSize: '18px' }}>
-          Theo dõi, quản lý và bảo vệ sức khỏe con bạn một cách dễ dàng và hiệu quả.
-        </p>
-        <p style={{ fontWeight: '400', fontSize: '15px', marginTop: '8px', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
-          Ứng dụng Theo Dõi Sức Khỏe Học Sinh giúp đơn giản hóa việc quản lý hồ sơ y tế, thuốc men và tiêm chủng, mang lại sự an tâm tuyệt đối cho gia đình bạn.
-        </p>
-        <button
-          style={{
-            marginTop: '30px',
-            backgroundColor: '#407CE2',
-            color: 'white',
-            border: 'none',
-            padding: '14px 36px',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontWeight: '700',
-            fontSize: '16px',
-            transition: 'background-color 0.3s ease',
-          }}
-          onMouseOver={e => (e.currentTarget.style.backgroundColor = '#223A6A')}
-          onMouseOut={e => (e.currentTarget.style.backgroundColor = '#407CE2')}
-        >
-          Bắt Đầu Ngay
-        </button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Background with overlay */}
+        <div 
+          className="absolute inset-0 bg-gradient-to-br from-[#223A6A] via-[#407CE2] to-[#5B9BD5] opacity-95"
+        />
+        <div className="absolute inset-0 bg-black/20" />
+        
+        {/* Decorative elements */}
+        <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-pulse delay-1000" />
+        
+        {/* Content */}
+        <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
+          <div className="mb-8">
+            <div className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 mb-6">
+              <span className="text-white/90 text-sm font-medium">✨ Ứng dụng chăm sóc sức khỏe #1 cho gia đình</span>
+            </div>
+            
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+              Trao Quyền Cho 
+              <span className="block bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent">
+                Phụ Huynh
+              </span>
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-white/90 mb-4 max-w-3xl mx-auto">
+              Chăm Sóc Trẻ Em Khỏe Mạnh Hơn
+            </p>
+            
+            <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto leading-relaxed">
+              Theo dõi, quản lý và bảo vệ sức khỏe con bạn một cách dễ dàng và hiệu quả với công nghệ hiện đại nhất.
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <button className="group bg-white text-[#223A6A] px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-50 transform hover:scale-105 transition-all duration-300 shadow-2xl">
+              <span className="flex items-center gap-2">
+                Bắt Đầu Ngay
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </span>
+            </button>
+            
+            <button className="text-white border-2 border-white/30 px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-white/10 transition-all duration-300">
+              Xem Demo
+            </button>
+          </div>
+          
+          <div className="mt-12 flex items-center justify-center gap-8 text-white/70">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-white">10,000+</div>
+              <div className="text-sm">Gia đình tin tùng</div>
+            </div>
+            <div className="w-px h-8 bg-white/30" />
+            <div className="text-center">
+              <div className="text-2xl font-bold text-white">99.9%</div>
+              <div className="text-sm">Độ tin cậy</div>
+            </div>
+            <div className="w-px h-8 bg-white/30" />
+            <div className="text-center">
+              <div className="text-2xl font-bold text-white">24/7</div>
+              <div className="text-sm">Hỗ trợ</div>
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* Key Features */}
-<section style={{ padding: '60px 24px', maxWidth: '1200px', margin: '0 auto' }}>
-  <h2 style={{ fontWeight: '700', fontSize: '24px', textAlign: 'center', marginBottom: '48px', color: '#223A6A' }}>Tính Năng Nổi Bật</h2>
-  <div
-    style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(3, 1fr)', 
-      gap: '32px',
-    }}
-  >
-    {features.map(({ img, title, desc }) => (
-      <div
-        key={title}
-        style={{
-          border: '1px solid #e5e7eb',
-          borderRadius: '12px',
-          padding: '24px 20px',
-          textAlign: 'center',
-          backgroundColor: 'white',
-          boxShadow: '0 2px 8px rgba(64, 124, 226, 0.1)',
-          transition: 'transform 0.2s ease',
-        }}
-        onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-6px)')}
-        onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}
-      >
-        <img src={img} alt={title} style={{ width: '84px', height: '84px', objectFit: 'contain', marginBottom: '16px' }} />
-        <h3 style={{ fontWeight: '700', fontSize: '18px', marginBottom: '12px', color: '#407CE2' }}>{title}</h3>
-        <p style={{ fontSize: '13px', color: '#6b7280', lineHeight: '1.5' }}>{desc}</p>
-      </div>
-    ))}
-  </div>
-</section>
-
-      <section
-        style={{
-          padding: '0 24px 80px',
-          maxWidth: '1200px',
-          margin: '0 auto',
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '48px',
-          alignItems: 'center',
-          color: '#223A6A',
-        }}
-      >
-        <div style={{ flex: '1 1 420px', minWidth: '320px' }}>
-          <h2 style={{ fontWeight: '700', fontSize: '22px', marginBottom: '20px', color: '#223A6A' }}>
-            Tại Sao Nên Chọn Ứng Dụng Theo Dõi Sức Khỏe Học Sinh?
-          </h2>
-          <p style={{ fontSize: '15px', color: '#374151', marginBottom: '32px' }}>
-            Giúp bạn chủ động và tổ chức tốt hơn trong việc chăm sóc sức khỏe con yêu. Trải nghiệm sự tiện lợi với tất cả thông tin quan trọng trong tầm tay.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '20px' }}>
-            {reasons.map(({ title, desc }) => (
+      {/* Features Section */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-[#223A6A] mb-6">
+              Tính Năng 
+              <span className="text-[#407CE2]"> Nổi Bật</span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Khám phá những tính năng được thiết kế đặc biệt để hỗ trợ phụ huynh chăm sóc sức khỏe con em một cách tốt nhất
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
               <div
-                key={title}
-                style={{
-                  backgroundColor: 'white',
-                  padding: '16px',
-                  borderRadius: '10px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 6px rgba(34, 58, 106, 0.1)',
-                  transition: 'box-shadow 0.3s ease',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 12px rgba(64, 124, 226, 0.25)')}
-                onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 1px 6px rgba(34, 58, 106, 0.1)')}
+                key={feature.title}
+                className="group bg-gradient-to-br from-white to-blue-50/50 rounded-3xl p-8 border border-blue-100 hover:border-[#407CE2]/30 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
               >
-                <h4 style={{ fontWeight: '700', fontSize: '14px', marginBottom: '8px', color: '#407CE2' }}>{title}</h4>
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>{desc}</p>
+                <div className="relative mb-6">
+                  <div className="w-20 h-20 bg-gradient-to-br from-[#407CE2] to-[#223A6A] rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <img src={feature.img} alt={feature.title} className="w-10 h-10 object-contain" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">{index + 1}</span>
+                  </div>
+                </div>
+                
+                <h3 className="text-xl font-bold text-[#223A6A] mb-4 group-hover:text-[#407CE2] transition-colors">
+                  {feature.title}
+                </h3>
+                
+                <p className="text-gray-600 leading-relaxed">
+                  {feature.desc}
+                </p>
+                
+                <div className="mt-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <button className="text-[#407CE2] font-semibold text-sm hover:underline">
+                    Tìm hiểu thêm →
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
+      </section>
 
-        <div style={{ flex: '1 1 420px', minWidth: '320px' }}>
-          <img
-            src={healthcareimg}
-            style={{ width: '100%', borderRadius: '16px', objectFit: 'cover', boxShadow: '0 8px 24px rgba(34, 58, 106, 0.15)' }}
-          />
+      {/* Why Choose Us Section */}
+      <section className="py-20 px-6 bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <div className="inline-flex items-center bg-[#407CE2]/10 text-[#407CE2] px-4 py-2 rounded-full text-sm font-semibold mb-6">
+                ⭐ Tại sao chọn chúng tôi?
+              </div>
+              
+              <h2 className="text-4xl md:text-5xl font-bold text-[#223A6A] mb-6 leading-tight">
+                Ứng Dụng Theo Dõi Sức Khỏe 
+                <span className="text-[#407CE2]"> Học Sinh</span>
+              </h2>
+              
+              <p className="text-xl text-gray-600 mb-10 leading-relaxed">
+                Giúp bạn chủ động và tổ chức tốt hơn trong việc chăm sóc sức khỏe con yêu. 
+                Trải nghiệm sự tiện lợi với tất cả thông tin quan trọng trong tầm tay.
+              </p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {reasons.map((reason, index) => (
+                  <div
+                    key={reason.title}
+                    className="bg-white rounded-2xl p-6 border border-blue-100 hover:border-[#407CE2]/30 hover:shadow-lg transition-all duration-300 group"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-gradient-to-br from-[#407CE2] to-[#223A6A] rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                        <span className="text-white font-bold text-sm">{index + 1}</span>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-[#223A6A] mb-2 group-hover:text-[#407CE2] transition-colors">
+                          {reason.title}
+                        </h4>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          {reason.desc}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="relative z-10">
+                <img
+                  src={healthcareimg}
+                  alt="Healthcare App"
+                  className="w-full rounded-3xl shadow-2xl object-cover"
+                />
+              </div>
+              
+              {/* Decorative elements */}
+              <div className="absolute -top-8 -left-8 w-24 h-24 bg-[#407CE2]/20 rounded-full blur-xl" />
+              <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-[#223A6A]/20 rounded-full blur-xl" />
+              
+              {/* Floating cards */}
+              {/* <div className="absolute -top-4 left-4 bg-white rounded-2xl p-4 shadow-xl border border-blue-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-green-600 text-xl">✓</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-sm text-gray-800">Tiêm chủng hoàn thành</div>
+                    <div className="text-xs text-gray-500">Vắc-xin COVID-19</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="absolute -bottom-4 right-4 bg-white rounded-2xl p-4 shadow-xl border border-blue-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 text-xl">📊</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-sm text-gray-800">Theo dõi sức khỏe</div>
+                    <div className="text-xs text-gray-500">Cập nhật hàng ngày</div>
+                  </div>
+                </div>
+              </div> */}
+            </div>
+          </div>
         </div>
       </section>
 
-<section
-  style={{
-    background: 'linear-gradient(90deg, #223A6A 0%, #407CE2 100%)',
-    color: 'white',
-    textAlign: 'center',
-    padding: '48px 24px',
-    fontWeight: '700',
-  }}
->
-  <h2 style={{ fontSize: '22px', marginBottom: '14px' }}>Sẵn Sàng Làm Chủ Sức Khỏe?</h2>
-  <p style={{ fontWeight: '400', fontSize: '16px', marginBottom: '28px' }}>
-    Tham gia cùng hàng ngàn phụ huynh đang đơn giản hóa việc quản lý sức khỏe cho con em mình mỗi ngày.
-  </p>
-  <button
-    style={{
-      backgroundColor: '#407CE2',
-      color: 'white',
-      border: 'none',
-      padding: '14px 40px',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      fontWeight: '700',
-      fontSize: '16px',
-      transition: 'background-color 0.3s ease',
-    }}
-    onMouseOver={e => (e.currentTarget.style.backgroundColor = '#1b2a52')}
-    onMouseOut={e => (e.currentTarget.style.backgroundColor = '#407CE2')}
-  >
-    Tham Gia Ngay
-  </button>
-</section>
-<Footer/>
+      {/* CTA Section */}
+      <section className="py-20 px-6 bg-gradient-to-r from-[#223A6A] to-[#407CE2] relative overflow-hidden">
+        {/* Decorative background */}
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-pulse delay-1000" />
+        </div>
+        
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            Sẵn Sàng Làm Chủ 
+            <span className="block text-yellow-300">Sức Khỏe?</span>
+          </h2>
+          
+          <p className="text-xl text-white/90 mb-10 leading-relaxed max-w-2xl mx-auto">
+            Tham gia cùng hàng ngàn phụ huynh đang đơn giản hóa việc quản lý sức khỏe 
+            cho con em mình mỗi ngày.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+            <button className="group bg-white text-[#223A6A] px-10 py-4 rounded-2xl font-bold text-lg hover:bg-gray-50 transform hover:scale-105 transition-all duration-300 shadow-2xl">
+              <span className="flex items-center gap-2">
+                Tham Gia Ngay
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </span>
+            </button>
+            
+            <button className="text-white border-2 border-white/30 px-10 py-4 rounded-2xl font-semibold text-lg hover:bg-white/10 transition-all duration-300">
+              Liên Hệ Tư Vấn
+            </button>
+          </div>
+          
+          {/* Trust indicators */}
+          <div className="flex flex-wrap justify-center items-center gap-8 text-white/70 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-yellow-400">⭐⭐⭐⭐⭐</span>
+              <span>4.9/5 từ 1,200+ đánh giá</span>
+            </div>
+            <div className="hidden sm:block w-px h-4 bg-white/30" />
+            <div>✅ Miễn phí 30 ngày đầu</div>
+            <div className="hidden sm:block w-px h-4 bg-white/30" />
+            <div>🔒 Bảo mật tuyệt đối</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-[#223A6A] text-white py-12 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="col-span-1 md:col-span-2">
+              <h3 className="text-2xl font-bold mb-4">Ứng Dụng Theo Dõi Sức Khỏe</h3>
+              <p className="text-white/70 mb-6 leading-relaxed">
+                Đồng hành cùng gia đình Việt trong việc chăm sóc và bảo vệ sức khỏe con em.
+              </p>
+              <div className="flex gap-4">
+                <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors cursor-pointer">
+                  <span>f</span>
+                </div>
+                <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors cursor-pointer">
+                  <span>📱</span>
+                </div>
+                <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors cursor-pointer">
+                  <span>📧</span>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Sản phẩm</h4>
+              <ul className="space-y-2 text-white/70">
+                <li><a href="#" className="hover:text-white transition-colors">Theo dõi sức khỏe</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Quản lý thuốc</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Lịch tiêm chủng</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Báo cáo sức khỏe</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Hỗ trợ</h4>
+              <ul className="space-y-2 text-white/70">
+                <li><a href="#" className="hover:text-white transition-colors">Trung tâm trợ giúp</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Liên hệ</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Điều khoản sử dụng</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Chính sách bảo mật</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-white/10 mt-8 pt-8 text-center text-white/70">
+            <p>&copy; 2024 Ứng Dụng Theo Dõi Sức Khỏe Học Sinh. Tất cả quyền được bảo lưu.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
