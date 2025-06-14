@@ -2,7 +2,18 @@ import React from 'react';
 import { Space, Table, Tag, Button } from "antd";
 import { EyeOutlined, EditOutlined } from '@ant-design/icons';
 
-const AccidentCase = ({ accidents }) => {
+const AccidentCase = ({ accidents, searchText }) => {
+  // Filter accidents based on search text
+  const filteredAccidents = accidents.filter(accident => {
+    if (!searchText) return true;
+    
+    const searchLower = searchText.toLowerCase();
+    return (
+      accident.student?.fullName?.toLowerCase().includes(searchLower) ||
+      accident.student?.studentCode?.toLowerCase().includes(searchLower) 
+    );
+  });
+
   const columns = [
     { 
       title: "Accident ID", 
@@ -116,12 +127,17 @@ const AccidentCase = ({ accidents }) => {
 
   return (
     <div className="w-full h-[90%] flex flex-wrap justify-center items-center">
-
       <Table
         columns={columns}
-        dataSource={accidents || []}
+        dataSource={filteredAccidents}
         rowKey="id"
-        pagination={{ pageSize: 5 }}
+        pagination={{ 
+          pageSize: 5,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: (total, range) => 
+            `${range[0]}-${range[1]} of ${total} accidents`
+        }}
         bordered
         scroll={{ x: 1200 }}
         style={{ width: "100%", height: "100%" }}
