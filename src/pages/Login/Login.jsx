@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { FaGoogle, FaFacebookF } from 'react-icons/fa';
+import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { loginUser } from '../../redux/features/userSlice';
 
 const Login = () => {
   const [form, setForm] = useState({
@@ -18,10 +20,26 @@ const Login = () => {
     setShowPassword((prev) => !prev);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Dữ liệu đăng nhập:', form);
-  };
+ const dispatch = useDispatch();
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const resultAction = await dispatch(loginUser(form));
+
+    if (loginUser.fulfilled.match(resultAction)) {
+      console.log('✅ Đăng nhập thành công:', resultAction.payload);
+    } else {
+      console.error('❌ Lỗi từ backend:', resultAction.payload);
+      alert(`❌ Lỗi đăng nhập: ${resultAction.payload}`);
+    }
+  } catch (err) {
+    console.error('🔥 Lỗi hệ thống:', err);
+    alert('Lỗi hệ thống khi gửi yêu cầu.');
+  }
+};
+
+
 
   return (
     <div style={styles.container}>
