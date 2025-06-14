@@ -2,7 +2,18 @@ import React from 'react';
 import { Space, Table, Tag, Button, Image } from "antd";
 import { EyeOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 
-const MedicineDistribution = ({ medicineRequests }) => {
+const MedicineDistribution = ({ medicineRequests, searchText }) => {
+  // Filter medicine requests based on search text
+  const filteredRequests = medicineRequests.filter(request => {
+    if (!searchText) return true;
+    
+    const searchLower = searchText.toLowerCase();
+    return (
+      request.student?.fullName?.toLowerCase().includes(searchLower) ||
+      request.student?.studentCode?.toLowerCase().includes(searchLower) 
+    );
+  });
+
   const columns = [
     { 
       title: "Request ID", 
@@ -145,16 +156,24 @@ const MedicineDistribution = ({ medicineRequests }) => {
 
   return (
     <div className="w-full h-[90%] flex flex-wrap justify-center items-center">
+
       <Table
         columns={columns}
-        dataSource={medicineRequests || []}
+        dataSource={filteredRequests}
         rowKey="id"
-        pagination={{ pageSize: 5 }}
+        pagination={{ 
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: (total, range) => 
+            `${range[0]}-${range[1]} of ${total} requests`
+        }}
         bordered
         scroll={{ x: 1400 }}
         style={{ width: "100%", height: "100%" }}
         size="small"
       />
+      
     </div>
   );
 };
