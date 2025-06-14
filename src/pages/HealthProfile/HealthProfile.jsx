@@ -84,8 +84,15 @@ const HealthProfile = () => {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[#223A6A] mb-2">Hồ Sơ Sức Khỏe</h1>
-          <p className="text-gray-600">Theo dõi và quản lý sức khỏe học sinh</p>
+          <h1 className="text-4xl font-bold mb-4" style={{ 
+            background: 'linear-gradient(135deg, #223A6A 0%, #407CE2 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}>
+            Hồ Sơ Sức Khỏe
+          </h1>
+          <p className="text-gray-600 text-lg">Theo dõi và quản lý sức khỏe học sinh</p>
         </div>
 
         {/* Student Selection */}

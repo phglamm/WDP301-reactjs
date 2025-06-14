@@ -12,6 +12,7 @@ import StudentListPage from "./pages/Nurse/StudentListPage/StudentListPage";
 import ParentRequest from "./pages/Nurse/ParentRequest/ParentRequest";
 import MedicineStorage from "./pages/Nurse/MedicineStorage/MedicineStorage";
 import HealthHistory from "./pages/HealthHistory/HealthHistory";
+import Profile from "./pages/Profile/ProfilePage";
 
 function App() {
   const route = createBrowserRouter([
@@ -46,6 +47,10 @@ function App() {
         {
           path: "/health-history",
           element: <HealthHistory />,
+        },
+        {
+          path: "/profile",
+          element: <Profile />,
         },
       ],
     },
