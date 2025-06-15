@@ -1,13 +1,26 @@
-import React, { useState, useEffect } from "react";
-import { Table, Select, Button, message, Card, Space, Tag, Modal } from "antd";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Table,
+  Select,
+  Button,
+  message,
+  Card,
+  Space,
+  Tag,
+  Modal,
+  Upload,
+} from "antd";
 import {
   UserOutlined,
   MedicineBoxOutlined,
   CheckOutlined,
+  UploadOutlined,
+  InboxOutlined,
 } from "@ant-design/icons";
 import assignService from "../../../services/AssignNurseRequest/AssignNurseRequest";
 
 const { Option } = Select;
+const { Dragger } = Upload;
 
 export default function ManagerSlotPage() {
   const [classes, setClasses] = useState([]);
@@ -16,6 +29,10 @@ export default function ManagerSlotPage() {
   const [selectedNurse, setSelectedNurse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [assignLoading, setAssignLoading] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [isImportModalVisible, setIsImportModalVisible] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
 
   // Fetch initial data
   useEffect(() => {
@@ -46,6 +63,70 @@ export default function ManagerSlotPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFileSelect = (file) => {
+    // Validate file type
+    const isExcel =
+      file.type ===
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+      file.type === "application/vnd.ms-excel" ||
+      file.name.endsWith(".xlsx") ||
+      file.name.endsWith(".xls");
+
+    if (!isExcel) {
+      message.error("Please select an Excel file (.xlsx or .xls)");
+      return false;
+    }
+
+    // Validate file size (e.g., max 10MB)
+    const isLt10M = file.size / 1024 / 1024 < 10;
+    if (!isLt10M) {
+      message.error("File must be smaller than 10MB");
+      return false;
+    }
+
+    setSelectedFile(file);
+    return false; // Prevent auto upload
+  };
+
+  const importFile = async () => {
+    if (!selectedFile) {
+      message.warning("Please select an Excel file first");
+      return;
+    }
+
+    setImportLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      const response = await assignService.importFile(formData);
+      console.log(response);
+      message.success("File imported successfully!");
+
+      // Refresh data after successful import
+      await fetchData();
+
+      // Close modal and reset file selection
+      setIsImportModalVisible(false);
+      setSelectedFile(null);
+    } catch (error) {
+      message.error("Failed to import file");
+      console.error("Import file error:", error);
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  const handleImportModalOpen = () => {
+    setIsImportModalVisible(true);
+    setSelectedFile(null);
+  };
+
+  const handleImportModalClose = () => {
+    setIsImportModalVisible(false);
+    setSelectedFile(null);
   };
 
   const handleAssignNurse = async () => {
@@ -168,6 +249,17 @@ export default function ManagerSlotPage() {
     }),
   };
 
+  const uploadProps = {
+    name: "file",
+    multiple: false,
+    accept: ".xlsx,.xls",
+    beforeUpload: handleFileSelect,
+    fileList: selectedFile ? [selectedFile] : [],
+    onRemove: () => {
+      setSelectedFile(null);
+    },
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
@@ -203,9 +295,6 @@ export default function ManagerSlotPage() {
                   <Option key={nurse.id} value={nurse.id}>
                     <div className="flex flex-col">
                       <span className="font-medium">{nurse.fullName}</span>
-                      <span className="text-xs text-gray-500">
-                        {nurse.phone} • {nurse.email}
-                      </span>
                     </div>
                   </Option>
                 ))}
@@ -226,6 +315,15 @@ export default function ManagerSlotPage() {
 
               <Button onClick={fetchData} loading={loading} size="large">
                 Refresh
+              </Button>
+
+              <Button
+                onClick={handleImportModalOpen}
+                loading={importLoading}
+                size="large"
+                icon={<UploadOutlined />}
+              >
+                Import Slot for Nurse
               </Button>
             </div>
           </div>
@@ -284,6 +382,59 @@ export default function ManagerSlotPage() {
             </div>
           </Card>
         )}
+
+        {/* Import File Modal */}
+        <Modal
+          title="Import Nurse Slot Data"
+          open={isImportModalVisible}
+          onCancel={handleImportModalClose}
+          footer={[
+            <Button key="cancel" onClick={handleImportModalClose}>
+              Cancel
+            </Button>,
+            <Button
+              key="import"
+              type="primary"
+              loading={importLoading}
+              onClick={importFile}
+              disabled={!selectedFile}
+              icon={<UploadOutlined />}
+            >
+              Import File
+            </Button>,
+          ]}
+          width={600}
+        >
+          <div className="mb-4">
+            <p className="text-gray-600 mb-4">
+              Upload an Excel file (.xlsx or .xls) containing nurse slot data.
+              The file should contain the required format for nurse assignments.
+            </p>
+
+            <Dragger {...uploadProps}>
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text">
+                Click or drag Excel file to this area to upload
+              </p>
+              <p className="ant-upload-hint">
+                Support for .xlsx and .xls files. Maximum file size: 10MB
+              </p>
+            </Dragger>
+
+            {selectedFile && (
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
+                <p className="text-green-800">
+                  <strong>Selected file:</strong> {selectedFile.name}
+                </p>
+                <p className="text-green-600 text-sm">
+                  Size: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
+            )}
+          </div>
+        </Modal>
       </div>
     </div>
   );

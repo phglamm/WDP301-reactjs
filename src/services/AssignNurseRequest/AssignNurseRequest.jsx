@@ -8,6 +8,7 @@ const assignService = {
   fetchNurses: () => request("GET", "user/nurse"),
   assignNurseToClasses: (requestData) =>
     request("POST", `medicine-request/assign`, requestData),
+  importFile: (data) => request("POST", "slot/import", data),
 };
 
 export default assignService;
