@@ -13,6 +13,8 @@ import ParentRequest from "./pages/Nurse/ParentRequest/ParentRequest";
 import MedicineStorage from "./pages/Nurse/MedicineStorage/MedicineStorage";
 import HealthHistory from "./pages/HealthHistory/HealthHistory";
 import Profile from "./pages/Profile/ProfilePage";
+import ManagerLayout from "./layouts/ManagerLayout/ManagerLayout";
+import ManagerSlotPage from "./pages/ManagerPages/ManagerSlotPage/ManagerSlotPage";
 
 function App() {
   const route = createBrowserRouter([
@@ -73,6 +75,16 @@ function App() {
         {
           path: "medicine",
           element: <MedicineStorage />,
+        },
+      ],
+    },
+    {
+      path: "/manager",
+      element: <ManagerLayout />,
+      children: [
+        {
+          path: "manager-slot",
+          element: <ManagerSlotPage />,
         },
       ],
     },
