@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Weight, Ruler, Droplet, Eye, Activity, FileText, Plus, History, AlertTriangle, CheckCircle } from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
 
 const HealthProfile = () => {
   const [selectedStudent, setSelectedStudent] = useState('');
@@ -233,48 +234,55 @@ const HealthProfile = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedStudent || selectedStudent === '') {
-      alert('Vui lòng chọn học sinh trước khi lưu hồ sơ');
-      return;
-    }
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!selectedStudent || selectedStudent === '') {
+    toast.error('Vui lòng chọn học sinh trước khi lưu hồ sơ');
+    return;
+  }
 
-    try {
-      const response = await fetch('https://wdp301-se1752-be.onrender.com/health-profile', {
-        method: 'POST',
-        headers: {
-          'Authorization': token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...formData,
-          studentId: selectedStudent
-        })
+  try {
+    const response = await fetch('https://wdp301-se1752-be.onrender.com/health-profile', {
+      method: 'POST',
+      headers: {
+        'Authorization': token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        studentId: selectedStudent,
+        weight: Number(formData.weight),
+        height: Number(formData.height),
+        bloodType: formData.bloodType,
+        vision: Number(formData.vision),
+        hearing: Number(formData.spine),
+        allergies: formData.allergies,
+        note: formData.notes
+      })
+    });
+
+    if (response.ok) {
+      toast.success('Lưu hồ sơ thành công!');
+      setFormData({
+        weight: '',
+        height: '',
+        bloodType: 'A',
+        vision: '',
+        spine: '',
+        allergies: '',
+        notes: ''
       });
-
-      if (response.ok) {
-        alert('Lưu hồ sơ thành công!');
-        // Reset form
-        setFormData({
-          weight: '',
-          height: '',
-          bloodType: 'A',
-          vision: '',
-          spine: '',
-          allergies: '',
-          notes: ''
-        });
-        // Refresh health history
-        await fetchHealthHistory(selectedStudent);
-      } else {
-        alert('Có lỗi xảy ra khi lưu hồ sơ');
-      }
-    } catch (error) {
-      console.error('Error submitting health profile:', error);
-      alert('Có lỗi xảy ra khi lưu hồ sơ');
+      await fetchHealthHistory(selectedStudent);
+    } else {
+      const error = await response.json();
+      console.error('Lỗi:', error);
+      toast.error(error.message || 'Lưu hồ sơ thất bại');
     }
-  };
+  } catch (error) {
+    console.error('Error submitting health profile:', error);
+    toast.error('Có lỗi xảy ra khi lưu hồ sơ');
+  }
+};
+
 
   const calculateBMI = (weight, height) => {
     if (!weight || !height) return null;
@@ -307,11 +315,20 @@ const HealthProfile = () => {
     <div className="min-h-screen" style={{
       background: 'linear-gradient(135deg, #ffffff 0%, #d4e4ff 50%, #b3ccff 100%)'
     }}>
+            <Toaster position="top-center" reverseOrder={false} />
+
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[#223A6A] mb-2">Hồ Sơ Sức Khỏe</h1>
-          <p className="text-gray-600">Theo dõi và quản lý sức khỏe học sinh</p>
+          <h1 className="text-4xl font-bold mb-4" style={{ 
+            background: 'linear-gradient(135deg, #223A6A 0%, #407CE2 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}>
+            Hồ Sơ Sức Khỏe
+          </h1>
+          <p className="text-gray-600 text-lg">Theo dõi và quản lý sức khỏe học sinh</p>
         </div>
 
         {/* Student Selection */}
