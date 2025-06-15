@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const API_BASE_URL = "https://wdp301-se1752-be.onrender.com/";
 const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaG9uZSI6IjAxMjM0NTY3ODkiLCJzdWIiOjksInJvbGUiOiJwYXJlbnQiLCJpYXQiOjE3NDk0MTg3NDAsImV4cCI6MTc1MjAxMDc0MH0.2ayWwQle6ok8ocx0gEBt1sxUzdgjXNF5Jx8AsQRJkxA";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaG9uZSI6IjAxMjM0NTY3ODkiLCJzdWIiOjksInJvbGUiOiJwYXJlbnQiLCJpYXQiOjE3NDk5MDg3NDMsImV4cCI6MTc1MjUwMDc0M30.vlDuauC_BDM4B1WQjyTY4UQrHTlD6lxIioTpRAr3GK8";
 
 const request = async (method, url, data = null, headers = {}, params = {}) => {
   //   const token = Cookies.get("token");
