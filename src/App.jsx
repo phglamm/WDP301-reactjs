@@ -1,5 +1,7 @@
 import "./index.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { useEffect } from "react";
 import UserLayout from "./layouts/UserLayout/UserLayout";
 import Homepage from "./pages/Homepage/Homepage";
 import Login from "./pages/Login/Login";
@@ -12,46 +14,120 @@ import StudentListPage from "./pages/Nurse/StudentListPage/StudentListPage";
 import ParentRequest from "./pages/Nurse/ParentRequest/ParentRequest";
 import MedicineStorage from "./pages/Nurse/MedicineStorage/MedicineStorage";
 import HealthHistory from "./pages/HealthHistory/HealthHistory";
+import { logout } from "./redux/features/userSlice";
+
+// Protected Route Component
+function ProtectedRoute({ children, allowedRoles = [], requireAuth = true }) {
+  const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
+  const userRole = useSelector((state) => state.user.user?.role);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    // Check if user needs to be authenticated
+    if (requireAuth && !isAuthenticated) {
+      logOut();
+      return;
+    }
+
+    // Check if user has the required role
+    if (isAuthenticated && allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
+      logOut();
+      return;
+    }
+  }, [isAuthenticated, userRole, allowedRoles, requireAuth, dispatch]);
+
+  const logOut = () => {
+    // Dispatch logout action - adjust this based on your Redux store structure
+    dispatch(logout()); // or dispatch(logout()) if you have a logout action creator
+    
+    // Clear any stored tokens/data
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
+    // Navigate to login will be handled by the Navigate component below
+  };
+
+  // If not authenticated and auth is required, redirect to login
+  if (requireAuth && !isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // If authenticated but doesn't have required role, redirect to login
+  if (isAuthenticated && allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
 
 function App() {
-  const route = createBrowserRouter([
+  const router = createBrowserRouter([
+    // Public routes (no authentication required)
+    {
+      path: "/login",
+      element: <Login />,
+    },
+    {
+      path: "/register",
+      element: <Register />,
+    },
+    
+    // Protected User Routes
     {
       path: "/",
-      element: <UserLayout />,
+      element: (
+        <ProtectedRoute allowedRoles={['user', 'parent', 'admin']}>
+          <UserLayout />
+        </ProtectedRoute>
+      ),
       children: [
         {
           path: "",
           element: <Homepage />,
         },
         {
-          path: "/register",
-          element: <Register />,
+          path: "health-profile",
+          element: (
+            <ProtectedRoute allowedRoles={['user', 'parent', 'admin']}>
+              <HealthProfile />
+            </ProtectedRoute>
+          ),
         },
         {
-          path: "/login",
-          element: <Login />,
+          path: "drug-information",
+          element: (
+            <ProtectedRoute allowedRoles={['user', 'parent', 'admin']}>
+              <DrugInfo />
+            </ProtectedRoute>
+          ),
         },
         {
-          path: "/health-profile",
-          element: <HealthProfile />,
+          path: "vaccine-reminder",
+          element: (
+            <ProtectedRoute allowedRoles={['user', 'parent', 'admin']}>
+              <VaccineReminder />
+            </ProtectedRoute>
+          ),
         },
         {
-          path: "/drug-information",
-          element: <DrugInfo />,
-        },
-        {
-          path: "/vaccine-reminder",
-          element: <VaccineReminder />,
-        },
-        {
-          path: "/health-history",
-          element: <HealthHistory />,
+          path: "health-history",
+          element: (
+            <ProtectedRoute allowedRoles={['user', 'parent', 'admin']}>
+              <HealthHistory />
+            </ProtectedRoute>
+          ),
         },
       ],
     },
+
+    // Protected Nurse Routes
     {
       path: "/nurse",
-      element: <NurseLayout />,
+      element: (
+        <ProtectedRoute allowedRoles={['nurse', 'admin']}>
+          <NurseLayout />
+        </ProtectedRoute>
+      ),
       children: [
         {
           path: "",
@@ -59,21 +135,43 @@ function App() {
         },
         {
           path: "studentlist",
-          element: <StudentListPage />,
+          element: (
+            <ProtectedRoute allowedRoles={['nurse', 'admin']}>
+              <StudentListPage />
+            </ProtectedRoute>
+          ),
         },
         {
           path: "parentrequest",
-          element: <ParentRequest />,
+          element: (
+            <ProtectedRoute allowedRoles={['nurse', 'admin']}>
+              <ParentRequest />
+            </ProtectedRoute>
+          ),
         },
         {
           path: "medicine",
-          element: <MedicineStorage />,
+          element: (
+            <ProtectedRoute allowedRoles={['nurse', 'admin']}>
+              <MedicineStorage />
+            </ProtectedRoute>
+          ),
         },
       ],
     },
+
+    // Catch all route - redirect to login if not authenticated, otherwise to home
+    {
+      path: "*",
+      element: (
+        <ProtectedRoute>
+          <Navigate to="/" replace />
+        </ProtectedRoute>
+      ),
+    },
   ]);
 
-  return <RouterProvider router={route} />;
+  return <RouterProvider router={router} />;
 }
 
 export default App;

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { logout } from '../../redux/features/userSlice'
 import { IoHomeOutline, IoLogOutOutline, IoDocumentTextOutline, IoSettingsOutline, IoNotificationsOutline  } from "react-icons/io5";
 import { LuUserSearch } from "react-icons/lu";
 import { TiMessages } from "react-icons/ti";
@@ -21,7 +23,7 @@ const menuItems = [
     { id: 'Tiem chung', label: 'Tiêm Chủng ', icon: <IoSettingsOutline/>, link:'/nurse/vaccination' },
     { id: 'Hỗ trợ', label: Texts.SUPPORT, icon: <BiSupport />, link:'/nurse/support' },
     { id: 'Điều khoản/chính sách', label: Texts.TERMS_POLICY, icon: <IoDocumentTextOutline />, link:'/nurse/terms-policy' },
-    { id: 'Đăng xuất', label: Texts.LOGOUT, icon: <IoLogOutOutline />, link:'/logout' },
+    { id: 'Đăng xuất', label: Texts.LOGOUT, icon: <IoLogOutOutline />, action: 'logout' },
 ];
 
 
@@ -29,12 +31,22 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [user] = useState(null);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     useEffect(() => {
        setSelectedItem('Trang Chủ')
-    }, []);
+    }, [ setSelectedItem ]);
+
+    const handleLogOut = () => {
+        dispatch(logout());
+    };
 
     const handleNavigation = (item) => {
+        if (item.action === 'logout') {
+            handleLogOut();
+            return;
+        }
+        
         setSelectedItem(item.label);
         navigate(item.link);
     };

@@ -1,6 +1,6 @@
 import React from 'react'
 import { IoMdMail } from "react-icons/io";
-import { motion } from 'framer-motion';
+import  motion  from 'framer-motion';
 import { FaClock, FaCheckCircle, FaExclamationTriangle, FaCalendarAlt } from "react-icons/fa";
 const CardData = ({title, value, subTitle, onClick}) => {
   

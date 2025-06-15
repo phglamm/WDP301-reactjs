@@ -1,32 +1,101 @@
 import React, { useState } from 'react';
 import { FaGoogle, FaFacebookF } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { login } from '../../redux/features/userSlice';
+import authService from '../../services/authService';
 
 const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
   const [form, setForm] = useState({
     phone: '',
     password: '',
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    // Clear error when user starts typing
+    if (error) setError('');
   };
 
   const toggleShowPassword = () => {
     setShowPassword((prev) => !prev);
   };
 
+  const handleLogin = async (form) => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const response = await authService.login(form);
+      console.log('Đăng nhập thành công:', response);
+      
+      // Dispatch login action to Redux store
+      dispatch(login(response));
+      
+      // Navigate based on user role
+      const userRole = response.user?.role;
+      switch (userRole) {
+        case 'nurse':
+          navigate('/nurse');
+          break;
+        case 'parent':
+          navigate('/');
+          break;
+        case 'admin':
+          navigate('/admin/dashboard');
+          break;
+        default:
+          navigate('/dashboard');
+      }
+      
+    } catch (error) {
+      console.error('Lỗi đăng nhập:', error);
+      
+      // Handle different error types
+      if (error.response?.status === 401) {
+        setError('Số điện thoại hoặc mật khẩu không đúng.');
+      } else if (error.response?.status === 404) {
+        setError('Tài khoản không tồn tại.');
+      } else if (error.response?.status >= 500) {
+        setError('Lỗi máy chủ. Vui lòng thử lại sau.');
+      } else {
+        setError('Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Dữ liệu đăng nhập:', form);
+    
+    // Basic validation
+    if (!form.phone.trim() || !form.password.trim()) {
+      setError('Vui lòng nhập đầy đủ thông tin.');
+      return;
+    }
+    
+    handleLogin(form);
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.formWrapper}>
         <h2 style={styles.title}>Đăng nhập tài khoản</h2>
+        
+        {error && (
+          <div style={styles.errorMessage}>
+            {error}
+          </div>
+        )}
+        
         <form style={styles.form} onSubmit={handleSubmit}>
           <input
             type="tel"
@@ -34,9 +103,13 @@ const Login = () => {
             placeholder="Số điện thoại"
             value={form.phone}
             onChange={handleChange}
-            style={styles.input}
+            style={{
+              ...styles.input,
+              borderColor: error ? '#ff4d4f' : '#407CE2'
+            }}
             pattern="[0-9]{9,12}"
             title="Vui lòng nhập số điện thoại hợp lệ (9-12 chữ số)"
+            disabled={loading}
             required
           />
           <input
@@ -45,7 +118,11 @@ const Login = () => {
             placeholder="Mật khẩu"
             value={form.password}
             onChange={handleChange}
-            style={styles.input}
+            style={{
+              ...styles.input,
+              borderColor: error ? '#ff4d4f' : '#407CE2'
+            }}
+            disabled={loading}
             required
           />
 
@@ -54,12 +131,21 @@ const Login = () => {
               type="checkbox"
               checked={showPassword}
               onChange={toggleShowPassword}
+              disabled={loading}
             />{' '}
             Hiện mật khẩu
           </label>
 
-          <button type="submit" style={styles.loginButton}>
-            Đăng nhập
+          <button 
+            type="submit" 
+            style={{
+              ...styles.loginButton,
+              backgroundColor: loading ? '#ccc' : '#223A6A',
+              cursor: loading ? 'not-allowed' : 'pointer'
+            }}
+            disabled={loading}
+          >
+            {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>
 
           <p style={styles.registerRedirect}>
@@ -84,6 +170,7 @@ const Login = () => {
               justifyContent: 'center',
               gap: 8,
             }}
+            disabled={loading}
           >
             <FaGoogle size={18} /> Google
           </button>
@@ -97,6 +184,7 @@ const Login = () => {
               justifyContent: 'center',
               gap: 8,
             }}
+            disabled={loading}
           >
             <FaFacebookF size={18} /> Facebook
           </button>
@@ -128,6 +216,16 @@ const styles = {
     marginBottom: 24,
     textAlign: 'center',
   },
+  errorMessage: {
+    backgroundColor: '#ffebee',
+    color: '#c62828',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    fontSize: 14,
+    textAlign: 'center',
+    border: '1px solid #ffcdd2',
+  },
   form: {
     display: 'flex',
     flexDirection: 'column',
@@ -140,6 +238,7 @@ const styles = {
     fontSize: 14,
     outline: 'none',
     color: '#222',
+    transition: 'border-color 0.3s ease',
   },
   showPasswordLabel: {
     fontSize: 14,
