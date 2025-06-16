@@ -6,14 +6,16 @@ import AccidentCase from "./AccidentCase/AccidentCase";
 import CardData from "../../../components/CardData/CardData";
 import studentService from "../../../services/StudentService/StudentService";
 import Search from "antd/es/input/Search";
+import { useMedicineRequest } from "../ParentRequest/useMedicineRequest";
 
 const StudentListPage = () => {
   const [selectedTab, setSelectedTab] = useState("Tất Cả");
   const [students, setStudents] = useState([]);
   const [accidents, setAccidents] = useState([]);
-  const [medicineRequests, setMedicineRequests] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [filterType, setFilterType] = useState('all');
+
+  const {medicineRequestToday } = useMedicineRequest();
 
   const generalReport = [
     {
@@ -23,7 +25,7 @@ const StudentListPage = () => {
     },
     {
       title: "Học Sinh Nhận Thuốc",
-      value: medicineRequests.length,
+      value: medicineRequestToday.length,
       subtitle: "trong hôm nay",
     },
     {
@@ -88,22 +90,7 @@ const StudentListPage = () => {
       }
     };
 
-    const fetchMedicineRequests = async () => {
-      try {
-        const response = await studentService.getMedicineRequest();
-        if (Array.isArray(response)) {
-          setMedicineRequests(response);
-        } else if (response && Array.isArray(response.data)) {
-          setMedicineRequests(response.data);
-        } else {
-          console.log('Unexpected response structure:', response);
-          setMedicineRequests([]);
-        }
-      } catch (error) {
-        console.error("Error fetching medicine requests:", error);
-        setMedicineRequests([]);
-      }
-    };
+
 
   // Get unique classes from students
   const getUniqueClasses = () => {
@@ -116,7 +103,6 @@ const StudentListPage = () => {
   useEffect(() => {
     fetchStudents();
     fetchAccidents();
-    fetchMedicineRequests();
   }, []);
 
   return (
@@ -183,7 +169,6 @@ const StudentListPage = () => {
         />
       ) : selectedTab === "Phân Phối Thuốc" ? (
         <MedicineDistribution 
-          medicineRequests={medicineRequests} 
           searchText={searchText}
         />
       ) : selectedTab === "Các Trường Hợp Tai Nạn" ? (
