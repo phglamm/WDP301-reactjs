@@ -133,8 +133,6 @@ const AccidentCase = ({ accidents, searchText }) => {
         rowKey="id"
         pagination={{ 
           pageSize: 5,
-          showSizeChanger: true,
-          showQuickJumper: true,
           showTotal: (total, range) => 
             `${range[0]}-${range[1]} of ${total} accidents`
         }}

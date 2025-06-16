@@ -1,103 +1,132 @@
-import { Space, Table, Tag } from "antd";
+import { useState, useEffect } from "react";
 import CardData from "../../../components/CardData/CardData";
-import { students } from "../Data/Data";
-import { useState } from "react";
+import { useMedicineRequest } from "./useMedicineRequest";
+import { filterRequests, generateReportData } from "./requestFilters";
+import RequestDetailModal from "../../../components/ParentRequest/RequestDetailModal/RequestDetailModal";
+import CreateRequestModal from "../../../components/ParentRequest/CreateRequestModal/CreateRequestModal";
+import RequestTable from "../../../components/ParentRequest/RequestTable/RequestTable";
+
 
 const ParentRequest = () => {
-  const [selectedCardTitle, setSelectedCardTitle] = useState("Tất cả yêu cầu");
+  const {
+    allMedicineRequest,
+    medicineRequestToday,
+    loading,
+    createRequest,
+    approveRequest,
+    rejectRequest,
+    getRequestById
+  } = useMedicineRequest();
 
-  const columns = [
-    { title: "Student ID", dataIndex: "studentId", key: "studentId" },
-    { title: "Name", dataIndex: "name", key: "name" },
-    { title: "Age", dataIndex: "age", key: "age" },
-    { title: "Condition", dataIndex: "condition", key: "condition" },
-    { title: "Class", dataIndex: "class", key: "class" },
-    
-    {
-      title: "Store Medicine",
-      dataIndex: "isStoreMedicine",
-      key: "isStoreMedicine",
-      render: (_, { isStoreMedicine }) => (
-        <Tag color={isStoreMedicine ? "green" : "red"}>
-          {isStoreMedicine ? "YES" : "NO"}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Action',
-      key: 'action',
-      render: () => (
-        <Space size="middle">
-          <a>View Detail</a>
-        </Space>
-      ),
-    },
-  ];
+  // State management
+  const [selectedCardTitle, setSelectedCardTitle] = useState("Tất cả yêu cầu (trong hôm nay)");
+  const [currentData, setCurrentData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredData, setFilteredData] = useState([]);
+  
+  // Modal states
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+  const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
-  const generalReport = [
-    {
-      title: "Yêu cầu đang xử lý",
-      value: 120,
-      subtitle: "trong hôm nay",
-    },
-    {
-      title: "Yêu cầu đã xử lý",
-      value: 80,
-      subtitle: "trong hôm nay",
-    },
-    {
-      title: "Yêu cầu chưa xử lý",
-      value: 40,
-      subtitle: "trong hôm nay",
-    },
-    {
-      title: "Lịch khám",
-      value: 500,
-      subtitle: "trong trường",
-    },
-  ];
+  // Update current data when medicine requests change
+  useEffect(() => {
+    setCurrentData(medicineRequestToday);
+  }, [medicineRequestToday]);
 
-  const handleCardClick = (title) => {
-    setSelectedCardTitle(title);
+  // Filter data based on search term
+  useEffect(() => {
+    setFilteredData(filterRequests(currentData, searchTerm));
+  }, [searchTerm, currentData]);
+
+  // Event handlers
+  const handleSearch = (value) => {
+    setSearchTerm(value);
   };
 
-return (
+  const handleCardClick = (item) => {
+    setCurrentData(item.data);
+    setSelectedCardTitle(`${item.title} (${item.subtitle})`);
+    setSearchTerm("");
+  };
+
+  const handleCreateClick = () => {
+    setIsCreateModalVisible(true);
+  };
+
+  const handleCreateCancel = () => {
+    setIsCreateModalVisible(false);
+  };
+
+  const handleDetailClick = async (record) => {
+    console.log("Selected record:", record);
+    setDetailLoading(true);
+    setIsDetailModalVisible(true);
+    
+    const requestData = await getRequestById(record.id);
+    if (requestData) {
+      setSelectedRequest(requestData);
+    } else {
+      setIsDetailModalVisible(false);
+    }
+    setDetailLoading(false);
+  };
+
+  const handleDetailCancel = () => {
+    setIsDetailModalVisible(false);
+    setSelectedRequest(null);
+  };
+
+  // Generate report data
+  const generalReport = generateReportData(medicineRequestToday, allMedicineRequest);
+
+  return (
     <div className="w-full h-full pt-[2%]">
-        <div className="w-full flex flex-wrap justify-between items-center mb-4">
-            {generalReport.map((item, index) => (
-                <CardData
-                    key={index}
-                    title={item.title}
-                    value={item.value}
-                    subTitle={item.subtitle}
-                    onClick={() => handleCardClick(item.title)}
-                />
-            ))}
+      <div className="w-full flex flex-wrap justify-between items-center mb-4">
+        {/* Report Cards */}
+        {generalReport.map((item, index) => (
+          <CardData
+            key={index}
+            title={item.title}
+            value={item.value}
+            subTitle={item.subtitle}
+            onClick={() => handleCardClick(item)}
+          />
+        ))}
 
-            <div className="w-full flex flex-wrap justify-center items-center">
-
-                <Table
-                    columns={columns}
-                    dataSource={students}
-                    title={() => (
-                        <div style={{ 
-                            fontSize: '20px', 
-                            fontWeight: 'bold', 
-                            padding: '8px 0'
-                        }}>
-                            {selectedCardTitle}
-                        </div>
-                    )}
-                    rowKey="studentId"
-                    pagination={{ pageSize: 5 }}
-                    bordered
-                    scroll={{ x: "max-content" }}
-                    style={{ width: "100%", height: "100%" }}
-                />
-            </div>
+        {/* Table */}
+        <div className="w-full flex flex-wrap justify-center items-center">
+          <RequestTable
+            data={filteredData}
+            title={selectedCardTitle}
+            searchTerm={searchTerm}
+            onSearch={handleSearch}
+            onCreateClick={handleCreateClick}
+            onDetailClick={handleDetailClick}
+            loading={loading}
+          />
         </div>
+      </div>
+
+      {/* Modals */}
+      <CreateRequestModal
+        visible={isCreateModalVisible}
+        onCancel={handleCreateCancel}
+        onSubmit={createRequest}
+        loading={loading}
+      />
+
+      <RequestDetailModal
+        visible={isDetailModalVisible}
+        onCancel={handleDetailCancel}
+        request={selectedRequest}
+        loading={detailLoading}
+        onApprove={approveRequest}
+        onReject={rejectRequest}
+      />
     </div>
-);
+  );
 };
 
 export default ParentRequest;

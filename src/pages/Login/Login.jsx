@@ -1,50 +1,99 @@
-import React, { useState } from 'react';
-import { FaGoogle, FaFacebookF } from 'react-icons/fa';
-import { useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { loginUser } from '../../redux/features/userSlice';
+import React, { useState } from "react";
+import { FaGoogle, FaFacebookF } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { login } from "../../redux/features/userSlice";
+import authService from "../../services/authService";
+import toast from "react-hot-toast";
 
 const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
-    phone: '',
-    password: '',
+    phone: "",
+    password: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    // Clear error when user starts typing
+    if (error) setError("");
   };
 
   const toggleShowPassword = () => {
     setShowPassword((prev) => !prev);
   };
 
- const dispatch = useDispatch();
+  const handleLogin = async (form) => {
+    try {
+      setLoading(true);
+      setError("");
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const resultAction = await dispatch(loginUser(form));
+      const response = await authService.login(form);
 
-    if (loginUser.fulfilled.match(resultAction)) {
-      console.log('✅ Đăng nhập thành công:', resultAction.payload);
-    } else {
-      console.error('❌ Lỗi từ backend:', resultAction.payload);
-      alert(`❌ Lỗi đăng nhập: ${resultAction.payload}`);
+      // Dispatch login action to Redux store
+      dispatch(login(response));
+      toast.success("Đăng nhập thành công!");
+
+      // Navigate based on user role
+      const userRole = response.user?.role;
+      switch (userRole) {
+        case "nurse":
+          navigate("/nurse");
+          break;
+        case "parent":
+          navigate("/");
+          break;
+        case "admin":
+          navigate("/admin/dashboard");
+          break;
+        default:
+          navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error("Lỗi đăng nhập:", error);
+
+      // Handle different error types
+      if (error.response?.status === 401) {
+        setError("Số điện thoại hoặc mật khẩu không đúng.");
+      } else if (error.response?.status === 404) {
+        setError("Tài khoản không tồn tại.");
+      } else if (error.response?.status >= 500) {
+        setError("Lỗi máy chủ. Vui lòng thử lại sau.");
+      } else {
+        setError(
+          "Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin."
+        );
+      }
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error('🔥 Lỗi hệ thống:', err);
-    alert('Lỗi hệ thống khi gửi yêu cầu.');
-  }
-};
+  };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
+    // Basic validation
+    if (!form.phone.trim() || !form.password.trim()) {
+      setError("Vui lòng nhập đầy đủ thông tin.");
+      return;
+    }
+
+    handleLogin(form);
+  };
 
   return (
     <div style={styles.container}>
       <div style={styles.formWrapper}>
         <h2 style={styles.title}>Đăng nhập tài khoản</h2>
+
+        {error && <div style={styles.errorMessage}>{error}</div>}
+
         <form style={styles.form} onSubmit={handleSubmit}>
           <input
             type="tel"
@@ -52,18 +101,26 @@ const handleSubmit = async (e) => {
             placeholder="Số điện thoại"
             value={form.phone}
             onChange={handleChange}
-            style={styles.input}
+            style={{
+              ...styles.input,
+              borderColor: error ? "#ff4d4f" : "#407CE2",
+            }}
             pattern="[0-9]{9,12}"
             title="Vui lòng nhập số điện thoại hợp lệ (9-12 chữ số)"
+            disabled={loading}
             required
           />
           <input
-            type={showPassword ? 'text' : 'password'}
+            type={showPassword ? "text" : "password"}
             name="password"
             placeholder="Mật khẩu"
             value={form.password}
             onChange={handleChange}
-            style={styles.input}
+            style={{
+              ...styles.input,
+              borderColor: error ? "#ff4d4f" : "#407CE2",
+            }}
+            disabled={loading}
             required
           />
 
@@ -72,16 +129,25 @@ const handleSubmit = async (e) => {
               type="checkbox"
               checked={showPassword}
               onChange={toggleShowPassword}
-            />{' '}
+              disabled={loading}
+            />{" "}
             Hiện mật khẩu
           </label>
 
-          <button type="submit" style={styles.loginButton}>
-            Đăng nhập
+          <button
+            type="submit"
+            style={{
+              ...styles.loginButton,
+              backgroundColor: loading ? "#ccc" : "#223A6A",
+              cursor: loading ? "not-allowed" : "pointer",
+            }}
+            disabled={loading}
+          >
+            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
 
           <p style={styles.registerRedirect}>
-            Chưa có tài khoản?{' '}
+            Chưa có tài khoản?{" "}
             <Link to="/register" style={styles.registerLink}>
               Đăng ký ngay
             </Link>
@@ -95,26 +161,28 @@ const handleSubmit = async (e) => {
             style={{
               ...styles.socialButton,
               marginRight: 16,
-              borderColor: '#407CE2',
-              color: '#407CE2',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              borderColor: "#407CE2",
+              color: "#407CE2",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               gap: 8,
             }}
+            disabled={loading}
           >
             <FaGoogle size={18} /> Google
           </button>
           <button
             style={{
               ...styles.socialButton,
-              borderColor: '#223A6A',
-              color: '#223A6A',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              borderColor: "#223A6A",
+              color: "#223A6A",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               gap: 8,
             }}
+            disabled={loading}
           >
             <FaFacebookF size={18} /> Facebook
           </button>
@@ -127,86 +195,97 @@ const handleSubmit = async (e) => {
 const styles = {
   container: {
     maxWidth: 400,
-    margin: '60px auto',
+    margin: "60px auto",
     padding: 30,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: "#f8f8f8",
     borderRadius: 16,
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    color: '#222',
-    boxShadow: '0 8px 24px rgba(34, 58, 106, 0.1)',
+    color: "#222",
+    boxShadow: "0 8px 24px rgba(34, 58, 106, 0.1)",
   },
   formWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
+    display: "flex",
+    flexDirection: "column",
   },
   title: {
-    color: '#223A6A',
-    fontWeight: '700',
+    color: "#223A6A",
+    fontWeight: "700",
     fontSize: 22,
     marginBottom: 24,
-    textAlign: 'center',
+    textAlign: "center",
+  },
+  errorMessage: {
+    backgroundColor: "#ffebee",
+    color: "#c62828",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    fontSize: 14,
+    textAlign: "center",
+    border: "1px solid #ffcdd2",
   },
   form: {
-    display: 'flex',
-    flexDirection: 'column',
+    display: "flex",
+    flexDirection: "column",
   },
   input: {
     padding: 12,
     marginBottom: 16,
     borderRadius: 12,
-    border: '1px solid #407CE2',
+    border: "1px solid #407CE2",
     fontSize: 14,
-    outline: 'none',
-    color: '#222',
+    outline: "none",
+    color: "#222",
+    transition: "border-color 0.3s ease",
   },
   showPasswordLabel: {
     fontSize: 14,
-    color: '#223A6A',
+    color: "#223A6A",
     marginBottom: 24,
-    userSelect: 'none',
+    userSelect: "none",
   },
   loginButton: {
-    backgroundColor: '#223A6A',
-    color: '#fff',
-    fontWeight: '700',
+    backgroundColor: "#223A6A",
+    color: "#fff",
+    fontWeight: "700",
     borderRadius: 24,
     padding: 12,
-    border: 'none',
-    cursor: 'pointer',
+    border: "none",
+    cursor: "pointer",
     marginBottom: 8,
-    transition: 'background-color 0.3s ease',
+    transition: "background-color 0.3s ease",
   },
   registerRedirect: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 14,
-    color: '#223A6A',
+    color: "#223A6A",
     marginTop: 8,
   },
   registerLink: {
-    color: '#407CE2',
-    textDecoration: 'none',
-    fontWeight: '600',
-    cursor: 'pointer',
+    color: "#407CE2",
+    textDecoration: "none",
+    fontWeight: "600",
+    cursor: "pointer",
   },
   orConnect: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 16,
     fontSize: 13,
-    color: '#223A6A',
+    color: "#223A6A",
   },
   socialButtons: {
-    display: 'flex',
-    justifyContent: 'center',
+    display: "flex",
+    justifyContent: "center",
   },
   socialButton: {
     flex: 1,
     padding: 12,
     borderRadius: 24,
-    border: '1px solid #eee',
-    backgroundColor: '#fff',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
+    border: "1px solid #eee",
+    backgroundColor: "#fff",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
   },
 };
 

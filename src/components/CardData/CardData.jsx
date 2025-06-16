@@ -1,11 +1,21 @@
-import React from 'react'
 import { IoMdMail } from "react-icons/io";
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
-import { FaClock, FaCheckCircle, FaExclamationTriangle, FaCalendarAlt } from "react-icons/fa";
+import { 
+  FaClock, 
+  FaCheckCircle, 
+  FaExclamationTriangle, 
+  FaCalendarAlt,
+  FaUsers,
+  FaPills,
+  FaAmbulance
+} from "react-icons/fa";
+
 const CardData = ({title, value, subTitle, onClick}) => {
   
   const getIconByTitle = (title) => {
     switch (title?.toLowerCase()) {
+      // Original icons
       case 'yêu cầu đang xử lý':
         return <FaClock size={22} className="text-orange-500" />;
       case 'yêu cầu đã xử lý':
@@ -14,6 +24,19 @@ const CardData = ({title, value, subTitle, onClick}) => {
         return <FaExclamationTriangle size={22} className="text-red-500" />;
       case 'lịch khám':
         return <FaCalendarAlt size={22} className="text-blue-500" />;
+      
+      // New icons for StudentListPage
+      case 'tổng số học sinh':
+        return <FaUsers size={22} className="text-blue-600" />;
+      case 'học sinh nhận thuốc':
+        return <FaPills size={22} className="text-green-600" />;
+      case 'các trường hợp tai nạn':
+        return <FaAmbulance size={22} className="text-red-600" />;
+      
+      // Medicine request related
+      case 'tất cả yêu cầu':
+        return <IoMdMail size={22} className="text-purple-500" />;
+      
       default:
         return <IoMdMail size={22} className="text-gray-500" />;
     }
@@ -21,7 +44,7 @@ const CardData = ({title, value, subTitle, onClick}) => {
 
   return (
     <motion.div 
-      className='w-[24%] h-[20%] border-1 border-gray-100 bg-white rounded-xl shadow-md flex flex-col px-5 py-4 mb-4 cursor-pointer'
+      className='w-[24%] h-[10%] border-1 border-gray-100 bg-white rounded-xl shadow-md flex flex-col px-5 py-4 mb-4 cursor-pointer hover:shadow-lg transition-shadow duration-200'
       initial={{ scale: 1 }}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
@@ -33,7 +56,7 @@ const CardData = ({title, value, subTitle, onClick}) => {
             {getIconByTitle(title)}
         </div>
         <div className='flex-col justify-between items-center'>
-            <h1 className='text-3xl font-bold'>{value}</h1>
+            <h1 className='text-3xl font-bold text-gray-800'>{value}</h1>
             <p className='text-gray-400 text-sm'>{subTitle}</p>
         </div>
     </motion.div>
