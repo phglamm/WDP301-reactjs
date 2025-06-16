@@ -107,7 +107,10 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
                 </motion.div>
 
                 <motion.div 
-                    className='flex flex-row rounded-xl bg-[linear-gradient(90deg,_#FF7345_33.76%,_#FFDC95_99.87%)] items-center  mb-2 shadow-md cursor-pointer' 
+                    className='flex flex-row rounded-xl  items-center  mb-2 shadow-md cursor-pointer' 
+                    style={{ 
+                  background: 'linear-gradient(135deg, #407CE2 0%, #223A6A 100%)'
+                }}
                     initial={{scale: 1}}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
@@ -144,11 +147,11 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
                                         transition={{ type: "spring", stiffness: 300, damping: 20 }}
                                         onClick={() => handleNavigation(item)}
                                     >
-                                        <span className={`text-2xl w-12 h-7 flex items-center justify-center flex-shrink-0 ${selectedItem === item.label ? 'text-orange-500' : ''}`}> {/* Icon container */}
+                                        <span className={`text-2xl w-12 h-7 flex items-center justify-center flex-shrink-0 ${selectedItem === item.label ? 'text-blue-800' : ''}`}> {/* Icon container */}
                                             {item.icon}
                                         </span>
                                         <motion.span
-                                            className={`text-sm font-medium overflow-hidden whitespace-nowrap ${selectedItem === item.label ? 'text-orange-500' : ''}`}
+                                            className={`text-sm font-medium overflow-hidden whitespace-nowrap ${selectedItem === item.label ? 'text-blue-800' : ''}`}
                                             initial="closed"
                                             animate={isOpen ? "open" : "closed"}
                                             variants={textVariants}
