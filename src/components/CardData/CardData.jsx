@@ -1,6 +1,6 @@
-import React from 'react'
 import { IoMdMail } from "react-icons/io";
-import  motion  from 'framer-motion';
+// eslint-disable-next-line no-unused-vars
+import  { motion }  from 'framer-motion';
 import { FaClock, FaCheckCircle, FaExclamationTriangle, FaCalendarAlt } from "react-icons/fa";
 const CardData = ({title, value, subTitle, onClick}) => {
   
@@ -21,7 +21,7 @@ const CardData = ({title, value, subTitle, onClick}) => {
 
   return (
     <motion.div 
-      className='w-[24%] h-[20%] border-1 border-gray-100 bg-white rounded-xl shadow-md flex flex-col px-5 py-4 mb-4 cursor-pointer'
+      className='w-[24%] h-[10%] border-1 border-gray-100 bg-white rounded-xl shadow-md flex flex-col px-5 py-4 mb-4 cursor-pointer'
       initial={{ scale: 1 }}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}

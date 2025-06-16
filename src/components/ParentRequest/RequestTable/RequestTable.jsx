@@ -131,11 +131,9 @@ const RequestTable = ({
       )}
       rowKey="id"
       pagination={{ 
-        pageSize: 8,
+        pageSize: 5,
         showTotal: (total, range) => 
           `${range[0]}-${range[1]} của ${total} kết quả`,
-        showSizeChanger: true,
-        showQuickJumper: true
       }}
       bordered
       scroll={{ x: "max-content" }}

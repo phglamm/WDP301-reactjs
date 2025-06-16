@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { login } from '../../redux/features/userSlice';
 import authService from '../../services/authService';
+import toast from 'react-hot-toast';
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -34,10 +35,10 @@ const Login = () => {
       setError('');
       
       const response = await authService.login(form);
-      console.log('Đăng nhập thành công:', response);
       
       // Dispatch login action to Redux store
       dispatch(login(response));
+      toast.success('Đăng nhập thành công!');
       
       // Navigate based on user role
       const userRole = response.user?.role;
