@@ -58,7 +58,7 @@ export default function ManagerSlotPage() {
       setClasses(mappedClasses || []);
       setNurses(nursesResponse.data || []);
     } catch (error) {
-      message.error("Failed to fetch data");
+      message.error("Không thể tải dữ liệu");
       console.error("Fetch data error:", error);
     } finally {
       setLoading(false);
@@ -75,14 +75,14 @@ export default function ManagerSlotPage() {
       file.name.endsWith(".xls");
 
     if (!isExcel) {
-      message.error("Please select an Excel file (.xlsx or .xls)");
+      message.error("Vui lòng chọn file Excel (.xlsx hoặc .xls)");
       return false;
     }
 
     // Validate file size (e.g., max 10MB)
     const isLt10M = file.size / 1024 / 1024 < 10;
     if (!isLt10M) {
-      message.error("File must be smaller than 10MB");
+      message.error("Kích thước file phải nhỏ hơn 10MB");
       return false;
     }
 
@@ -92,7 +92,7 @@ export default function ManagerSlotPage() {
 
   const importFile = async () => {
     if (!selectedFile) {
-      message.warning("Please select an Excel file first");
+      message.warning("Vui lòng chọn file Excel trước");
       return;
     }
 
@@ -103,7 +103,7 @@ export default function ManagerSlotPage() {
 
       const response = await assignService.importFile(formData);
       console.log(response);
-      message.success("File imported successfully!");
+      message.success("Nhập file thành công!");
 
       // Refresh data after successful import
       await fetchData();
@@ -112,7 +112,7 @@ export default function ManagerSlotPage() {
       setIsImportModalVisible(false);
       setSelectedFile(null);
     } catch (error) {
-      message.error("Failed to import file");
+      message.error("Nhập file thất bại");
       console.error("Import file error:", error);
     } finally {
       setImportLoading(false);
@@ -131,7 +131,7 @@ export default function ManagerSlotPage() {
 
   const handleAssignNurse = async () => {
     if (!selectedNurse || selectedClasses.length === 0) {
-      message.warning("Please select a nurse and at least one class");
+      message.warning("Vui lòng chọn y tá và ít nhất một lớp học");
       return;
     }
 
@@ -139,17 +139,17 @@ export default function ManagerSlotPage() {
     const selectedNurseObj = nurses.find((n) => n.id === selectedNurse);
 
     if (!selectedNurseObj) {
-      message.error("Selected nurse not found");
+      message.error("Không tìm thấy y tá đã chọn");
       return;
     }
 
     console.log("About to show modal..."); // Debug log
 
     Modal.confirm({
-      title: "Confirm Assignment",
-      content: `Are you sure you want to assign ${selectedNurseObj.fullName} to ${selectedClasses.length} class(es)?`,
-      okText: "Yes, Assign",
-      cancelText: "Cancel",
+      title: "Xác nhận phân công",
+      content: `Bạn có chắc chắn muốn phân công ${selectedNurseObj.fullName} cho ${selectedClasses.length} lớp học?`,
+      okText: "Có, Phân công",
+      cancelText: "Hủy",
       onOk: async () => {
         console.log("Modal OK clicked"); // Debug log
         setAssignLoading(true);
@@ -166,7 +166,7 @@ export default function ManagerSlotPage() {
           console.log("Request Data:", requestData);
           await assignService.assignNurseToClasses(requestData);
 
-          message.success("Nurse assigned successfully!");
+          message.success("Phân công y tá thành công!");
 
           // Update local state
           setClasses((prevClasses) =>
@@ -185,7 +185,7 @@ export default function ManagerSlotPage() {
           setSelectedClasses([]);
           setSelectedNurse(null);
         } catch (error) {
-          message.error("Failed to assign nurse");
+          message.error("Phân công y tá thất bại");
           console.error("Assignment error:", error);
         } finally {
           setAssignLoading(false);
@@ -199,7 +199,7 @@ export default function ManagerSlotPage() {
 
   const columns = [
     {
-      title: "Class Name",
+      title: "Tên Lớp",
       dataIndex: "className",
       key: "className",
       render: (text) => (
@@ -211,7 +211,7 @@ export default function ManagerSlotPage() {
       ),
     },
     {
-      title: "Assigned Nurse",
+      title: "Y Tá Được Phân Công",
       dataIndex: "assignedNurse",
       key: "assignedNurse",
       render: (nurseId) => {
@@ -222,19 +222,19 @@ export default function ManagerSlotPage() {
             </Tag>
           );
         }
-        return <span className="text-gray-400">Not assigned</span>;
+        return <span className="text-gray-400">Chưa phân công</span>;
       },
     },
     {
-      title: "Status",
+      title: "Trạng Thái",
       key: "status",
       render: (_, record) =>
         record.assignedNurse ? (
           <Tag color="success" icon={<CheckOutlined />}>
-            Assigned
+            Đã phân công
           </Tag>
         ) : (
-          <Tag color="warning">Pending</Tag>
+          <Tag color="warning">Chờ xử lý</Tag>
         ),
     },
   ];
@@ -265,10 +265,10 @@ export default function ManagerSlotPage() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Manager Slot - Nurse Assignment
+            Quản Lý Ca Phát thuốc - Phân Công Y Tá
           </h1>
           <p className="text-gray-600">
-            Manage nurse assignments for classes with medical requests
+            Quản lý việc phân công y tá cho các lớp học có yêu cầu y tế
           </p>
         </div>
 
@@ -276,10 +276,10 @@ export default function ManagerSlotPage() {
           <div className="flex flex-col lg:flex-row gap-4 items-end">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Nurse
+                Chọn Y Tá
               </label>
               <Select
-                placeholder="Choose a nurse to assign"
+                placeholder="Chọn y tá để phân công"
                 value={selectedNurse}
                 onChange={setSelectedNurse}
                 className="w-full"
@@ -310,11 +310,11 @@ export default function ManagerSlotPage() {
                 size="large"
                 icon={<UserOutlined />}
               >
-                Assign Nurse ({selectedClasses.length} classes)
+                Phân Công Y Tá ({selectedClasses.length} lớp)
               </Button>
 
               <Button onClick={fetchData} loading={loading} size="large">
-                Refresh
+                Làm Mới
               </Button>
 
               <Button
@@ -323,7 +323,7 @@ export default function ManagerSlotPage() {
                 size="large"
                 icon={<UploadOutlined />}
               >
-                Import Slot for Nurse
+                Nhập Ca Trực Cho Y Tá
               </Button>
             </div>
           </div>
@@ -332,11 +332,11 @@ export default function ManagerSlotPage() {
         <Card className="shadow-sm">
           <div className="mb-4">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Classes with Medical Requests
+              Các Lớp Có Yêu Cầu Y Tế
             </h2>
             <p className="text-gray-600">
-              Select classes to assign to the chosen nurse. Already assigned
-              classes cannot be modified.
+              Chọn các lớp để phân công cho y tá đã chọn. Các lớp đã được phân
+              công không thể thay đổi.
             </p>
           </div>
 
@@ -351,7 +351,7 @@ export default function ManagerSlotPage() {
               showSizeChanger: true,
               showQuickJumper: true,
               showTotal: (total, range) =>
-                `${range[0]}-${range[1]} of ${total} classes`,
+                `${range[0]}-${range[1]} trong ${total} lớp`,
             }}
             className="rounded-lg"
             scroll={{ x: 800 }}
@@ -363,10 +363,10 @@ export default function ManagerSlotPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-medium text-blue-900">
-                  Selected Classes: {selectedClasses.length}
+                  Lớp Đã Chọn: {selectedClasses.length}
                 </h3>
                 <p className="text-blue-700">
-                  Classes to be assigned:{" "}
+                  Các lớp sẽ được phân công:{" "}
                   {selectedClasses
                     .map((id) => classes.find((c) => c.id === id)?.className)
                     .join(", ")}
@@ -377,7 +377,7 @@ export default function ManagerSlotPage() {
                 onClick={() => setSelectedClasses([])}
                 className="text-blue-600"
               >
-                Clear Selection
+                Xóa Lựa Chọn
               </Button>
             </div>
           </Card>
@@ -385,12 +385,12 @@ export default function ManagerSlotPage() {
 
         {/* Import File Modal */}
         <Modal
-          title="Import Nurse Slot Data"
+          title="Nhập Dữ Liệu Ca Trực Y Tá"
           open={isImportModalVisible}
           onCancel={handleImportModalClose}
           footer={[
             <Button key="cancel" onClick={handleImportModalClose}>
-              Cancel
+              Hủy
             </Button>,
             <Button
               key="import"
@@ -400,15 +400,15 @@ export default function ManagerSlotPage() {
               disabled={!selectedFile}
               icon={<UploadOutlined />}
             >
-              Import File
+              Nhập File
             </Button>,
           ]}
           width={600}
         >
           <div className="mb-4">
             <p className="text-gray-600 mb-4">
-              Upload an Excel file (.xlsx or .xls) containing nurse slot data.
-              The file should contain the required format for nurse assignments.
+              Tải lên file Excel (.xlsx hoặc .xls) chứa dữ liệu ca trực y tá.
+              File nên có định dạng phù hợp cho việc phân công y tá.
             </p>
 
             <Dragger {...uploadProps}>
@@ -416,20 +416,20 @@ export default function ManagerSlotPage() {
                 <InboxOutlined />
               </p>
               <p className="ant-upload-text">
-                Click or drag Excel file to this area to upload
+                Nhấp hoặc kéo file Excel vào đây để tải lên
               </p>
               <p className="ant-upload-hint">
-                Support for .xlsx and .xls files. Maximum file size: 10MB
+                Hỗ trợ file .xlsx và .xls. Kích thước tối đa: 10MB
               </p>
             </Dragger>
 
             {selectedFile && (
               <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
                 <p className="text-green-800">
-                  <strong>Selected file:</strong> {selectedFile.name}
+                  <strong>File đã chọn:</strong> {selectedFile.name}
                 </p>
                 <p className="text-green-600 text-sm">
-                  Size: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                  Kích thước: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                 </p>
               </div>
             )}
