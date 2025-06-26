@@ -8,7 +8,10 @@ import {
   FaCalendarAlt,
   FaUsers,
   FaPills,
-  FaAmbulance
+  FaAmbulance,
+  FaSyringe,
+  FaGift,
+  FaDollarSign
 } from "react-icons/fa";
 
 const CardData = ({title, value, subTitle, onClick}) => {
@@ -25,13 +28,23 @@ const CardData = ({title, value, subTitle, onClick}) => {
       case 'lịch khám':
         return <FaCalendarAlt size={22} className="text-blue-500" />;
       
-      // New icons for StudentListPage
+      // StudentListPage icons
       case 'tổng số học sinh':
         return <FaUsers size={22} className="text-blue-600" />;
       case 'học sinh nhận thuốc':
         return <FaPills size={22} className="text-green-600" />;
       case 'các trường hợp tai nạn':
         return <FaAmbulance size={22} className="text-red-600" />;
+      
+      // InjectionEvent icons
+      case 'tổng số sự kiện':
+        return <FaSyringe size={22} className="text-purple-600" />;
+      case 'sự kiện miễn phí':
+        return <FaGift size={22} className="text-green-600" />;
+      case 'sự kiện có phí':
+        return <FaDollarSign size={22} className="text-blue-600" />;
+      case 'sự kiện sắp tới':
+        return <FaCalendarAlt size={22} className="text-orange-600" />;
       
       // Medicine request related
       case 'tất cả yêu cầu':

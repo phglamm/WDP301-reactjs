@@ -5,13 +5,42 @@ const StatisticsCards = ({ slots, selectedSession, activeCard, onCardClick }) =>
   const takenSlots = slots.filter(slot => slot.status).length;
   const notTakenSlots = slots.filter(slot => !slot.status).length;
 
-  const getCardStyle = (cardType) => ({
-    cursor: 'pointer',
-    border: activeCard === cardType ? '2px solid #1890ff' : '1px solid #d9d9d9',
-    backgroundColor: activeCard === cardType ? 
-      (cardType === 'all' ? '#f0f8ff' : 
-       cardType === 'taken' ? '#f6ffed' : '#fff2f0') : 'white'
-  });
+  const getCardStyle = (cardType) => {
+    const isActive = activeCard === cardType;
+    
+    switch (cardType) {
+      case 'all':
+        return {
+          cursor: 'pointer',
+          border: isActive ? '2px solid #1890ff' : '1px solid #d9d9d9',
+          backgroundColor: isActive ? '#f0f8ff' : 'white',
+          borderRadius: '8px',
+          transition: 'all 0.3s ease'
+        };
+      case 'taken':
+        return {
+          cursor: 'pointer',
+          border: isActive ? '2px solid #52c41a' : '1px solid #d9d9d9',
+          backgroundColor: isActive ? '#f6ffed' : 'white',
+          borderRadius: '8px',
+          transition: 'all 0.3s ease'
+        };
+      case 'not-taken':
+        return {
+          cursor: 'pointer',
+          border: isActive ? '2px solid #ff4d4f' : '1px solid #d9d9d9',
+          backgroundColor: isActive ? '#fff2f0' : 'white',
+          borderRadius: '8px',
+          transition: 'all 0.3s ease'
+        };
+      default:
+        return {
+          border: '1px solid #d9d9d9',
+          backgroundColor: 'white',
+          borderRadius: '8px'
+        };
+    }
+  };
 
   return (
     <div className="mb-4">
@@ -62,7 +91,10 @@ const StatisticsCards = ({ slots, selectedSession, activeCard, onCardClick }) =>
           </Card>
         </Col>
         <Col span={6}>
-          <Card size="small">
+          <Card 
+            size="small"
+            style={getCardStyle('current')}
+          >
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">
                 {selectedSession}

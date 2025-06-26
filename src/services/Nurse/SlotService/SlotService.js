@@ -1,4 +1,4 @@
-import { request } from "../request";
+import { request } from "../../request";
 
 const slotService = {
     importSlots: (formData) => request("POST", "slot/import", formData, {
@@ -8,7 +8,7 @@ const slotService = {
     }),
     
     // Session parameter should already be URL encoded when passed in
-    getSlotTodaty: (session) => request("GET", `slot/today?session=${session}`),
+    getSlotToday: (session) => request("GET", `slot/today?session=${session}`),
     
     checkSlot: (id, formData = null) => {
         if (formData && formData instanceof FormData) {

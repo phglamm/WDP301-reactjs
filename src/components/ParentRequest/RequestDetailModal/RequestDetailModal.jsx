@@ -72,7 +72,7 @@ const RequestDetailModal = ({
       title="Chi tiết yêu cầu thuốc"
       open={visible}
       onCancel={onCancel}
-      width={800}
+      width={900}
       footer={renderFooter()}
     >
       {loading ? (
@@ -148,46 +148,116 @@ const RequestDetailModal = ({
 
             {/* Slots Information */}
             {request.slots && request.slots.length > 0 && (
-              <Descriptions.Item label="Thông tin thuốc" span={2}>
-                <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+              <Descriptions.Item label="Thông tin phân phối thuốc" span={2}>
+                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
                   {request.slots.map((slot, index) => (
                     <div 
-                      key={index} 
+                      key={slot.id || index} 
                       style={{ 
-                        marginBottom: '12px', 
-                        padding: '12px', 
+                        marginBottom: '16px', 
+                        padding: '16px', 
                         backgroundColor: '#f8f9fa', 
-                        borderRadius: '6px',
+                        borderRadius: '8px',
                         border: '1px solid #e9ecef'
                       }}
                     >
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                        <div><strong>Buổi:</strong> {slot.session || 'N/A'}</div>
-                        <div><strong>Trạng thái:</strong> 
-                          <Tag color={slot.status ? 'green' : 'red'} style={{ marginLeft: '4px' }}>
+                      {/* Slot Header */}
+                      <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        marginBottom: '12px',
+                        paddingBottom: '8px',
+                        borderBottom: '1px solid #dee2e6'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <Tag color="blue" style={{ fontSize: '14px', padding: '4px 12px' }}>
+                            Buổi {slot.session || 'N/A'}
+                          </Tag>
+                          <Tag color={slot.status ? 'green' : 'red'} style={{ fontSize: '14px' }}>
                             {slot.status ? 'Đã phát' : 'Chưa phát'}
                           </Tag>
                         </div>
-                        <div style={{ gridColumn: '1 / -1' }}>
-                          <strong>Ghi chú thuốc:</strong> {slot.note || 'Không có ghi chú'}
-                        </div>
-                        {slot.image && (
-                          <div style={{ gridColumn: '1 / -1' }}>
-                            <strong>Hình ảnh xác nhận:</strong>
-                            <br />
-                            <Image
-                              src={slot.image}
-                              alt={`Slot ${index + 1} confirmation`}
-                              style={{ 
-                                maxWidth: '100px', 
-                                maxHeight: '100px',
-                                marginTop: '4px',
-                                borderRadius: '4px'
-                              }}
-                            />
-                          </div>
-                        )}
+                        <span style={{ fontSize: '12px', color: '#6c757d' }}>
+                          ID: {slot.id}
+                        </span>
                       </div>
+
+                      {/* Medicines List */}
+                      {slot.medicines && slot.medicines.length > 0 && (
+                        <div style={{ marginBottom: '12px' }}>
+                          <div style={{ 
+                            fontWeight: 'bold', 
+                            marginBottom: '8px',
+                            color: '#495057'
+                          }}>
+                            Danh sách thuốc:
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {slot.medicines.map((medicine, medIndex) => (
+                              <div 
+                                key={medicine.id || medIndex}
+                                style={{
+                                  padding: '8px 12px',
+                                  backgroundColor: 'white',
+                                  borderRadius: '6px',
+                                  border: '1px solid #e9ecef',
+                                  display: 'grid',
+                                  gridTemplateColumns: '2fr 3fr 1fr',
+                                  gap: '12px',
+                                  alignItems: 'center'
+                                }}
+                              >
+                                <div>
+                                  <strong style={{ color: '#007bff' }}>
+                                    {medicine.name}
+                                  </strong>
+                                </div>
+                                <div style={{ fontSize: '13px', color: '#6c757d' }}>
+                                  {medicine.description || 'Không có hướng dẫn'}
+                                </div>
+                                <div style={{ textAlign: 'center' }}>
+                                  <Tag color="purple">
+                                    SL: {medicine.quantity}
+                                  </Tag>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Slot Notes */}
+                      {slot.note && (
+                        <div style={{ marginBottom: '12px' }}>
+                          <strong>Ghi chú buổi uống:</strong> 
+                          <span style={{ marginLeft: '8px', fontStyle: 'italic' }}>
+                            {slot.note}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Confirmation Image */}
+                      {slot.image && (
+                        <div>
+                          <strong>Hình ảnh xác nhận:</strong>
+                          <br />
+                          <Image
+                            src={slot.image}
+                            alt={`Xác nhận buổi ${slot.session}`}
+                            style={{ 
+                              maxWidth: '120px', 
+                              maxHeight: '120px',
+                              marginTop: '8px',
+                              borderRadius: '6px',
+                              border: '2px solid #28a745'
+                            }}
+                            preview={{
+                              mask: 'Xem ảnh'
+                            }}
+                          />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -10,8 +10,10 @@ import { TiMessages } from "react-icons/ti";
 import { MdOutlineSupervisorAccount, MdAssignmentInd } from "react-icons/md";
 import { TbEdit } from "react-icons/tb";
 import { BiSupport } from "react-icons/bi";
-import * as Texts from "./text"; // Import texts
-import NotificationSection from "../NotificationSection/NotificationSection";
+import * as Texts from './text'; // Import texts
+import NotificationSection from '../NotificationSection/NotificationSection';
+
+
 
 const Sidebar = ({ selectedItem, setSelectedItem }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -22,12 +24,12 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
 
     // Base menu items for nurse
     const baseMenuItems = [
-        { id: 'Trang Chu', label: 'Trang Chủ', icon: <IoHomeOutline/>, link:'/nurse' },
         { id: 'Thong Bao', label: 'Yêu cầu từ phụ huynh', icon: <IoNotificationsOutline/>, link:'/nurse/parentrequest' },
-        { id: 'thuoc va vat tu ', label: 'Thuốc và Vật Tư', icon: <IoDocumentTextOutline/>, link:'/nurse/medicine' },
-        { id: 'Danh sách học sinh ', label: 'Danh sách Học Sinh', icon: <MdOutlineSupervisorAccount/>, link:'/nurse/studentlist' },
-        { id: 'Tin nhan', label: 'Tin Nhắn ', icon: <TiMessages/>, link:'/nurse/messages' },
-        { id: 'Tiem chung', label: 'Tiêm Chủng ', icon: <IoSettingsOutline/>, link:'/nurse/vaccination' },
+    { id: 'thuoc va vat tu ', label: 'Thuốc và Vật Tư', icon: <IoDocumentTextOutline/>, link:'/nurse/medicine' },
+    { id: 'Danh sách học sinh ', label: 'Danh sách Học Sinh', icon: <MdOutlineSupervisorAccount/>, link:'/nurse/studentlist' },
+    { id: 'Tiem chung', label: 'Tiêm Chủng ', icon: <IoSettingsOutline/>, link:'/nurse/injection-event' },
+    { id: 'Lich hen', label: 'Lịch Hẹn ', icon: <TbEdit/>, link:'/nurse/appointment' },
+    { id: 'Tin nhan', label: 'Tin Nhắn ', icon: <TiMessages/>, link:'/nurse/messages' },
     ];
 
     // Additional menu item for manager
@@ -156,22 +158,20 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
                     whileTap={{ scale: 0.95 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     onClick={() => {
-                        setSelectedItem("Write Post");
-                        navigate("/nurse/write-post");
+                        setSelectedItem('Trang Chu');
+                        navigate('/nurse');
                     }}
                 >
-                    <motion.div className="flex items-center py-2 transition-colors duration-150">
-                        <TbEdit className="text-xl w-12 h-7 text-white flex items-center justify-center flex-shrink-0" />
-                        <motion.div
-                            className="overflow-hidden text-sm font-medium whitespace-nowrap" // To hide text smoothly
+                    <motion.div className='flex items-center py-2 transition-colors duration-150'>
+                        <IoHomeOutline className='text-xl w-12 h-7 text-white  flex items-center justify-center flex-shrink-0' />
+                        <motion.div 
+                            className='overflow-hidden text-sm font-medium  whitespace-nowrap' // To hide text smoothly
                             initial="closed"
                             animate={isOpen ? "open" : "closed"}
                             variants={textVariants}
                             transition={profileTextTransition}
                         >
-                            <p className="text-sm text-white whitespace-nowrap">
-                                {Texts.WRITE_POST}
-                            </p>
+                            <p className='text-sm text-white whitespace-nowrap'>{Texts.HOME}</p>
                         </motion.div>
                     </motion.div>
                 </motion.div>
@@ -213,9 +213,9 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
                                         </motion.span>
                                     </motion.div>
                                 </li>
-                                {(item.id === "Tiem chung" || (role === 'manager' && item.id === "Assign Nurse")) && (
-                                    <motion.hr
-                                        className="border-gray-300 mx-4"
+                                {item.id === 'Tin nhan' && (
+                                    <motion.hr 
+                                        className="border-gray-300 mx-4 "
                                         initial="closed"
                                         animate={isOpen ? "open" : "closed"}
                                         variants={{

@@ -3,6 +3,7 @@ import storage from "redux-persist/lib/storage";
 import persistReducer from "redux-persist/es/persistReducer";
 import rootReducer from "./rootReducer";
 import persistStore from "redux-persist/es/persistStore";
+import { PERSIST, REHYDRATE } from "redux-persist";
 const persistConfig = {
   key: "root",
   storage,
@@ -15,7 +16,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ["persist/PERSIST"], // Ignore this specific action
+       ignoredActions: [REHYDRATE, PERSIST], // Ignore this specific action
       },
     }),
 });

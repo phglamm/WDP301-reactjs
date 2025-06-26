@@ -1,28 +1,51 @@
-import axios from "axios";
+import axios from 'axios';
 
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const API_BASE_URL = "https://wdp301-se1752-be.onrender.com/";
+const BASE_URL = 'https://wdp301-se1752-be.onrender.com'; 
 
-const request = async (method, url, data = null, headers = {}, params = {}) => {
-  const token = localStorage.getItem("access_token") || null;
-  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+export const request = async (method, url, data = null, config = {}) => {
+  const access_token = localStorage.getItem('access_token');
+  
   try {
     const response = await axios({
       method,
-      url: `${API_BASE_URL}${url}`,
+      url: `${BASE_URL}/${url}`,
       data,
       headers: {
-        ...headers,
-        ...authHeader, // Include the Authorization header if token exists
+        // Add Authorization header if token exists
+        ...(access_token && { Authorization: `Bearer ${access_token}` }),
+        // Merge with any existing headers from config
+        ...config.headers,
       },
-      params,
+      ...config,  
+      validateStatus: (status) => status >= 200 && status < 300,
     });
 
+    // For blob responses, return the data directly (should be a Blob)
+    if (config.responseType === 'blob') {
+      // Ensure we return a proper Blob
+      if (response.data instanceof Blob) {
+        return response.data;
+      } else {
+        // If axios didn't create a proper blob, create one manually
+        return new Blob([response.data], {
+          type: response.headers['content-type'] || 'application/octet-stream'
+        });
+      }
+    }
+
+    // For JSON responses, return the structured response
     return response.data;
   } catch (error) {
-    console.error("API Error:", error);
+    console.error('Request error:', error);
+    
+    // Handle authentication errors
+    if (error.response?.status === 401) {
+      // Token might be expired or invalid
+      localStorage.removeItem('access_token');
+      // Optionally redirect to login page
+      // window.location.href = '/login';
+    }
+    
     throw error;
   }
 };
-
-export { request }; // Export the request function for use in other services
