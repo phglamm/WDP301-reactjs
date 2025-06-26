@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Table, Tag, Button, Space, Input, Select } from 'antd'
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
-import medicineStorageService from '../../../services/MedicineStorage/MedicineStorage'
+import medicineStorageService from '../../../services/Nurse/MedicineStorage/MedicineStorage'
 
 const { Search } = Input;
 const { Option } = Select;

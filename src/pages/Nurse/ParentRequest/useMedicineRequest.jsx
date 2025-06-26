@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { message } from 'antd';
-import medicinRequestService from '../../../services/MedicineRequest/MedicineRequest';
+import medicinRequestService from '../../../services/Nurse/MedicineRequest/MedicineRequest';
 
 export const useMedicineRequest = () => {
   const [allMedicineRequest, setAllMedicineRequest] = useState([]);

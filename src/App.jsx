@@ -15,6 +15,8 @@ import ParentRequest from "./pages/Nurse/ParentRequest/ParentRequest";
 import MedicineStorage from "./pages/Nurse/MedicineStorage/MedicineStorage";
 import HealthHistory from "./pages/HealthHistory/HealthHistory";
 import { logout } from "./redux/features/userSlice";
+import InjectionEvent from "./pages/Nurse/InjectionEvent/InjectionEvent";
+import Appointment from "./pages/Nurse/Appointment/Appointment";
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRoles = [], requireAuth = true }) {
@@ -157,6 +159,22 @@ function App() {
             </ProtectedRoute>
           ),
         },
+        {
+          path: "injection-event",
+          element: (
+            <ProtectedRoute allowedRoles={['nurse', 'admin']}>
+              <InjectionEvent />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "appointment",
+          element: (
+            <ProtectedRoute allowedRoles={['nurse', 'admin']}>
+              <Appointment />
+            </ProtectedRoute>
+          ),
+        }
       ],
     },
 

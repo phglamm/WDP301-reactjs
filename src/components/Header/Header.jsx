@@ -67,7 +67,6 @@ const Header = () => {
   const location = useLocation();
   const currentPath = location.pathname;
 
-  // Toggle menu mở/đóng (mobile)
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
   // Đóng menu khi chọn link (mobile)

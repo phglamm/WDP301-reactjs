@@ -4,7 +4,7 @@ import AllStudent from "./AllStudent/AllStudent";
 import MedicineDistribution from "./MedicineDistribution/MedicineDistribution";
 import AccidentCase from "./AccidentCase/AccidentCase";
 import CardData from "../../../components/CardData/CardData";
-import studentService from "../../../services/StudentService/StudentService";
+import studentService from "../../../services/Nurse/StudentService/StudentService";
 import Search from "antd/es/input/Search";
 import { useMedicineRequest } from "../ParentRequest/useMedicineRequest";
 
@@ -13,8 +13,8 @@ const StudentListPage = () => {
   const [students, setStudents] = useState([]);
   const [accidents, setAccidents] = useState([]);
   const [searchText, setSearchText] = useState('');
-  const [filterType, setFilterType] = useState('all');
-
+  const [filterType, setFilterType] = useState('all'); // This will be shared
+  const [slots, setSlots] = useState([]);
   const {medicineRequestToday } = useMedicineRequest();
 
   const generalReport = [
@@ -35,7 +35,6 @@ const StudentListPage = () => {
     },
   ];
 
-
   // Map card titles to segmented options
   const getSegmentedValue = (cardTitle) => {
     switch (cardTitle) {
@@ -55,49 +54,54 @@ const StudentListPage = () => {
     setSelectedTab(segmentedValue);
   };
   
-    const fetchStudents = async () => {
-      try {
-        const response = await studentService.getAllStudents();
-        // Handle different response structures
-        if (Array.isArray(response)) {
-          setStudents(response);
-        } else if (response && Array.isArray(response.data)) {
-          setStudents(response.data);
-        } else {
-          console.log('Unexpected response structure:', response);
-          setStudents([]);
-        }
-      } catch (error) {
-        console.error("Error fetching students:", error);
+  const fetchStudents = async () => {
+    try {
+      const response = await studentService.getAllStudents();
+      // Handle different response structures
+      if (Array.isArray(response)) {
+        setStudents(response);
+      } else if (response && Array.isArray(response.data)) {
+        setStudents(response.data);
+      } else {
+        console.log('Unexpected response structure:', response);
         setStudents([]);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      setStudents([]);
+    }
+  };
 
-    const fetchAccidents = async () => {
-      try {
-        const response = await studentService.getAllAccident();
-        if (Array.isArray(response)) {
-          setAccidents(response);
-        } else if (response && Array.isArray(response.data)) {
-          setAccidents(response.data);
-        } else {
-          console.log('Unexpected response structure:', response);
-          setAccidents([]);
-        }
-      } catch (error) {
-        console.error("Error fetching accidents:", error);
+  const fetchAccidents = async () => {
+    try {
+      const response = await studentService.getAllAccident();
+      if (Array.isArray(response)) {
+        setAccidents(response);
+      } else if (response && Array.isArray(response.data)) {
+        setAccidents(response.data);
+      } else {
+        console.log('Unexpected response structure:', response);
         setAccidents([]);
       }
-    };
-
-
+    } catch (error) {
+      console.error("Error fetching accidents:", error);
+      setAccidents([]);
+    }
+  };
 
   // Get unique classes from students
   const getUniqueClasses = () => {
+    if (selectedTab === "Tất Cả") {
     const classes = students
       .map(student => student.class)
       .filter(cls => cls && cls.trim() !== '');
-    return [...new Set(classes)];
+    return [...new Set(classes)].sort();
+    }
+    if (selectedTab === "Phân Phối Thuốc") {
+      console.log("Slots:", slots);
+      const classes = Object.keys(slots).filter(key => key && key.trim() !== '');
+      return classes.sort();
+    }
   };
 
   useEffect(() => {
@@ -131,7 +135,7 @@ const StudentListPage = () => {
       />
 
       {/* Search and Filter Controls */}
-      <div className="w-full flex items-center justify-end  gap-4 mb-4">
+      <div className="w-full flex items-center justify-end gap-4 mb-4">
         <Search
           placeholder={
             selectedTab === "Tất Cả" ? "Search students..." :
@@ -145,7 +149,8 @@ const StudentListPage = () => {
           onSearch={(value) => setSearchText(value)}
         />
         
-        {selectedTab === "Tất Cả" && (
+        {/* Show class filter for both "Tất Cả" and "Phân Phối Thuốc" tabs */}
+        {(selectedTab === "Tất Cả" || selectedTab === "Phân Phối Thuốc") && (
           <Select
             value={filterType}
             onChange={setFilterType}
@@ -170,9 +175,13 @@ const StudentListPage = () => {
       ) : selectedTab === "Phân Phối Thuốc" ? (
         <MedicineDistribution 
           searchText={searchText}
+          classFilter={filterType} // Pass the shared class filter
+          slots={slots}
+          setSlots={setSlots}
         />
       ) : selectedTab === "Các Trường Hợp Tai Nạn" ? (
         <AccidentCase 
+          students={students}
           accidents={accidents} 
           searchText={searchText}
         />
