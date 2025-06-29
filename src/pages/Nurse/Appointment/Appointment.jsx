@@ -1,41 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Table, 
-  Button, 
-  Modal, 
-  Form, 
-  Input, 
-  DatePicker, 
-  Select, 
-  message, 
-  Space, 
-  Tag, 
-  Card, 
-  Descriptions,
-  Tooltip,
-  Row,
-  Col,
-  Statistic
-} from 'antd';
-import { 
-  PlusOutlined, 
-  EyeOutlined, 
-  CalendarOutlined,
-  VideoCameraOutlined,
-  ClockCircleOutlined,
-  UserOutlined,
-  
-  CheckCircleOutlined,
-  ExclamationCircleOutlined,
-  StopOutlined
-} from '@ant-design/icons';
+import { Form, message } from 'antd';
 import moment from 'moment';
 import AppointmentService from '../../../services/Nurse/AppointmentService/AppointmentService';
 
-const { TextArea } = Input;
-const { Option } = Select;
+// Import components
+import AppointmentStats from '../../../components/appointment/AppointmentStats';
+import AppointmentHeader from '../../../components/appointment/AppointmentHeader';
+import DateFilter from '../../../components/appointment/DateFilter';
+import CalendarLegend from '../../../components/appointment/CalendarLegend';
+import CalendarView from '../../../components/appointment/CalendarView';
+import TableView from '../../../components/appointment/TableView';
+import AppointmentFormModal from '../../../components/appointment/AppointmentFormModal';
+import AppointmentDetailModal from '../../../components/appointment/AppointmentDetailModal';
 
 const Appointment = () => {
+  // State management
   const [appointments, setAppointments] = useState([]);
   const [todayAppointments, setTodayAppointments] = useState([]);
   const [filteredAppointments, setFilteredAppointments] = useState([]);
@@ -46,8 +25,10 @@ const Appointment = () => {
   const [form] = Form.useForm();
   const [editingId, setEditingId] = useState(null);
   const [activeFilter, setActiveFilter] = useState('all');
-
-  // Statistics
+  const [calendarView, setCalendarView] = useState('timeGridWeek');
+  const [viewMode, setViewMode] = useState('calendar');
+  const [dateRange, setDateRange] = useState(null);
+  const [showDateFilter, setShowDateFilter] = useState(false);
   const [statistics, setStatistics] = useState({
     total: 0,
     today: 0,
@@ -57,11 +38,11 @@ const Appointment = () => {
     inProgress: 0
   });
 
-  // Calculate statistics
+  // Calculate statistics function
   const calculateStatistics = (appointmentList, todayList) => {
     const stats = {
       total: appointmentList.length,
-      today: todayList.length, // Use actual today appointments from API
+      today: todayList.length,
       scheduled: appointmentList.filter(apt => apt.status === 'scheduled').length,
       completed: appointmentList.filter(apt => apt.status === 'completed').length,
       cancelled: appointmentList.filter(apt => apt.status === 'cancelled').length,
@@ -71,12 +52,21 @@ const Appointment = () => {
     setStatistics(stats);
   };
 
+  // Apply date range filter
+  const applyDateRangeFilter = (appointmentList, startDate, endDate) => {
+    if (!startDate || !endDate) return appointmentList;
+    
+    return appointmentList.filter(appointment => {
+      const appointmentDate = moment(appointment.appointmentTime);
+      return appointmentDate.isBetween(startDate, endDate, 'day', '[]');
+    });
+  };
+
   // Fetch all appointments
   const fetchAppointments = async () => {
     try {
       setLoading(true);
       
-      // Fetch both all appointments and today's appointments concurrently
       const [allResponse, todayResponse] = await Promise.all([
         AppointmentService.getAllAppointments(),
         AppointmentService.getTodayAppointments().catch(error => {
@@ -87,14 +77,13 @@ const Appointment = () => {
 
       if (allResponse && allResponse.status) {
         setAppointments(allResponse.data || []);
-        setFilteredAppointments(allResponse.data || []);
+        applyFilters(allResponse.data || [], activeFilter, dateRange);
       }
 
       if (todayResponse && todayResponse.status) {
         setTodayAppointments(todayResponse.data || []);
       }
 
-      // Calculate statistics with both datasets
       calculateStatistics(
         allResponse?.data || [], 
         todayResponse?.data || []
@@ -108,137 +97,129 @@ const Appointment = () => {
     }
   };
 
-  // Filter appointments
-  const filterAppointments = (filterType) => {
-    setActiveFilter(filterType);
-    let filtered = [...appointments];
+  // Combined filter function
+  const applyFilters = (appointmentList, filterType, dateRangeFilter) => {
+    let filtered = [...appointmentList];
     
+    // Apply status filter first
     switch (filterType) {
       case 'today':
-        // Use the today appointments from API
         filtered = todayAppointments;
         break;
       case 'scheduled':
-        filtered = appointments.filter(apt => apt.status === 'scheduled');
+        filtered = appointmentList.filter(apt => apt.status === 'scheduled');
         break;
       case 'completed':
-        filtered = appointments.filter(apt => apt.status === 'completed');
+        filtered = appointmentList.filter(apt => apt.status === 'completed');
         break;
       case 'cancelled':
-        filtered = appointments.filter(apt => apt.status === 'cancelled');
+        filtered = appointmentList.filter(apt => apt.status === 'cancelled');
         break;
       case 'in-progress':
-        filtered = appointments.filter(apt => apt.status === 'in-progress');
+        filtered = appointmentList.filter(apt => apt.status === 'in-progress');
         break;
       case 'all':
       default:
-        filtered = appointments;
+        filtered = appointmentList;
         break;
     }
     
+    // Apply date range filter
+    if (dateRangeFilter && dateRangeFilter.length === 2) {
+      filtered = applyDateRangeFilter(filtered, dateRangeFilter[0], dateRangeFilter[1]);
+    }
+    
     setFilteredAppointments(filtered);
+  };
+
+  // Filter appointments by status
+  const filterAppointments = (filterType) => {
+    setActiveFilter(filterType);
+    applyFilters(appointments, filterType, dateRange);
+  };
+
+  // Handle date range change
+  const handleDateRangeChange = (dates) => {
+    setDateRange(dates);
+    applyFilters(appointments, activeFilter, dates);
+  };
+
+  // Clear date range filter
+  const clearDateRange = () => {
+    setDateRange(null);
+    applyFilters(appointments, activeFilter, null);
+  };
+
+  // Toggle date filter visibility
+  const toggleDateFilter = () => {
+    setShowDateFilter(!showDateFilter);
+    if (showDateFilter && dateRange) {
+      clearDateRange();
+    }
   };
 
   useEffect(() => {
     fetchAppointments();
   }, []);
 
-  // Table columns
-  const columns = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
-    },
-    {
-      title: 'Mục Đích',
-      dataIndex: 'purpose',
-      key: 'purpose',
-      width: 200,
-      render: (text) => (
-        <span className="line-clamp-2" title={text}>
-          {text}
-        </span>
-      ),
-    },
-    {
-      title: 'Thời Gian Hẹn',
-      dataIndex: 'appointmentTime',
-      key: 'appointmentTime',
-      width: 180,
-      render: (time) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <ClockCircleOutlined style={{ color: '#1890ff' }} />
-          {moment(time).format('DD/MM/YYYY HH:mm')}
-        </div>
-      ),
-    },
-    {
-      title: 'Trạng Thái',
-      dataIndex: 'status',
-      key: 'status',
-      width: 120,
-      render: (status) => {
-        const getStatusConfig = (status) => {
-          const configs = {
-            'scheduled': { color: 'blue', text: 'Đã Lên Lịch' },
-            'completed': { color: 'green', text: 'Hoàn Thành' },
-            'cancelled': { color: 'red', text: 'Đã Hủy' },
-            'in-progress': { color: 'orange', text: 'Đang Diễn Ra' }
-          };
-          return configs[status] || { color: 'default', text: status };
-        };
-        
-        const config = getStatusConfig(status);
-        return <Tag color={config.color}>{config.text}</Tag>;
-      },
-    },
-    {
-      title: 'Google Meet',
-      dataIndex: 'googleMeetLink',
-      key: 'googleMeetLink',
-      width: 150,
-      render: (link) => (
-        link ? (
-          <Button 
-            type="link" 
-            icon={<VideoCameraOutlined />}
-            onClick={() => window.open(link, '_blank')}
-            size="small"
-          >
-            Tham Gia
-          </Button>
-        ) : (
-          <span style={{ color: '#999' }}>Không có</span>
-        )
-      ),
-    },
-    {
-      title: 'Ngày Tạo',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      width: 150,
-      render: (date) => moment(date).format('DD/MM/YYYY'),
-    },
-    {
-      title: 'Thao Tác',
-      key: 'actions',
-      width: 150,
-      fixed: 'right',
-      render: (_, record) => (
-        <Space size="small">
-          <Tooltip title="Xem Chi Tiết">
-            <Button 
-              icon={<EyeOutlined />} 
-              size="small" 
-              onClick={() => handleViewDetail(record)}
-            />
-          </Tooltip>
-        </Space>
-      ),
-    },
-  ];
+  // Update applyFilters when todayAppointments changes
+  useEffect(() => {
+    if (appointments.length > 0) {
+      applyFilters(appointments, activeFilter, dateRange);
+    }
+  }, [todayAppointments]);
+
+  // Convert appointments to calendar events
+  const calendarEvents = filteredAppointments.map(appointment => {
+    const startTime = moment(appointment.appointmentTime);
+    const endTime = moment(appointment.appointmentTime).add(1, 'hour'); // 1 hour duration
+    
+    const getEventColor = (status) => {
+      const colors = {
+        'scheduled': '#1890ff',
+        'completed': '#52c41a',
+        'cancelled': '#ff4d4f',
+        'in-progress': '#fa8c16'
+      };
+      return colors[status] || '#1890ff';
+    };
+
+    return {
+      id: appointment.id.toString(),
+      title: appointment.purpose,
+      start: startTime.toISOString(),
+      end: endTime.toISOString(),
+      backgroundColor: getEventColor(appointment.status),
+      borderColor: getEventColor(appointment.status),
+      extendedProps: {
+        appointment: appointment,
+        status: appointment.status,
+        googleMeetLink: appointment.googleMeetLink
+      }
+    };
+  });
+
+  // Handle calendar event click
+  const handleEventClick = async (info) => {
+    const appointmentId = parseInt(info.event.id);
+    const appointment = appointments.find(apt => apt.id === appointmentId);
+    if (appointment) {
+      await handleViewDetail(appointment);
+    }
+  };
+
+  // Handle date select (for creating new appointments)
+  const handleDateSelect = (selectInfo) => {
+    const selectedDate = moment(selectInfo.start);
+    
+    // Pre-fill the form with selected date/time
+    form.setFieldsValue({
+      appointmentTime: selectedDate
+    });
+    
+    setEditingId(null);
+    setModalVisible(true);
+  };
 
   // Handle view detail
   const handleViewDetail = async (appointment) => {
@@ -263,8 +244,6 @@ const Appointment = () => {
     form.resetFields();
     setModalVisible(true);
   };
-
-  
 
   // Handle form submit
   const handleSubmit = async (values) => {
@@ -303,353 +282,77 @@ const Appointment = () => {
 
   return (
     <div className="p-6">
-     {/* Statistics Cards */}
-      <Row gutter={[16, 16]} className="mb-6">
-        <Col xs={24} sm={12} md={8} lg={4}>
-          <Card 
-            hoverable
-            className={`cursor-pointer transition-all duration-300 ${
-              activeFilter === 'all' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-lg'
-            }`}
-            onClick={() => filterAppointments('all')}
-          >
-            <Statistic
-              title="Tất cả cuộc Hẹn"
-              value={statistics.total}
-              prefix={<UserOutlined style={{ color: '#1890ff' }} />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        
-        <Col xs={24} sm={12} md={8} lg={4}>
-          <Card 
-            hoverable
-            className={`cursor-pointer transition-all duration-300 ${
-              activeFilter === 'today' ? 'ring-2 ring-orange-500 bg-orange-50' : 'hover:shadow-lg'
-            }`}
-            onClick={() => filterAppointments('today')}
-          >
-            <Statistic
-              title="Cuộc hẹn hôm Nay của tôi"
-              value={statistics.today}
-              prefix={<UserOutlined style={{ color: '#fa8c16' }} />}
-              valueStyle={{ color: '#fa8c16' }}
-            />
-          </Card>
-        </Col>
-        
-        <Col xs={24} sm={12} md={8} lg={4}>
-          <Card 
-            hoverable
-            className={`cursor-pointer transition-all duration-300 ${
-              activeFilter === 'scheduled' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-lg'
-            }`}
-            onClick={() => filterAppointments('scheduled')}
-          >
-            <Statistic
-              title="Đã Lên Lịch"
-              value={statistics.scheduled}
-              prefix={<CalendarOutlined style={{ color: '#1890ff' }} />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        
-        <Col xs={24} sm={12} md={8} lg={4}>
-          <Card 
-            hoverable
-            className={`cursor-pointer transition-all duration-300 ${
-              activeFilter === 'in-progress' ? 'ring-2 ring-orange-500 bg-orange-50' : 'hover:shadow-lg'
-            }`}
-            onClick={() => filterAppointments('in-progress')}
-          >
-            <Statistic
-              title="Đang Diễn Ra"
-              value={statistics.inProgress}
-              prefix={<ExclamationCircleOutlined style={{ color: '#fa8c16' }} />}
-              valueStyle={{ color: '#fa8c16' }}
-            />
-          </Card>
-        </Col>
-        
-        <Col xs={24} sm={12} md={8} lg={4}>
-          <Card 
-            hoverable
-            className={`cursor-pointer transition-all duration-300 ${
-              activeFilter === 'completed' ? 'ring-2 ring-green-500 bg-green-50' : 'hover:shadow-lg'
-            }`}
-            onClick={() => filterAppointments('completed')}
-          >
-            <Statistic
-              title="Hoàn Thành"
-              value={statistics.completed}
-              prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-        
-        <Col xs={24} sm={12} md={8} lg={4}>
-          <Card 
-            hoverable
-            className={`cursor-pointer transition-all duration-300 ${
-              activeFilter === 'cancelled' ? 'ring-2 ring-red-500 bg-red-50' : 'hover:shadow-lg'
-            }`}
-            onClick={() => filterAppointments('cancelled')}
-          >
-            <Statistic
-              title="Đã Hủy"
-              value={statistics.cancelled}
-              prefix={<StopOutlined style={{ color: '#ff4d4f' }} />}
-              valueStyle={{ color: '#ff4d4f' }}
-            />
-          </Card>
-        </Col>
-      </Row>
-      <div className="mb-4 flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold mb-2">Quản Lý Cuộc Hẹn</h2>
-          <p className="text-gray-600">Quản lý và theo dõi các cuộc hẹn khám sức khỏe</p>
-        </div>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={handleCreate}
-          size="large"
-        >
-          Tạo Cuộc Hẹn Mới
-        </Button>
-      </div>
+      {/* Statistics Cards - Only show in List view */}
+      {viewMode === 'list' && (
+        <AppointmentStats 
+          statistics={statistics}
+          activeFilter={activeFilter}
+          onFilterChange={filterAppointments}
+        />
+      )}
 
-
-      <Table
-        columns={columns}
-        dataSource={filteredAppointments}
-        rowKey="id"
-        loading={loading}
-        pagination={{ 
-          pageSize: 5,
-          showTotal: (total, range) => 
-            `${range[0]}-${range[1]} trong ${total} cuộc hẹn`
-        }}
-        bordered
-        scroll={{ x: 1200 }}
+      {/* Header with controls */}
+      <AppointmentHeader
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        showDateFilter={showDateFilter}
+        toggleDateFilter={toggleDateFilter}
+        calendarView={calendarView}
+        setCalendarView={setCalendarView}
+        onCreateNew={handleCreate}
       />
 
-      {/* Create/Edit Modal */}
-      <Modal
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <CalendarOutlined style={{ color: '#1890ff' }} />
-            <span>{editingId ? 'Chỉnh Sửa Cuộc Hẹn' : 'Tạo Cuộc Hẹn Mới'}</span>
-          </div>
-        }
+      {/* Date Range Filter */}
+      {viewMode === 'calendar' && showDateFilter && (
+        <DateFilter
+          dateRange={dateRange}
+          onDateRangeChange={handleDateRangeChange}
+          onClearDateRange={clearDateRange}
+        />
+      )}
+
+      {/* Calendar Legend */}
+      {viewMode === 'calendar' && <CalendarLegend />}
+
+      {/* Main Content Area */}
+      {viewMode === 'calendar' ? (
+        <CalendarView
+          calendarEvents={calendarEvents}
+          calendarView={calendarView}
+          loading={loading}
+          onEventClick={handleEventClick}
+          onDateSelect={handleDateSelect}
+        />
+      ) : (
+        <TableView
+          filteredAppointments={filteredAppointments}
+          loading={loading}
+          onViewDetail={handleViewDetail}
+        />
+      )}
+
+      {/* Modals */}
+      <AppointmentFormModal
         visible={modalVisible}
+        editingId={editingId}
+        form={form}
+        loading={loading}
         onCancel={() => {
           setModalVisible(false);
           form.resetFields();
         }}
-        footer={null}
-        width={600}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          style={{ marginTop: 16 }}
-        >
-          <Form.Item
-            name="purpose"
-            label="Mục Đích Cuộc Hẹn"
-            rules={[{ required: true, message: 'Vui lòng nhập mục đích cuộc hẹn' }]}
-          >
-            <TextArea 
-              rows={3} 
-              placeholder="Nhập mục đích của cuộc hẹn..."
-              maxLength={500}
-              showCount
-            />
-          </Form.Item>
+        onSubmit={handleSubmit}
+      />
 
-          <Form.Item
-            name="appointmentTime"
-            label="Thời Gian Hẹn"
-            rules={[{ required: true, message: 'Vui lòng chọn thời gian hẹn' }]}
-          >
-            <DatePicker 
-              showTime
-              format="DD/MM/YYYY HH:mm"
-              placeholder="Chọn ngày và giờ hẹn"
-              style={{ width: '100%' }}
-              disabledDate={(current) => current && current < moment().startOf('day')}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="googleMeetLink"
-            label="Link Google Meet"
-            rules={[
-              { type: 'url', message: 'Vui lòng nhập đúng định dạng URL' }
-            ]}
-          >
-            <Input 
-              prefix={<VideoCameraOutlined />}
-              placeholder="https://meet.google.com/..."
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="status"
-            label="Trạng Thái"
-            initialValue="scheduled"
-          >
-            <Select placeholder="Chọn trạng thái">
-              <Option value="scheduled">Đã Lên Lịch</Option>
-              <Option value="in-progress">Đang Diễn Ra</Option>
-              <Option value="completed">Hoàn Thành</Option>
-              <Option value="cancelled">Đã Hủy</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item className="mb-0 text-right">
-            <Space>
-              <Button onClick={() => setModalVisible(false)}>
-                Hủy
-              </Button>
-              <Button type="primary" htmlType="submit" loading={loading}>
-                {editingId ? 'Cập Nhật' : 'Tạo Cuộc Hẹn'}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      {/* Detail Modal */}
-      <Modal
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <EyeOutlined style={{ color: '#1890ff' }} />
-            <span>Chi Tiết Cuộc Hẹn</span>
-          </div>
-        }
+      <AppointmentDetailModal
         visible={detailModalVisible}
+        selectedAppointment={selectedAppointment}
         onCancel={() => {
           setDetailModalVisible(false);
           setSelectedAppointment(null);
         }}
-        footer={[
-          <Button key="close" onClick={() => setDetailModalVisible(false)}>
-            Đóng
-          </Button>,
-          selectedAppointment?.googleMeetLink && (
-            <Button 
-              key="join" 
-              type="primary" 
-              icon={<VideoCameraOutlined />}
-              onClick={() => window.open(selectedAppointment.googleMeetLink, '_blank')}
-            >
-              Tham Gia Cuộc Họp
-            </Button>
-          )
-        ]}
-        width={700}
-        centered
-      >
-        {selectedAppointment && (
-          <div>
-            {/* Appointment Information */}
-            <Card 
-              title={
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <CalendarOutlined style={{ color: '#1890ff' }} />
-                  <span>Thông Tin Cuộc Hẹn</span>
-                </div>
-              }
-              style={{ marginBottom: 16 }}
-              size="small"
-            >
-              <Descriptions column={2} bordered size="small">
-                <Descriptions.Item label="ID Cuộc Hẹn">
-                  <Tag color="blue">#{selectedAppointment.id}</Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label="Trạng Thái">
-                  <Tag color={
-                    selectedAppointment.status === 'scheduled' ? 'blue' :
-                    selectedAppointment.status === 'completed' ? 'green' :
-                    selectedAppointment.status === 'cancelled' ? 'red' : 'orange'
-                  }>
-                    {selectedAppointment.status === 'scheduled' ? 'Đã Lên Lịch' :
-                     selectedAppointment.status === 'completed' ? 'Hoàn Thành' :
-                     selectedAppointment.status === 'cancelled' ? 'Đã Hủy' : 'Đang Diễn Ra'}
-                  </Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label="Thời Gian Hẹn" span={2}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <ClockCircleOutlined />
-                    {formatDateTime(selectedAppointment.appointmentTime)}
-                  </div>
-                </Descriptions.Item>
-                <Descriptions.Item label="Ngày Tạo">
-                  {moment(selectedAppointment.createdAt).format('DD/MM/YYYY HH:mm')}
-                </Descriptions.Item>
-                <Descriptions.Item label="Cập Nhật Lần Cuối">
-                  {moment(selectedAppointment.updatedAt).format('DD/MM/YYYY HH:mm')}
-                </Descriptions.Item>
-                <Descriptions.Item label="Mục Đích" span={2}>
-                  <div style={{ 
-                    backgroundColor: '#f5f5f5', 
-                    padding: '8px', 
-                    borderRadius: '4px',
-                    border: '1px solid #d9d9d9'
-                  }}>
-                    {selectedAppointment.purpose}
-                  </div>
-                </Descriptions.Item>
-                {selectedAppointment.googleMeetLink && (
-                  <Descriptions.Item label="Google Meet Link" span={2}>
-                    <Button 
-                      type="link" 
-                      icon={<VideoCameraOutlined />}
-                      onClick={() => window.open(selectedAppointment.googleMeetLink, '_blank')}
-                    >
-                      {selectedAppointment.googleMeetLink}
-                    </Button>
-                  </Descriptions.Item>
-                )}
-              </Descriptions>
-            </Card>
-
-            {/* Nurse Information (if available) */}
-            {selectedAppointment.nurse && (
-              <Card 
-                title={
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <UserOutlined style={{ color: '#52c41a' }} />
-                    <span>Y Tá Phụ Trách</span>
-                  </div>
-                }
-                size="small"
-              >
-                <Descriptions column={2} bordered size="small">
-                  <Descriptions.Item label="Tên Y Tá">
-                    <strong>{selectedAppointment.nurse.fullName}</strong>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="ID Y Tá">
-                    <Tag color="green">#{selectedAppointment.nurse.id}</Tag>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Số Điện Thoại">
-                    {selectedAppointment.nurse.phone}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Email">
-                    {selectedAppointment.nurse.email}
-                  </Descriptions.Item>
-                </Descriptions>
-              </Card>
-            )}
-          </div>
-        )}
-      </Modal>
+        formatDateTime={formatDateTime}
+      />
     </div>
   );
 };
