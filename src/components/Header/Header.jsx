@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaUserCircle, FaBars, FaTimes } from "react-icons/fa";
 import logo from "../../assets/logo/campusmedix.png";
 import "./Header.scss";
@@ -52,7 +52,7 @@ const Header = () => {
   ];
 
   const guessDropdown = [
-    { 
+    {
       key: "1",
       label: (
         <Link to="/login" className="text-gray-700 hover:text-gray-900">
@@ -60,7 +60,7 @@ const Header = () => {
         </Link>
       ),
     },
-  ]
+  ];
 
   const items = isAuthenticated ? loggedDropdown : guessDropdown;
 

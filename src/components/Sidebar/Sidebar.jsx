@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from "react";
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
@@ -7,12 +7,11 @@ import { logout, selectUser } from '../../redux/features/userSlice'
 import { IoHomeOutline, IoLogOutOutline, IoDocumentTextOutline, IoSettingsOutline, IoNotificationsOutline  } from "react-icons/io5";
 import { LuUserSearch } from "react-icons/lu";
 import { TiMessages } from "react-icons/ti";
-import { MdOutlineSupervisorAccount } from "react-icons/md";
+import { MdOutlineSupervisorAccount, MdAssignmentInd } from "react-icons/md";
 import { TbEdit } from "react-icons/tb";
 import { BiSupport } from "react-icons/bi";
 import * as Texts from './text'; // Import texts
 import NotificationSection from '../NotificationSection/NotificationSection';
-
 
 
 const Sidebar = ({ selectedItem, setSelectedItem }) => {
@@ -89,36 +88,43 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
     };
 
     const sidebarVariants = {
-        open: { width: '250px' },
-        closed: { width: '80px' },
+        open: { width: "250px" },
+        closed: { width: "80px" },
     };
 
     const textVariants = {
-        open: { opacity: 1, width: 'auto', marginLeft: '12px', display: 'block' },
-        closed: { opacity: 0, width: 0, marginLeft: '0px', transitionEnd: { display: 'none' } },
+        open: { opacity: 1, width: "auto", marginLeft: "12px", display: "block" },
+        closed: {
+            opacity: 0,
+            width: 0,
+            marginLeft: "0px",
+            transitionEnd: { display: "none" },
+        },
     };
 
     const profileTextTransition = {
         duration: 0.2,
         delay: isOpen ? 0.2 : 0,
     };
-    
+
     const menuItemTextTransition = {
         duration: 0.2,
         delay: isOpen ? 0.25 : 0, // Slightly delay menu item text after profile
     };
 
     return (
-        <div className='h-full w-full flex flex-row bg-gray-100  '> 
-            <motion.div 
-                className={`h-full ${isOpen ? 'bg-[#F3F7FF]' : 'bg-white'} pt-[2%] shadow-lg z-40 absolute w-full flex flex-col p-4`} 
+        <div className="h-full w-full flex flex-row bg-gray-100">
+            <motion.div
+                className={`h-full ${
+                    isOpen ? "bg-[#F3F7FF]" : "bg-white"
+                } pt-[2%] shadow-lg z-40 absolute w-full flex flex-col p-4`}
                 variants={sidebarVariants}
                 initial="closed"
                 animate={isOpen ? "open" : "closed"}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 onMouseEnter={() => setIsOpen(true)}
                 onMouseLeave={() => setIsOpen(false)}
-            >  
+            >
                 {/* Profile Section */}
                 <motion.div className="flex flex-row items-center mb-3">
                     <motion.div
@@ -159,23 +165,33 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
                 </motion.div>
 
                 {/* Navigation Items */}
-                <nav className=' rounded-2xl py-1 bg-white'>
-                    <ul className='justify-between flex flex-col'>
+                <nav className="rounded-2xl py-1 bg-white">
+                    <ul className="justify-between flex flex-col">
                         {menuItems.map((item) => (
                             <React.Fragment key={item.id}>
-                                <li className='my-1'>
-                                    <motion.div className='flex py-2 items-center rounded-lg cursor-pointer'
+                                <li className="my-1">
+                                    <motion.div
+                                        className="flex py-2 items-center rounded-lg cursor-pointer"
                                         initial={{ scale: 1 }}
-                                        whileHover={{ scale: 1.05, boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)" }}
+                                        whileHover={{
+                                            scale: 1.05,
+                                            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+                                        }}
                                         whileTap={{ scale: 0.95 }}
                                         transition={{ type: "spring", stiffness: 300, damping: 20 }}
                                         onClick={() => handleNavigation(item)}
                                     >
-                                        <span className={`text-2xl w-12 h-7 flex items-center justify-center flex-shrink-0 ${selectedItem === item.label ? 'text-orange-500' : ''}`}> {/* Icon container */}
+                                        <span
+                                            className={`text-2xl w-12 h-7 flex items-center justify-center flex-shrink-0 ${
+                                                selectedItem === item.label ? "text-orange-500" : ""
+                                            }`}
+                                        >
                                             {item.icon}
                                         </span>
                                         <motion.span
-                                            className={`text-sm font-medium overflow-hidden whitespace-nowrap ${selectedItem === item.label ? 'text-orange-500' : ''}`}
+                                            className={`text-sm font-medium overflow-hidden whitespace-nowrap ${
+                                                selectedItem === item.label ? "text-orange-500" : ""
+                                            }`}
                                             initial="closed"
                                             animate={isOpen ? "open" : "closed"}
                                             variants={textVariants}
@@ -190,7 +206,13 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
                                         className="border-gray-300 mx-4 "
                                         initial="closed"
                                         animate={isOpen ? "open" : "closed"}
-                                        variants={{ open: { opacity: 1, display: 'block' }, closed: { opacity: 0, transitionEnd: { display: 'none' } } }}
+                                        variants={{
+                                            open: { opacity: 1, display: "block" },
+                                            closed: {
+                                                opacity: 0,
+                                                transitionEnd: { display: "none" },
+                                            },
+                                        }}
                                         transition={menuItemTextTransition}
                                     />
                                 )}
@@ -201,11 +223,11 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
             </motion.div>
             
             {/* Main Content Area */}
-            <div className=' bg-[#F3F7FF] lg:pl-[5vw] md:pl-[9vw] sm:pl-[11vw]  pl-[14vw] z-10 grow  p-4'> 
-              <NotificationSection/>
+            <div className="bg-[#F3F7FF] lg:pl-[5vw] md:pl-[9vw] sm:pl-[11vw] pl-[14vw] z-10 grow p-4"> 
+                <NotificationSection/>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Sidebar
+export default Sidebar;

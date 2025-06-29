@@ -1,7 +1,7 @@
 export const GREETING = "Xin chào, ";
 export const USER_NAME = "Dai Duong Res";
 export const VIEW_PROFILE = "Xem hồ sơ";
-export const WRITE_POST = "Viết bài tuyển dụng";
+export const WRITE_POST = "Báo cáo trong ngày";
 export const HOME = "Trang chủ";
 export const NOTIFICATIONS = "Thông báo";
 export const JOB_POSTINGS = "Tin tuyển dụng";

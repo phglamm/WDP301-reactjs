@@ -11,20 +11,20 @@ import { motion } from "framer-motion";
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   const [form, setForm] = useState({
-    phone: '',
-    password: '',
+    phone: "",
+    password: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     // Clear error when user starts typing
-    if (error) setError('');
+    if (error) setError("");
   };
 
   const toggleShowPassword = () => {
@@ -34,42 +34,43 @@ const Login = () => {
   const handleLogin = async (form) => {
     try {
       setLoading(true);
-      setError('');
-      
+      setError("");
+
       const response = await authService.login(form);
-      
+
       // Dispatch login action to Redux store
       dispatch(login(response));
-      toast.success('Đăng nhập thành công!');
-      
+      toast.success("Đăng nhập thành công!");
+
       // Navigate based on user role
       const userRole = response.user?.role;
       switch (userRole) {
-        case 'nurse':
-          navigate('/nurse');
+        case "nurse":
+          navigate("/nurse");
           break;
-        case 'parent':
-          navigate('/');
+        case "parent":
+          navigate("/");
           break;
-        case 'admin':
-          navigate('/admin/dashboard');
+        case "admin":
+          navigate("/admin/dashboard");
           break;
         default:
-          navigate('/dashboard');
+          navigate("/dashboard");
       }
-      
     } catch (error) {
-      console.error('Lỗi đăng nhập:', error);
-      
+      console.error("Lỗi đăng nhập:", error);
+
       // Handle different error types
       if (error.response?.status === 401) {
-        setError('Số điện thoại hoặc mật khẩu không đúng.');
+        setError("Số điện thoại hoặc mật khẩu không đúng.");
       } else if (error.response?.status === 404) {
-        setError('Tài khoản không tồn tại.');
+        setError("Tài khoản không tồn tại.");
       } else if (error.response?.status >= 500) {
-        setError('Lỗi máy chủ. Vui lòng thử lại sau.');
+        setError("Lỗi máy chủ. Vui lòng thử lại sau.");
       } else {
-        setError('Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.');
+        setError(
+          "Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin."
+        );
       }
     } finally {
       setLoading(false);
@@ -78,13 +79,13 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Basic validation
     if (!form.phone.trim() || !form.password.trim()) {
-      setError('Vui lòng nhập đầy đủ thông tin.');
+      setError("Vui lòng nhập đầy đủ thông tin.");
       return;
     }
-    
+
     handleLogin(form);
   };
 
@@ -175,7 +176,6 @@ const Login = () => {
           </form>
 
           <p style={styles.orConnect}>hoặc đăng nhập với</p>
-
           <div style={styles.socialButtons}>
             <button
               style={{
@@ -236,88 +236,88 @@ const styles = {
     position: "relative",
   },
   formWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
+    display: "flex",
+    flexDirection: "column",
   },
   title: {
-    color: '#223A6A',
-    fontWeight: '700',
+    color: "#223A6A",
+    fontWeight: "700",
     fontSize: 22,
     marginBottom: 24,
-    textAlign: 'center',
+    textAlign: "center",
   },
   errorMessage: {
-    backgroundColor: '#ffebee',
-    color: '#c62828',
+    backgroundColor: "#ffebee",
+    color: "#c62828",
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
     fontSize: 14,
-    textAlign: 'center',
-    border: '1px solid #ffcdd2',
+    textAlign: "center",
+    border: "1px solid #ffcdd2",
   },
   form: {
-    display: 'flex',
-    flexDirection: 'column',
+    display: "flex",
+    flexDirection: "column",
   },
   input: {
     padding: 12,
     marginBottom: 16,
     borderRadius: 12,
-    border: '1px solid #407CE2',
+    border: "1px solid #407CE2",
     fontSize: 14,
-    outline: 'none',
-    color: '#222',
-    transition: 'border-color 0.3s ease',
+    outline: "none",
+    color: "#222",
+    transition: "border-color 0.3s ease",
   },
   showPasswordLabel: {
     fontSize: 14,
-    color: '#223A6A',
+    color: "#223A6A",
     marginBottom: 24,
-    userSelect: 'none',
+    userSelect: "none",
   },
   loginButton: {
-    backgroundColor: '#223A6A',
-    color: '#fff',
-    fontWeight: '700',
+    backgroundColor: "#223A6A",
+    color: "#fff",
+    fontWeight: "700",
     borderRadius: 24,
     padding: 12,
-    border: 'none',
-    cursor: 'pointer',
+    border: "none",
+    cursor: "pointer",
     marginBottom: 8,
-    transition: 'background-color 0.3s ease',
+    transition: "background-color 0.3s ease",
   },
   registerRedirect: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 14,
-    color: '#223A6A',
+    color: "#223A6A",
     marginTop: 8,
   },
   registerLink: {
-    color: '#407CE2',
-    textDecoration: 'none',
-    fontWeight: '600',
-    cursor: 'pointer',
+    color: "#407CE2",
+    textDecoration: "none",
+    fontWeight: "600",
+    cursor: "pointer",
   },
   orConnect: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 16,
     fontSize: 13,
-    color: '#223A6A',
+    color: "#223A6A",
   },
   socialButtons: {
-    display: 'flex',
-    justifyContent: 'center',
+    display: "flex",
+    justifyContent: "center",
   },
   socialButton: {
     flex: 1,
     padding: 12,
     borderRadius: 24,
-    border: '1px solid #eee',
-    backgroundColor: '#fff',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
+    border: "1px solid #eee",
+    backgroundColor: "#fff",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
   },
 };
 
