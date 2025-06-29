@@ -50,12 +50,16 @@ const DrugInfo = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2" style={{ color: '#223A6A' }}>
+          <h1 className="text-4xl font-bold mb-4" style={{ 
+            background: 'linear-gradient(135deg, #223A6A 0%, #407CE2 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}>
             Quản Lý Thông Tin Thuốc
           </h1>
-          <p className="text-gray-600">Theo dõi và quản lý thuốc cho con em</p>
+          <p className="text-gray-600 text-lg">Theo dõi và quản lý thuốc cho con em</p>
         </div>
-
         {/* Student Selection */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-8">
           <div className="p-6 border-b border-gray-100">

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaUserCircle, FaBars, FaTimes } from "react-icons/fa";
 import logo from "../../assets/logo/campusmedix.png";
 import "./Header.scss";
@@ -52,7 +52,7 @@ const Header = () => {
   ];
 
   const guessDropdown = [
-    { 
+    {
       key: "1",
       label: (
         <Link to="/login" className="text-gray-700 hover:text-gray-900">
@@ -60,16 +60,21 @@ const Header = () => {
         </Link>
       ),
     },
-  ]
+  ];
 
   const items = isAuthenticated ? loggedDropdown : guessDropdown;
 
   const location = useLocation();
   const currentPath = location.pathname;
 
+  const navigate = useNavigate();
+
+  const handleIconClick = () => {
+    navigate("/profile");
+  };
+
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
-  // Đóng menu khi chọn link (mobile)
   const closeMenu = () => setMenuOpen(false);
 
   // Đóng modal đăng xuất
@@ -135,10 +140,12 @@ const Header = () => {
           </ul>
 
           <div className="userIcons">
-            <div className="font-bold  ">
-              {user?.fullName}
-            </div>
-            <Dropdown menu={{ items }} trigger={["hover"]} placement="bottomRight">
+            <div className="font-bold  ">{user?.fullName}</div>
+            <Dropdown
+              menu={{ items }}
+              trigger={["hover"]}
+              placement="bottomRight"
+            >
               <FaUserCircle
                 size={40}
                 className={`icon ${hoveredIcon === "user" ? "hovered" : ""}`}
