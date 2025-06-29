@@ -5,6 +5,8 @@ import { useDispatch } from "react-redux";
 import { login } from "../../redux/features/userSlice";
 import authService from "../../services/authService";
 import toast from "react-hot-toast";
+import AnimatedLogo from "../../components/AnimatedLogo/AnimatedLogo";
+import { motion } from "framer-motion";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -88,120 +90,150 @@ const Login = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.formWrapper}>
-        <h2 style={styles.title}>Đăng nhập tài khoản</h2>
-
-        {error && <div style={styles.errorMessage}>{error}</div>}
-
-        <form style={styles.form} onSubmit={handleSubmit}>
-          <input
-            type="tel"
-            name="phone"
-            placeholder="Số điện thoại"
-            value={form.phone}
-            onChange={handleChange}
-            style={{
-              ...styles.input,
-              borderColor: error ? "#ff4d4f" : "#407CE2",
-            }}
-            pattern="[0-9]{9,12}"
-            title="Vui lòng nhập số điện thoại hợp lệ (9-12 chữ số)"
-            disabled={loading}
-            required
+    <div className="relative w-full h-screen flex items-center justify-center">
+      <motion.div 
+        className="flex items-center justify-center absolute w-full h-full"
+        // style={{ background: 'linear-gradient(135deg, #407ce2, #223a6a)' }}
+        initial={{zIndex: 100, background: 'linear-gradient(135deg, #407ce2, #223a6a)' }}
+        animate={{zIndex: 10, opacity: 0.9, background: 'linear-gradient(135deg, #407ce2, #223a6a)' }}
+        transition={{ duration: 5, ease: "easeInOut", delay: 5 }}
+      >
+          <AnimatedLogo
+            width={400}
+            height={360}
+            style={styles.animatedLogo}
           />
-          <input
-            type={showPassword ? "text" : "password"}
-            name="password"
-            placeholder="Mật khẩu"
-            value={form.password}
-            onChange={handleChange}
-            style={{
-              ...styles.input,
-              borderColor: error ? "#ff4d4f" : "#407CE2",
-            }}
-            disabled={loading}
-            required
-          />
+      </motion.div>
 
-          <label style={styles.showPasswordLabel}>
+      <motion.div style={styles.container}
+        initial={{ opacity: 0, scale: 0.8, zIndex: 100 }}
+        animate={{ opacity: 1, scale: 1, zIndex: 100 }}
+        transition={{ duration: 1, ease: "easeInOut", delay: 5 }}
+      >
+        <div style={styles.formWrapper}>
+          <h2 style={styles.title}>Đăng nhập tài khoản</h2>
+
+          {error && <div style={styles.errorMessage}>{error}</div>}
+
+          <form style={styles.form} onSubmit={handleSubmit}>
             <input
-              type="checkbox"
-              checked={showPassword}
-              onChange={toggleShowPassword}
+              type="tel"
+              name="phone"
+              placeholder="Số điện thoại"
+              value={form.phone}
+              onChange={handleChange}
+              style={{
+                ...styles.input,
+                borderColor: error ? "#ff4d4f" : "#407CE2",
+              }}
+              pattern="[0-9]{9,12}"
+              title="Vui lòng nhập số điện thoại hợp lệ (9-12 chữ số)"
               disabled={loading}
-            />{" "}
-            Hiện mật khẩu
-          </label>
+              required
+            />
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Mật khẩu"
+              value={form.password}
+              onChange={handleChange}
+              style={{
+                ...styles.input,
+                borderColor: error ? "#ff4d4f" : "#407CE2",
+              }}
+              disabled={loading}
+              required
+            />
 
-          <button
-            type="submit"
-            style={{
-              ...styles.loginButton,
-              backgroundColor: loading ? "#ccc" : "#223A6A",
-              cursor: loading ? "not-allowed" : "pointer",
-            }}
-            disabled={loading}
-          >
-            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
-          </button>
+            <label style={styles.showPasswordLabel}>
+              <input
+                type="checkbox"
+                checked={showPassword}
+                onChange={toggleShowPassword}
+                disabled={loading}
+              />{" "}
+              Hiện mật khẩu
+            </label>
 
-          <p style={styles.registerRedirect}>
-            Chưa có tài khoản?{" "}
-            <Link to="/register" style={styles.registerLink}>
-              Đăng ký ngay
-            </Link>
-          </p>
-        </form>
+            <button
+              type="submit"
+              style={{
+                ...styles.loginButton,
+                backgroundColor: loading ? "#ccc" : "#223A6A",
+                cursor: loading ? "not-allowed" : "pointer",
+              }}
+              disabled={loading}
+            >
+              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+            </button>
 
-        <p style={styles.orConnect}>hoặc đăng nhập với</p>
+            <p style={styles.registerRedirect}>
+              Chưa có tài khoản?{" "}
+              <Link to="/register" style={styles.registerLink}>
+                Đăng ký ngay
+              </Link>
+            </p>
+          </form>
 
-        <div style={styles.socialButtons}>
-          <button
-            style={{
-              ...styles.socialButton,
-              marginRight: 16,
-              borderColor: "#407CE2",
-              color: "#407CE2",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-            }}
-            disabled={loading}
-          >
-            <FaGoogle size={18} /> Google
-          </button>
-          <button
-            style={{
-              ...styles.socialButton,
-              borderColor: "#223A6A",
-              color: "#223A6A",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-            }}
-            disabled={loading}
-          >
-            <FaFacebookF size={18} /> Facebook
-          </button>
+          <p style={styles.orConnect}>hoặc đăng nhập với</p>
+          <div style={styles.socialButtons}>
+            <button
+              style={{
+                ...styles.socialButton,
+                marginRight: 16,
+                borderColor: "#407CE2",
+                color: "#407CE2",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+              }}
+              disabled={loading}
+            >
+              <FaGoogle size={18} /> Google
+            </button>
+            <button
+              style={{
+                ...styles.socialButton,
+                borderColor: "#223A6A",
+                color: "#223A6A",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+              }}
+              disabled={loading}
+            >
+              <FaFacebookF size={18} /> Facebook
+            </button>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
 
 const styles = {
+  logoContainer: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    zIndex: 5,
+    opacity: 1,
+  },
+  animatedLogo: {
+    filter: "drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))",
+  },
   container: {
-    maxWidth: 400,
-    margin: "60px auto",
-    padding: 30,
-    backgroundColor: "#f8f8f8",
+    padding: 70,
+    width: 500,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 16,
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     color: "#222",
     boxShadow: "0 8px 24px rgba(34, 58, 106, 0.1)",
+    position: "relative",
   },
   formWrapper: {
     display: "flex",

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { logout } from '../../redux/features/userSlice'
+import { logout, selectUser } from '../../redux/features/userSlice'
 import { IoHomeOutline, IoLogOutOutline, IoDocumentTextOutline, IoSettingsOutline, IoNotificationsOutline  } from "react-icons/io5";
 import { LuUserSearch } from "react-icons/lu";
 import { TiMessages } from "react-icons/ti";
@@ -14,13 +14,12 @@ import * as Texts from './text'; // Import texts
 import NotificationSection from '../NotificationSection/NotificationSection';
 
 
-
 const Sidebar = ({ selectedItem, setSelectedItem }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [user] = useState(null);
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const role = useSelector((state) => state.user.user?.role);
+    const user = useSelector(selectUser)
 
     // Base menu items for nurse
     const baseMenuItems = [
@@ -128,13 +127,6 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
             >
                 {/* Profile Section */}
                 <motion.div className="flex flex-row items-center mb-3">
-                    <img
-                        src="/logo.png"
-                        alt="logo"
-                        width={48}
-                        height={48}
-                        className="bg-black rounded-full flex-shrink-0"
-                    />
                     <motion.div
                         className="overflow-hidden" // To hide text smoothly
                         initial="closed"
@@ -143,16 +135,12 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
                         transition={profileTextTransition}
                     >
                         <p className="text-sm whitespace-nowrap">{Texts.GREETING}</p>
-                        <p className="text-sm font-bold whitespace-nowrap">{user?.name}</p>
-                        <p className="text-xs text-gray-600 whitespace-nowrap hover:underline cursor-pointer">
-                            {Texts.VIEW_PROFILE}
-                        </p>
+                        <p className="text-sm font-bold whitespace-nowrap">{user?.fullName}</p>
                     </motion.div>
                 </motion.div>
 
-                {/* Write Post Button */}
                 <motion.div
-                    className="flex flex-row rounded-xl bg-[linear-gradient(90deg,_#FF7345_33.76%,_#FFDC95_99.87%)] items-center mb-2 shadow-md cursor-pointer"
+                    className="flex flex-row rounded-xl bg-gradient-to-br from-blue-500 to-blue-900 items-center mb-2 shadow-md cursor-pointer"
                     initial={{ scale: 1 }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
