@@ -131,10 +131,6 @@ function App() {
             </ProtectedRoute>
           ),
         },
-        {
-          path: "/profile",
-          element: <Profile />,
-        },
       ],
     },
 
@@ -194,20 +190,20 @@ function App() {
       ],
     },
 
-     {
-      path: "/manager",
-      element: (
-        <ProtectedRoute allowedRoles={["manager"]}>
-          <ManagerLayout />
-        </ProtectedRoute>
-      ),
-      children: [
-        {
-          path: "manager-slot",
-          element: <ManagerSlotPage />,
-        },
-      ],
-    },
+    //  {
+    //   path: "/manager",
+    //   element: (
+    //     <ProtectedRoute allowedRoles={["manager"]}>
+    //       <ManagerLayout />
+    //     </ProtectedRoute>
+    //   ),
+    //   children: [
+    //     {
+    //       path: "manager-slot",
+    //       element: <ManagerSlotPage />,
+    //     },
+    //   ],
+    // },
 
     // Catch all route - redirect to login if not authenticated, otherwise to home
 
