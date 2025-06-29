@@ -119,6 +119,10 @@ function App() {
             </ProtectedRoute>
           ),
         },
+        {
+          path: "/profile",
+          element: <Profile />,
+        },
       ],
     },
 

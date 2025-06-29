@@ -69,10 +69,8 @@ const Header = () => {
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
-  // Đóng menu khi chọn link (mobile)
   const closeMenu = () => setMenuOpen(false);
 
-  // Đóng modal đăng xuất
   const closeLogoutModal = () => {
     setShowLogoutModal(false);
   };
@@ -153,6 +151,7 @@ const Header = () => {
 
       {showLogoutModal && (
         <div
+        <div
           className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-[9999]"
           onClick={closeLogoutModal}
           style={{
@@ -164,6 +163,7 @@ const Header = () => {
             bottom: 0,
           }}
         >
+          <div
           <div
             className="rounded-lg p-6 max-w-sm w-11/12 mx-4 shadow-2xl relative"
             onClick={(e) => e.stopPropagation()}
@@ -182,11 +182,13 @@ const Header = () => {
             </p>
             <div className="flex gap-3 justify-center">
               <button
+              <button
                 className="px-6 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors duration-200 font-medium min-w-[100px]"
                 onClick={closeLogoutModal}
               >
                 Hủy
               </button>
+              <button
               <button
                 className="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200 font-medium min-w-[100px]"
                 onClick={handleLogout}
