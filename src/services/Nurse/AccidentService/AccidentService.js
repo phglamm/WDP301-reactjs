@@ -1,17 +1,13 @@
 import { request } from "../../request";
 
 const AccidentService = {
-    // Get all accidents
-    getAllAccidents: () => request("GET", "accident"),
+  // Get all accidents
+  getAllAccidents: () => request("GET", "accident"),
 
-    // Create a new accident report
-    createAccidentReport: (formData) => request("POST", "accident", formData, {
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    }),
+  // Create a new accident report
+  createAccidentReport: (formData) => request("POST", "accident", formData),
 
-    getAccidentById: (id) => request("GET", `accident/${id}`),
-}
+  getAccidentById: (id) => request("GET", `accident/${id}`),
+};
 
 export default AccidentService;

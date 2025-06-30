@@ -91,21 +91,25 @@ const Login = () => {
 
   return (
     <div className="relative w-full h-screen flex items-center justify-center">
-      <motion.div 
+      <motion.div
         className="flex items-center justify-center absolute w-full h-full"
         // style={{ background: 'linear-gradient(135deg, #407ce2, #223a6a)' }}
-        initial={{zIndex: 100, background: 'linear-gradient(135deg, #407ce2, #223a6a)' }}
-        animate={{zIndex: 10, opacity: 0.9, background: 'linear-gradient(135deg, #407ce2, #223a6a)' }}
+        initial={{
+          zIndex: 100,
+          background: "linear-gradient(135deg, #407ce2, #223a6a)",
+        }}
+        animate={{
+          zIndex: 10,
+          opacity: 0.9,
+          background: "linear-gradient(135deg, #407ce2, #223a6a)",
+        }}
         transition={{ duration: 5, ease: "easeInOut", delay: 5 }}
       >
-          <AnimatedLogo
-            width={400}
-            height={360}
-            style={styles.animatedLogo}
-          />
+        <AnimatedLogo width={400} height={360} style={styles.animatedLogo} />
       </motion.div>
 
-      <motion.div style={styles.container}
+      <motion.div
+        style={styles.container}
         initial={{ opacity: 0, scale: 0.8, zIndex: 100 }}
         animate={{ opacity: 1, scale: 1, zIndex: 100 }}
         transition={{ duration: 1, ease: "easeInOut", delay: 5 }}

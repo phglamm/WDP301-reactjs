@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { createSlice } from "@reduxjs/toolkit";
 import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
 export const userSlice = createSlice({
   name: "user",
   initialState: {
@@ -17,6 +18,9 @@ export const userSlice = createSlice({
 
       // Also save to localStorage for persistence
       localStorage.setItem("access_token", action.payload.access_token);
+      Cookies.set("token", action.payload.access_token, {
+        expires: 7, // Set cookie to expire in 7 days
+      });
       localStorage.setItem("user", JSON.stringify(action.payload.user));
     },
     logout: (state) => {
