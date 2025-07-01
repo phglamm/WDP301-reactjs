@@ -35,6 +35,8 @@ const Login = () => {
       setError("");
 
       const response = await authService.login(form);
+      console.log("Response login", response);
+
 
       // Dispatch login action to Redux store
       dispatch(login(response));
