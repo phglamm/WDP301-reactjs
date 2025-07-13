@@ -1,46 +1,153 @@
-import React, { useState } from 'react';
-import { Plus, Calendar, FileText, User, Edit, Trash2, Camera } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, User, Camera, Upload, CheckCircle, AlertCircle } from 'lucide-react';
 
 const DrugInfo = () => {
   const [selectedStudent, setSelectedStudent] = useState('');
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [drugs, setDrugs] = useState([]);
-  const [newDrug, setNewDrug] = useState({
-    name: '',
-    dosage: '',
-    unit: 'mg',
-    frequency: '',
-    startDate: '',
-    endDate: '',
-    notes: ''
-  });
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [notification, setNotification] = useState({ show: false, type: '', message: '' });
 
-  const students = [
-    { id: 'sophie', name: 'Sophie Miller', age: 8, class: 'Lớp 3A', avatar: '👧' },
-    { id: 'john', name: 'John Smith', age: 6, class: 'Lớp 1B', avatar: '👦' }
-  ];
-  const handleAddDrug = () => {
-    if (newDrug.name && newDrug.dosage && newDrug.frequency) {
-      setDrugs([...drugs, { ...newDrug, id: Date.now() }]);
-      setNewDrug({
-        name: '',
-        dosage: '',
-        unit: 'mg',
-        frequency: '',
-        startDate: '',
-        endDate: '',
-        notes: ''
+  // Get API base URL from environment
+  const getAPIBaseURL = () => {
+    return import.meta.env.VITE_API_URL || 'https://wdp301-se1752-be.onrender.com/api';
+  };
+
+  // Get token from localStorage (from userSlice)
+  const getToken = () => {
+    return localStorage.getItem('access_token');
+  };
+
+  // Get user info from localStorage
+  const getUserInfo = () => {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  };
+
+  // Fetch students list on component mount
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const fetchStudents = async () => {
+    setLoading(true);
+    try {
+      const token = getToken();
+      const apiUrl = getAPIBaseURL();
+      
+      if (!token) {
+        showNotification('error', 'Vui lòng đăng nhập lại');
+        return;
+      }
+
+      const response = await fetch(`${apiUrl}/student/parent`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
-      setShowAddForm(false);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Students API data:', data);
+        setStudents(Array.isArray(data.data) ? data.data : []);
+      } else if (response.status === 401) {
+        showNotification('error', 'Phiên đăng nhập hết hạn, vui lòng đăng nhập lại');
+      } else {
+        showNotification('error', 'Không thể tải danh sách học sinh');
+      }
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      showNotification('error', 'Lỗi kết nối khi tải danh sách học sinh');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDeleteDrug = (id) => {
-    setDrugs(drugs.filter(drug => drug.id !== id));
+  const handleImageSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSendMedicineRequest = async () => {
+    if (!selectedStudent) {
+      showNotification('error', 'Vui lòng chọn học sinh');
+      return;
+    }
+
+    if (!selectedImage) {
+      showNotification('error', 'Vui lòng chọn hình ảnh thuốc');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = getToken();
+      const apiUrl = getAPIBaseURL();
+      
+      if (!token) {
+        showNotification('error', 'Vui lòng đăng nhập lại');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('image', selectedImage);
+      formData.append('studentId', selectedStudent);
+
+      const response = await fetch(`${apiUrl}/medicine-request/image`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        showNotification('success', 'Tạo yêu cầu gửi thuốc thành công');
+        setSelectedImage(null);
+        setImagePreview(null);
+        // Reset file input
+        const fileInput = document.getElementById('imageInput');
+        if (fileInput) fileInput.value = '';
+      } else if (response.status === 401) {
+        showNotification('error', 'Phiên đăng nhập hết hạn, vui lòng đăng nhập lại');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        showNotification('error', errorData.message || 'Không thể tạo yêu cầu gửi thuốc');
+      }
+    } catch (error) {
+      console.error('Error sending medicine request:', error);
+      showNotification('error', 'Lỗi kết nối khi gửi yêu cầu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const showNotification = (type, message) => {
+    setNotification({ show: true, type, message });
+    setTimeout(() => {
+      setNotification({ show: false, type: '', message: '' });
+    }, 5000);
   };
 
   const handleStudentSelect = (studentId) => {
     setSelectedStudent(studentId);
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    const fileInput = document.getElementById('imageInput');
+    if (fileInput) fileInput.value = '';
   };
 
   return (
@@ -48,6 +155,20 @@ const DrugInfo = () => {
       background: 'linear-gradient(135deg, #ffffff 0%, #d4e4ff 50%, #b3ccff 100%)'
     }}>
       <div className="max-w-6xl mx-auto">
+        {/* Notification */}
+        {notification.show && (
+          <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center gap-2 ${
+            notification.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+          }`}>
+            {notification.type === 'success' ? (
+              <CheckCircle className="w-5 h-5" />
+            ) : (
+              <AlertCircle className="w-5 h-5" />
+            )}
+            {notification.message}
+          </div>
+        )}
+
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4" style={{ 
@@ -58,8 +179,9 @@ const DrugInfo = () => {
           }}>
             Quản Lý Thông Tin Thuốc
           </h1>
-          <p className="text-gray-600 text-lg">Theo dõi và quản lý thuốc cho con em</p>
+          <p className="text-gray-600 text-lg">Gửi yêu cầu thuốc cho con em bằng hình ảnh</p>
         </div>
+
         {/* Student Selection */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-8">
           <div className="p-6 border-b border-gray-100">
@@ -68,261 +190,167 @@ const DrugInfo = () => {
               Chọn học sinh
             </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-              {/* Tất cả option */}
-              <div 
-                onClick={() => handleStudentSelect('')}
-                className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 ${
-                  selectedStudent === '' 
-                    ? 'shadow-lg' 
-                    : 'border-gray-200 hover:border-opacity-50'
-                }`}
-                style={{
-                  borderColor: selectedStudent === '' ? '#407CE2' : undefined,
-                  backgroundColor: selectedStudent === '' ? '#f0f6ff' : undefined,
-                  borderWidth: selectedStudent === '' ? '2px' : '1px'
-                }}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{
-                    background: 'linear-gradient(135deg, #407CE2 0%, #223A6A 100%)'
-                  }}>
-                    <span className="text-2xl">📊</span>
-                  </div>
-                  <div className="font-medium" style={{ color: '#223A6A' }}>Tất cả</div>
-                  <div className="text-sm text-gray-500">Xem tổng quan</div>
-                </div>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Đang tải danh sách học sinh...</p>
               </div>
-
-              {/* Student options */}
-              {students.map(student => (
-                <div 
-                  key={student.id}
-                  onClick={() => handleStudentSelect(student.id)}
-                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 ${
-                    selectedStudent === student.id 
-                      ? 'shadow-lg' 
-                      : 'border-gray-200 hover:border-opacity-50'
-                  }`}
-                  style={{
-                    borderColor: selectedStudent === student.id ? '#407CE2' : undefined,
-                    backgroundColor: selectedStudent === student.id ? '#f0f6ff' : undefined,
-                    borderWidth: selectedStudent === student.id ? '2px' : '1px'
-                  }}
-                >
-                  <div className="flex flex-col items-center text-center">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{
-                      background: 'linear-gradient(135deg, #407CE2 0%, #223A6A 100%)'
-                    }}>
-                      <span className="text-2xl">{student.avatar}</span>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {students.map(student => (
+                  <div 
+                    key={student.id}
+                    onClick={() => handleStudentSelect(student.id)}
+                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 ${
+                      selectedStudent === student.id 
+                        ? 'shadow-lg' 
+                        : 'border-gray-200 hover:border-opacity-50'
+                    }`}
+                    style={{
+                      borderColor: selectedStudent === student.id ? '#407CE2' : undefined,
+                      backgroundColor: selectedStudent === student.id ? '#f0f6ff' : undefined,
+                      borderWidth: selectedStudent === student.id ? '2px' : '1px'
+                    }}
+                  >
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{
+                        background: 'linear-gradient(135deg, #407CE2 0%, #223A6A 100%)'
+                      }}>
+                        <span className="text-2xl">{student.avatar || '👦'}</span>
+                      </div>
+                      <div className="font-medium" style={{ color: '#223A6A' }}>{student.fullName}</div>
+                      <div className="text-sm text-gray-500">
+                        {student.age && `${student.age} tuổi`} 
+                        {student.class && ` - ${student.class}`}
+                      </div>
                     </div>
-                    <div className="font-medium" style={{ color: '#223A6A' }}>{student.name}</div>
-                    <div className="text-sm text-gray-500">{student.age} tuổi - {student.class}</div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {(selectedStudent !== null && selectedStudent !== undefined) && (
-          <>
-            {/* Add New Drug Form */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <FileText className="w-6 h-6 mr-2" style={{ color: '#407CE2' }} />
-                  <h2 className="text-xl font-semibold" style={{ color: '#223A6A' }}>
-                    Thêm Thuốc Mới
-                  </h2>
+        {/* Medicine Request Form */}
+        {selectedStudent && (
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <div className="flex items-center mb-6">
+              <Camera className="w-6 h-6 mr-2" style={{ color: '#407CE2' }} />
+              <h2 className="text-xl font-semibold" style={{ color: '#223A6A' }}>
+                Gửi Yêu Cầu Thuốc Bằng Hình Ảnh
+              </h2>
+            </div>
+
+            <div className="space-y-6">
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium mb-3" style={{ color: '#223A6A' }}>
+                  Chọn hình ảnh thuốc
+                </label>
+                
+                <div className="flex items-center justify-center w-full">
+                  <label 
+                    htmlFor="imageInput" 
+                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
+                  >
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Upload className="w-8 h-8 mb-4 text-gray-500" />
+                      <p className="mb-2 text-sm text-gray-500">
+                        <span className="font-semibold">Nhấp để tải lên</span> hoặc kéo thả
+                      </p>
+                      <p className="text-xs text-gray-500">PNG, JPG, GIF (MAX. 800x400px)</p>
+                    </div>
+                    <input 
+                      id="imageInput" 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                    />
+                  </label>
                 </div>
+
+                {/* Image Preview */}
+                {imagePreview && (
+                  <div className="mt-4">
+                    <div className="relative inline-block">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="max-w-xs max-h-48 rounded-lg shadow-lg"
+                      />
+                      <button
+                        onClick={removeImage}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors duration-200"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-2">
+                      Tệp: {selectedImage?.name}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex justify-end">
                 <button
-                  onClick={() => setShowAddForm(!showAddForm)}
-                  className="flex items-center px-4 py-2 rounded-lg text-white transition-colors duration-200 hover:opacity-90"
-                  style={{ backgroundColor: '#407CE2' }}
+                  onClick={handleSendMedicineRequest}
+                  disabled={loading || !selectedImage}
+                  className={`flex items-center px-6 py-3 rounded-lg text-white font-medium transition-all duration-200 ${
+                    loading || !selectedImage
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl'
+                  }`}
+                  style={{ 
+                    backgroundColor: loading || !selectedImage ? undefined : '#407CE2',
+                    transform: loading || !selectedImage ? 'none' : 'translateY(0)',
+                  }}
                 >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Thêm Thuốc
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Đang gửi...
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="w-4 h-4 mr-2" />
+                      Gửi Yêu Cầu Thuốc
+                    </>
+                  )}
                 </button>
               </div>
-
-              {showAddForm && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2" style={{ color: '#223A6A' }}>
-                        Tên Thuốc
-                      </label>
-                      <input
-                        type="text"
-                        value={newDrug.name}
-                        onChange={(e) => setNewDrug({...newDrug, name: e.target.value})}
-                        placeholder="VD: Paracetamol"
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2" style={{ color: '#223A6A' }}>
-                        Liều Lượng
-                      </label>
-                      <input
-                        type="text"
-                        value={newDrug.dosage}
-                        onChange={(e) => setNewDrug({...newDrug, dosage: e.target.value})}
-                        placeholder="VD: 500"
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2" style={{ color: '#223A6A' }}>
-                        Đơn Vị
-                      </label>
-                      <select
-                        value={newDrug.unit}
-                        onChange={(e) => setNewDrug({...newDrug, unit: e.target.value})}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="mg">mg</option>
-                        <option value="ml">ml</option>
-                        <option value="viên">viên</option>
-                        <option value="gói">gói</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: '#223A6A' }}>
-                      Tần Suất Sử Dụng
-                    </label>
-                    <input
-                      type="text"
-                      value={newDrug.frequency}
-                      onChange={(e) => setNewDrug({...newDrug, frequency: e.target.value})}
-                      placeholder="VD: 2 lần/ngày"
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2" style={{ color: '#223A6A' }}>
-                        Ngày Bắt Đầu
-                      </label>
-                      <input
-                        type="date"
-                        value={newDrug.startDate}
-                        onChange={(e) => setNewDrug({...newDrug, startDate: e.target.value})}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2" style={{ color: '#223A6A' }}>
-                        Ngày Kết Thúc (Tùy chọn)
-                      </label>
-                      <input
-                        type="date"
-                        value={newDrug.endDate}
-                        onChange={(e) => setNewDrug({...newDrug, endDate: e.target.value})}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: '#223A6A' }}>
-                      Ghi Chú
-                    </label>
-                    <textarea
-                      value={newDrug.notes}
-                      onChange={(e) => setNewDrug({...newDrug, notes: e.target.value})}
-                      placeholder="Ghi chú quan trọng về thuốc này..."
-                      rows={3}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-3">
-                    <button
-                      onClick={() => setShowAddForm(false)}
-                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                    >
-                      Hủy
-                    </button>
-                    <button
-                      onClick={handleAddDrug}
-                      className="px-6 py-2 rounded-lg text-white transition-colors duration-200 hover:opacity-90"
-                      style={{ backgroundColor: '#407CE2' }}
-                    >
-                      Thêm Thuốc
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
+          </div>
+        )}
 
-            {/* Current and Used Drugs */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <div className="flex items-center mb-6">
-                <Calendar className="w-6 h-6 mr-2" style={{ color: '#407CE2' }} />
-                <h2 className="text-xl font-semibold" style={{ color: '#223A6A' }}>
-                  Thuốc Hiện Tại & Đã Sử Dụng
-                </h2>
-              </div>
-
-              {drugs.length === 0 ? (
-                <div className="text-center py-12">
-                  <FileText className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                  <p className="text-gray-500 text-lg mb-2">Chưa có thuốc nào được thêm.</p>
-                  <p className="text-gray-400">Hãy thêm thuốc đầu tiên ở phía trên.</p>
+        {/* Selected Student Info */}
+        {selectedStudent && (
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-lg font-semibold mb-4" style={{ color: '#223A6A' }}>
+              Thông tin học sinh đã chọn
+            </h3>
+            {(() => {
+              const student = students.find(s => s.id === selectedStudent);
+              return student ? (
+                <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{
+                    background: 'linear-gradient(135deg, #407CE2 0%, #223A6A 100%)'
+                  }}>
+                    <span className="text-2xl">{student.avatar || '👦'}</span>
+                  </div>
+                  <div>
+                    <p className="font-medium" style={{ color: '#223A6A' }}>{student.fullName}</p>
+                    <p className="text-sm text-gray-500">
+                      {student.age && `${student.age} tuổi`} 
+                      {student.class && ` - ${student.class}`}
+                    </p>
+                  </div>
                 </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 font-semibold" style={{ color: '#223A6A' }}>TÊN THUỐC</th>
-                        <th className="text-left py-3 px-4 font-semibold" style={{ color: '#223A6A' }}>LIỀU LƯỢNG</th>
-                        <th className="text-left py-3 px-4 font-semibold" style={{ color: '#223A6A' }}>TẦN SUẤT</th>
-                        <th className="text-left py-3 px-4 font-semibold" style={{ color: '#223A6A' }}>NGÀY BẮT ĐẦU</th>
-                        <th className="text-left py-3 px-4 font-semibold" style={{ color: '#223A6A' }}>NGÀY KẾT THÚC</th>
-                        <th className="text-left py-3 px-4 font-semibold" style={{ color: '#223A6A' }}>GHI CHÚ</th>
-                        <th className="text-left py-3 px-4 font-semibold" style={{ color: '#223A6A' }}>THAO TÁC</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {drugs.map((drug) => (
-                        <tr key={drug.id} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="py-4 px-4 font-medium" style={{ color: '#223A6A' }}>{drug.name}</td>
-                          <td className="py-4 px-4 text-gray-700">{drug.dosage} {drug.unit}</td>
-                          <td className="py-4 px-4 text-gray-700">{drug.frequency}</td>
-                          <td className="py-4 px-4 text-gray-700">{drug.startDate}</td>
-                          <td className="py-4 px-4 text-gray-700">{drug.endDate || '-'}</td>
-                          <td className="py-4 px-4 text-gray-700 max-w-xs truncate">{drug.notes || '-'}</td>
-                          <td className="py-4 px-4">
-                            <div className="flex gap-2">
-                              <button
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                                title="Chỉnh sửa"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteDrug(drug.id)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                                title="Xóa"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </>
+              ) : null;
+            })()}
+          </div>
         )}
       </div>
     </div>

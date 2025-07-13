@@ -1,134 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Plus, Edit, Check, Clock, AlertCircle, User, Stethoscope } from 'lucide-react';
 
 const VaccineReminder = () => {
   const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedStudent, setSelectedStudent] = useState('all');
-  
-  // Dữ liệu học sinh
-  const students = [
-    { id: 'sophie', name: 'Sophie Miller', age: 8, class: 'Lớp 3A', avatar: '👧' },
-    { id: 'john', name: 'John Smith', age: 6, class: 'Lớp 1B', avatar: '👦' }
-  ];
-  
-  // Dữ liệu mẫu cho lịch tiêm chủng
-  const allUpcomingVaccines = [
-    {
-      id: 1,
-      name: 'DTaP (Mũi 5)',
-      patient: 'Sophie Miller',
-      studentId: 'sophie',
-      date: '2024-11-15',
-      status: 'upcoming',
-      overdue: false
-    },
-    {
-      id: 2,
-      name: 'Polio (Mũi 4)',
-      patient: 'John Smith',
-      studentId: 'john',
-      date: '2024-10-01',
-      status: 'overdue',
-      overdue: true
-    },
-    {
-      id: 3,
-      name: 'Varicella (Mũi 2)',
-      patient: 'Sophie Miller',
-      studentId: 'sophie',
-      date: '2024-12-05',
-      status: 'upcoming',
-      overdue: false
-    },
-    {
-      id: 4,
-      name: 'Cúm (Hàng năm)',
-      patient: 'John Smith',
-      studentId: 'john',
-      date: '2024-10-25',
-      status: 'upcoming',
-      overdue: false
-    },
-    {
-      id: 5,
-      name: 'HPV (Mũi 1)',
-      patient: 'Sophie Miller',
-      studentId: 'sophie',
-      date: '2024-11-01',
-      status: 'upcoming',
-      overdue: false
-    },
-    {
-      id: 6,
-      name: 'Tdap (Tăng cường)',
-      patient: 'John Smith',
-      studentId: 'john',
-      date: '2024-09-05',
-      status: 'overdue',
-      overdue: true
-    },
-    {
-      id: 7,
-      name: 'Viêm gan B (Mũi 3)',
-      patient: 'Sophie Miller',
-      studentId: 'sophie',
-      date: '2024-12-10',
-      status: 'upcoming',
-      overdue: false
-    }
-  ];
+  const [students, setStudents] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState('');
+  const [schoolVaccines, setSchoolVaccines] = useState([]);
+  const [completedVaccines, setCompletedVaccines] = useState([]);
+  const [form, setForm] = useState({ vaccinationId: '', doses: 1 });
+  const [notification, setNotification] = useState('');
 
-  const allCompletedVaccines = [
-    {
-      id: 1,
-      name: 'MMR (Mũi 2)',
-      patient: 'Sophie Miller',
-      studentId: 'sophie',
-      date: '2024-08-20',
-      status: 'completed'
-    },
-    {
-      id: 2,
-      name: 'Viêm gan A (Mũi 2)',
-      patient: 'John Smith',
-      studentId: 'john',
-      date: '2024-08-10',
-      status: 'completed'
-    },
-    {
-      id: 3,
-      name: 'Meningococcal (Mũi 1)',
-      patient: 'Sophie Miller',
-      studentId: 'sophie',
-      date: '2024-07-18',
-      status: 'completed'
-    },
-    {
-      id: 4,
-      name: 'Polio (Mũi 3)',
-      patient: 'John Smith',
-      studentId: 'john',
-      date: '2024-08-15',
-      status: 'completed'
-    },
-    {
-      id: 5,
-      name: 'Pneumococcal (Mũi 4)',
-      patient: 'Sophie Miller',
-      studentId: 'sophie',
-      date: '2024-10-10',
-      status: 'completed'
-    }
-  ];
-
-  // Lọc dữ liệu theo học sinh được chọn
-  const upcomingVaccines = selectedStudent === 'all' 
-    ? allUpcomingVaccines 
-    : allUpcomingVaccines.filter(vaccine => vaccine.studentId === selectedStudent);
-    
-  const completedVaccines = selectedStudent === 'all' 
-    ? allCompletedVaccines 
-    : allCompletedVaccines.filter(vaccine => vaccine.studentId === selectedStudent);
 
   // Tạo calendar cho tháng hiện tại
   const generateCalendar = () => {
@@ -170,7 +51,7 @@ const VaccineReminder = () => {
     const currentDay = new Date(today.getFullYear(), today.getMonth(), day);
     
     // Kiểm tra xem có vaccine nào trong ngày này không
-    const hasVaccine = upcomingVaccines.some(vaccine => {
+    const hasVaccine = schoolVaccines.some(vaccine => {
       const vaccineDate = new Date(vaccine.date);
       return vaccineDate.toDateString() === currentDay.toDateString();
     });
@@ -181,13 +62,66 @@ const VaccineReminder = () => {
   };
 
   // Tính toán thống kê
-  const overdueCount = upcomingVaccines.filter(v => v.overdue).length;
-  const upcomingCount = upcomingVaccines.filter(v => !v.overdue).length;
-  const completedCount = completedVaccines.length;
+  // const overdueCount = upcomingVaccines.filter(v => v.overdue).length;
+  // const upcomingCount = upcomingVaccines.filter(v => !v.overdue).length;
+  // const completedCount = completedVaccines.length;
+
+  const API_URL = import.meta.env.VITE_API_URL || 'https://wdp301-se1752-be.onrender.com/api';
+
+  const fetchStudents = async () => {
+    const token = localStorage.getItem('access_token');
+    const res = await fetch(`${API_URL}/student/parent`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    setStudents(Array.isArray(data.data) ? data.data : []);
+  };
+
+  const fetchSchoolVaccines = async () => {
+    const res = await fetch(`${API_URL}/vaccination`);
+    const data = await res.json();
+    setSchoolVaccines(Array.isArray(data.data) ? data.data : []);
+  };
+
+  const fetchStudentVaccines = async (studentId) => {
+    const res = await fetch(`${API_URL}/vaccination/student/${studentId}`);
+    const data = await res.json();
+    setCompletedVaccines(Array.isArray(data.data) ? data.data : []);
+  };
+
+  useEffect(() => {
+    fetchStudents();
+    fetchSchoolVaccines();
+  }, []);
+
+  useEffect(() => {
+    if (selectedStudent) fetchStudentVaccines(selectedStudent);
+    else setCompletedVaccines([]);
+  }, [selectedStudent]);
+
+  const submitExternalVaccine = async (studentId, vaccinationId, doses) => {
+    const token = localStorage.getItem('access_token');
+    const res = await fetch(`${API_URL}/vaccination/student`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ studentId, vaccinationId, doses })
+    });
+    // Xử lý response...
+  };
+
+  const upcomingVaccines = schoolVaccines;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
       <div className="container mx-auto p-6">
+        {notification && (
+          <div className="fixed top-24 right-4 z-50 p-4 rounded-lg shadow-lg bg-green-500 text-white">
+            {notification}
+          </div>
+        )}
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex items-center justify-between">
@@ -221,7 +155,7 @@ const VaccineReminder = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
               {/* Tất cả option */}
               <div 
-                onClick={() => handleStudentSelect('')}
+                onClick={() => setSelectedStudent('')}
                 className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 ${
                   selectedStudent === '' 
                     ? 'shadow-lg' 
@@ -248,7 +182,10 @@ const VaccineReminder = () => {
               {students.map(student => (
                 <div 
                   key={student.id}
-                  onClick={() => handleStudentSelect(student.id)}
+                  onClick={() => {
+                    setSelectedStudent(student.id);
+                    fetchStudentVaccines(student.id);
+                  }}
                   className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 ${
                     selectedStudent == student.id 
                       ? 'shadow-lg' 
@@ -266,7 +203,7 @@ const VaccineReminder = () => {
                     }}>
                       <span className="text-2xl">{student.avatar}</span>
                     </div>
-                    <div className="font-medium" style={{ color: '#223A6A' }}>{student.name}</div>
+                    <div className="font-medium" style={{ color: '#223A6A' }}>{student.fullName}</div>
                     <div className="text-sm text-gray-500">{student.age} - {student.class}</div>
                   </div>
                 </div>
@@ -280,7 +217,7 @@ const VaccineReminder = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Cần tiêm</p>
-                <p className="text-3xl font-bold text-orange-500">{overdueCount}</p>
+                <p className="text-3xl font-bold text-orange-500">{/*overdueCount*/}</p>
               </div>
               <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
                 <AlertCircle className="w-6 h-6 text-orange-500" />
@@ -292,7 +229,7 @@ const VaccineReminder = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Sắp tới (30 ngày)</p>
-                <p className="text-3xl font-bold" style={{color: '#407CE2'}}>{upcomingCount}</p>
+                <p className="text-3xl font-bold" style={{color: '#407CE2'}}>{upcomingVaccines.length}</p>
               </div>
               <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{backgroundColor: '#407CE2', opacity: 0.1}}>
                 <Clock className="w-6 h-6" style={{color: '#407CE2'}} />
@@ -304,7 +241,7 @@ const VaccineReminder = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Đã hoàn thành</p>
-                <p className="text-3xl font-bold text-green-500">{completedCount}</p>
+                <p className="text-3xl font-bold text-green-500">{completedVaccines.length}</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                 <Check className="w-6 h-6 text-green-500" />
@@ -313,65 +250,12 @@ const VaccineReminder = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Calendar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex items-center space-x-2 mb-4">
-                <Calendar className="w-5 h-5" style={{color: '#223A6A'}} />
-                <h2 className="text-xl font-bold text-gray-800">Lịch tiêm chủng</h2>
-              </div>
-              
-              <div className="text-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-700">Tháng 6, 2025</h3>
-              </div>
-              
-              <div className="grid grid-cols-7 gap-1 mb-2">
-                {['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].map(day => (
-                  <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
-                    {day}
-                  </div>
-                ))}
-              </div>
-              
-              <div className="grid grid-cols-7 gap-1">
-                {generateCalendar().map((day, index) => (
-                  <div 
-                    key={index} 
-                    className={`
-                      h-10 flex items-center justify-center text-sm cursor-pointer rounded-lg transition-all
-                      ${!day ? 'invisible' : ''}
-                      ${getDayStatus(day) === 'today' ? 'bg-blue-500 text-white font-bold' : ''}
-                      ${getDayStatus(day) === 'has-vaccine' ? 'bg-red-100 text-red-600 font-medium' : ''}
-                      ${getDayStatus(day) === '' ? 'hover:bg-gray-100' : ''}
-                    `}
-                  >
-                    {day}
-                  </div>
-                ))}
-              </div>
-              
-              {completedVaccines.length === 0 && (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Check className="w-8 h-8 text-green-400" />
-                  </div>
-                  <p className="text-gray-500">
-                    {selectedStudent === 'all' 
-                      ? 'Chưa có vaccine nào được hoàn thành' 
-                      : `${students.find(s => s.id === selectedStudent)?.name} chưa hoàn thành vaccine nào`
-                    }
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Upcoming Reminders */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-md p-6 mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-800">Lịch tiêm sắp tới</h2>
+                <h2 className="text-xl font-bold text-gray-800">Vaccine nhà trường hỗ trợ</h2>
                 {selectedStudent !== 'all' && (
                   <div className="flex items-center space-x-2 text-sm text-gray-600">
                     <span>Của:</span>
@@ -450,19 +334,22 @@ const VaccineReminder = () => {
                       <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                         <Check className="w-5 h-5 text-green-500" />
                       </div>
-                      
                       <div>
-                        <h3 className="font-medium text-gray-800">{vaccine.name}</h3>
+                        <h3 className="font-medium text-gray-800">
+                          {vaccine.vaccination && vaccine.vaccination.name
+                            ? vaccine.vaccination.name
+                            : 'Không rõ tên vaccine'}
+                        </h3>
                         <p className="text-sm text-gray-600">
-                          {selectedStudent === 'all' 
-                            ? `Học sinh: ${vaccine.patient}` 
-                            : `Loại vaccine: ${vaccine.name.split('(')[0].trim()}`
-                          }
+                          {vaccine.vaccination && vaccine.vaccination.description
+                            ? vaccine.vaccination.description
+                            : ''}
                         </p>
-                        <p className="text-sm text-gray-500">Đã tiêm: {formatDate(vaccine.date)}</p>
+                        <p className="text-sm text-gray-500">
+                          Số mũi đã tiêm: {vaccine.doses}
+                        </p>
                       </div>
                     </div>
-                    
                     <div className="flex items-center space-x-2">
                       <span className="px-3 py-1 bg-green-100 text-green-600 rounded-full text-xs font-medium">
                         Hoàn thành
@@ -476,6 +363,69 @@ const VaccineReminder = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-md p-6 mt-6">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Khai báo vaccine đã tiêm ngoài</h2>
+          <form
+            className="flex flex-col md:flex-row gap-4 items-center"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!selectedStudent || !form.vaccinationId) {
+                setNotification('Vui lòng chọn học sinh và vaccine!');
+                return;
+              }
+              const token = localStorage.getItem('access_token');
+              const res = await fetch(`${API_URL}/vaccination/student`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                  studentId: String(selectedStudent),
+                  vaccinationId: String(form.vaccinationId),
+                  doses: Number(form.doses)
+                })
+              });
+              const result = await res.json().catch(() => ({}));
+              console.log('Khai báo response:', result);
+              if (res.ok) {
+                setNotification('Khai báo thành công!');
+                fetchStudentVaccines(selectedStudent);
+              } else {
+                setNotification('Khai báo thất bại!');
+              }
+              setTimeout(() => setNotification(''), 4000);
+            }}
+          >
+            <select
+              className="border rounded-lg px-3 py-2"
+              value={form.vaccinationId}
+              onChange={e => setForm(f => ({ ...f, vaccinationId: e.target.value }))}
+              required
+            >
+              <option value="">Chọn vaccine</option>
+              {schoolVaccines.map(v => (
+                <option key={v.id} value={v.id}>{v.name}</option>
+              ))}
+            </select>
+            <input
+              className="border rounded-lg px-3 py-2"
+              type="number"
+              min={1}
+              value={form.doses}
+              onChange={e => setForm(f => ({ ...f, doses: e.target.value }))}
+              placeholder="Số mũi"
+              required
+            />
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+            >
+              Khai báo
+            </button>
+          </form>
         </div>
       </div>
     </div>

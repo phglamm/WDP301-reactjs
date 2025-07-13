@@ -1,59 +1,90 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, Calendar, Stethoscope, Syringe, Thermometer, ChevronDown, ChevronRight, Eye, User } from 'lucide-react';
 
 const HealthHistory = () => {
+  const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [historyType, setHistoryType] = useState('');
   const [searchKeywords, setSearchKeywords] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [healthHistory, setHealthHistory] = useState([]);
+
+  const fetchStudents = async () => {
+    const token = localStorage.getItem('access_token');
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://wdp301-se1752-be.onrender.com/api';
+    const res = await fetch(`${apiUrl}/student/parent`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    setStudents(Array.isArray(data.data) ? data.data : []);
+  };
+
+  const fetchAccidents = async (studentId) => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://wdp301-se1752-be.onrender.com/api';
+    const res = await fetch(`${apiUrl}/accident/${studentId}`);
+    const data = await res.json();
+    // Nếu data.data là mảng, set luôn, nếu là object thì cho vào mảng
+    if (Array.isArray(data.data)) setHealthHistory(data.data);
+    else if (data.data) setHealthHistory([data.data]);
+    else setHealthHistory([]);
+  };
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  useEffect(() => {
+    if (selectedStudent) fetchAccidents(selectedStudent);
+    else setHealthHistory([]);
+  }, [selectedStudent]);
 
   // Dữ liệu mẫu cho các học sinh
-  const students = [
-    { id: 1, name: 'Nguyễn Minh An', class: 'Lớp 10A1', age: '16 tuổi', avatar: '👦' },
-    { id: 2, name: 'Trần Thị Bình', class: 'Lớp 8B2', age: '14 tuổi', avatar: '👧' },
-  ];
+  // const students = [
+  //   { id: 1, name: 'Nguyễn Minh An', class: 'Lớp 10A1', age: '16 tuổi', avatar: '👦' },
+  //   { id: 2, name: 'Trần Thị Bình', class: 'Lớp 8B2', age: '14 tuổi', avatar: '👧' },
+  // ];
 
   // Dữ liệu mẫu lịch sử sức khỏe
-  const healthHistory = [
-    {
-      id: 1,
-      date: '2024-05-10',
-      type: 'Khám sức khỏe định kỳ',
-      category: 'Khám bệnh',
-      description: 'Khám sức khỏe định kỳ hoàn tất. Tất cả chỉ số sinh hiệu bình thường. Đã thảo luận về thói quen ăn uống lành mạnh.',
-      icon: Stethoscope,
-      color: 'bg-emerald-50 text-emerald-600 border-emerald-200'
-    },
-    {
-      id: 2,
-      date: '2024-04-25',
-      type: 'Tiêm phòng cúm',
-      category: 'Tiêm chủng',
-      description: 'Đã tiêm vắc-xin cúm mùa. Không có phản ứng phụ. Khuyến cáo theo dõi trong 24h.',
-      icon: Syringe,
-      color: 'bg-blue-50 border-blue-200'
-    },
-    {
-      id: 3,
-      date: '2024-03-15',
-      type: 'Cảm lạnh thông thường',
-      category: 'Ốm đau',
-      description: 'Các triệu chứng bao gồm đau họng, ho và sốt nhẹ. Đã kê đơn thuốc và khuyến cáo nghỉ ngơi.',
-      icon: Thermometer,
-      color: 'bg-red-50 text-red-600 border-red-200'
-    },
-    {
-      id: 4,
-      date: '2024-02-20',
-      type: 'Khám mắt định kỳ',
-      category: 'Khám bệnh',
-      description: 'Kiểm tra thị lực định kỳ. Thị lực ổn định, không cần thay đổi kính. Khuyến cáo hạn chế sử dụng thiết bị điện tử.',
-      icon: Eye,
-      color: 'bg-purple-50 text-purple-600 border-purple-200'
-    }
-  ];
+  // const healthHistory = [
+  //   {
+  //     id: 1,
+  //     date: '2024-05-10',
+  //     type: 'Khám sức khỏe định kỳ',
+  //     category: 'Khám bệnh',
+  //     description: 'Khám sức khỏe định kỳ hoàn tất. Tất cả chỉ số sinh hiệu bình thường. Đã thảo luận về thói quen ăn uống lành mạnh.',
+  //     icon: Stethoscope,
+  //     color: 'bg-emerald-50 text-emerald-600 border-emerald-200'
+  //   },
+  //   {
+  //     id: 2,
+  //     date: '2024-04-25',
+  //     type: 'Tiêm phòng cúm',
+  //     category: 'Tiêm chủng',
+  //     description: 'Đã tiêm vắc-xin cúm mùa. Không có phản ứng phụ. Khuyến cáo theo dõi trong 24h.',
+  //     icon: Syringe,
+  //     color: 'bg-blue-50 border-blue-200'
+  //   },
+  //   {
+  //     id: 3,
+  //     date: '2024-03-15',
+  //     type: 'Cảm lạnh thông thường',
+  //     category: 'Ốm đau',
+  //     description: 'Các triệu chứng bao gồm đau họng, ho và sốt nhẹ. Đã kê đơn thuốc và khuyến cáo nghỉ ngơi.',
+  //     icon: Thermometer,
+  //     color: 'bg-red-50 text-red-600 border-red-200'
+  //   },
+  //   {
+  //     id: 4,
+  //     date: '2024-02-20',
+  //     type: 'Khám mắt định kỳ',
+  //     category: 'Khám bệnh',
+  //     description: 'Kiểm tra thị lực định kỳ. Thị lực ổn định, không cần thay đổi kính. Khuyến cáo hạn chế sử dụng thiết bị điện tử.',
+  //     icon: Eye,
+  //     color: 'bg-purple-50 text-purple-600 border-purple-200'
+  //   }
+  // ];
 
   const historyTypes = [
     'Tất cả',
@@ -152,7 +183,7 @@ const HealthHistory = () => {
                     }}>
                       <span className="text-2xl">{student.avatar}</span>
                     </div>
-                    <div className="font-medium" style={{ color: '#223A6A' }}>{student.name}</div>
+                    <div className="font-medium" style={{ color: '#223A6A' }}>{student.fullName}</div>
                     <div className="text-sm text-gray-500">{student.age} - {student.class}</div>
                   </div>
                 </div>
@@ -297,10 +328,8 @@ const HealthHistory = () => {
           {/* Health History List */}
           <div className="p-6">
             <div className="space-y-4">
-              {healthHistory.map((record) => {
-                const IconComponent = record.icon;
-                return (
-                  <div key={record.id} className="border border-gray-200 rounded-xl p-6 transition-all duration-300 hover:shadow-lg hover:border-opacity-50 transform hover:-translate-y-1" 
+              {healthHistory.map((accident) => (
+                <div key={accident.id} className="border border-gray-200 rounded-xl p-6 transition-all duration-300 hover:shadow-lg hover:border-opacity-50 transform hover:-translate-y-1" 
                        style={{ 
                          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
                          borderColor: '#e5e7eb'
@@ -313,48 +342,24 @@ const HealthHistory = () => {
                        }}>
                     <div className="flex items-start gap-4">
                       <div className="flex-shrink-0">
-                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center border-2 shadow-sm ${record.color}`}>
-                          <IconComponent className="w-7 h-7" style={{ color: '#407CE2' }} />
+                        <div className="w-14 h-14 rounded-xl flex items-center justify-center border-2 shadow-sm bg-red-50 border-red-200">
+                          <Thermometer className="w-7 h-7" style={{ color: '#407CE2' }} />
                         </div>
                       </div>
-                      
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-3">
-                          <h3 className="text-xl font-semibold" style={{ color: '#223A6A' }}>{record.type}</h3>
-                          <div className="flex items-center gap-3">
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              record.category === 'Khám bệnh' ? 'bg-emerald-100 text-emerald-800' :
-                              record.category === 'Tiêm chủng' ? 'text-white' :
-                              record.category === 'Ốm đau' ? 'bg-red-100 text-red-800' :
-                              'bg-purple-100 text-purple-800'
-                            }`}
-                            style={record.category === 'Tiêm chủng' ? { 
-                              background: 'linear-gradient(135deg, #407CE2 0%, #223A6A 100%)'
-                            } : {}}>
-                              {record.category}
-                            </span>
-                            <span className="text-sm text-gray-500 font-medium">{formatDate(record.date)}</span>
-                          </div>
+                          <h3 className="text-xl font-semibold" style={{ color: '#223A6A' }}>
+                            {accident.summary || 'Sự cố'}
+                          </h3>
+                          <span className="text-sm text-gray-500 font-medium">
+                            {accident.date ? formatDate(accident.date) : ''}
+                          </span>
                         </div>
-                        <p className="text-gray-600 mb-4 leading-relaxed">{record.description}</p>
-                        <button 
-                          className="text-sm font-medium flex items-center gap-1 transition-all duration-200 hover:gap-2"
-                          style={{ color: '#407CE2' }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.color = '#223A6A';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.color = '#407CE2';
-                          }}
-                        >
-                          Xem Chi Tiết
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
+                        <p className="text-gray-600 mb-4 leading-relaxed">{accident.type}</p>
                       </div>
                     </div>
                   </div>
-                );
-              })}
+                ))}
             </div>
 
             {/* Empty State */}
