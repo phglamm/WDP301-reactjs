@@ -18,9 +18,6 @@ import StudentListPage from "./pages/Nurse/StudentListPage/StudentListPage";
 import ParentRequest from "./pages/Nurse/ParentRequest/ParentRequest";
 import MedicineStorage from "./pages/Nurse/MedicineStorage/MedicineStorage";
 import HealthHistory from "./pages/HealthHistory/HealthHistory";
-import Profile from "./pages/Profile/ProfilePage";
-import ManagerLayout from "./layouts/ManagerLayout/ManagerLayout";
-import ManagerSlotPage from "./pages/ManagerPages/ManagerSlotPage/ManagerSlotPage";
 import { logout } from "./redux/features/userSlice";
 import InjectionEvent from "./pages/Nurse/InjectionEvent/InjectionEvent";
 import Appointment from "./pages/Nurse/Appointment/Appointment";
@@ -76,7 +73,6 @@ function ProtectedRoute({ children, allowedRoles = [], requireAuth = true }) {
 
   return children;
 }
-
 
 function App() {
   const router = createBrowserRouter([
@@ -134,10 +130,6 @@ function App() {
               <HealthHistory />
             </ProtectedRoute>
           ),
-        },
-        {
-          path: "/profile",
-          element: <Profile />,
         },
       ],
     },
@@ -198,20 +190,20 @@ function App() {
       ],
     },
 
-     {
-      path: "/manager",
-      element: (
-        <ProtectedRoute allowedRoles={["manager"]}>
-          <ManagerLayout />
-        </ProtectedRoute>
-      ),
-      children: [
-        {
-          path: "manager-slot",
-          element: <ManagerSlotPage />,
-        },
-      ],
-    },
+    //  {
+    //   path: "/manager",
+    //   element: (
+    //     <ProtectedRoute allowedRoles={["manager"]}>
+    //       <ManagerLayout />
+    //     </ProtectedRoute>
+    //   ),
+    //   children: [
+    //     {
+    //       path: "manager-slot",
+    //       element: <ManagerSlotPage />,
+    //     },
+    //   ],
+    // },
 
     // Catch all route - redirect to login if not authenticated, otherwise to home
 

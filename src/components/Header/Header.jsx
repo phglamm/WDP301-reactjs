@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { FaUserCircle, FaBars, FaTimes } from "react-icons/fa";
 import logo from "../../assets/logo/campusmedix.png";
 import "./Header.scss";
@@ -67,17 +67,10 @@ const Header = () => {
   const location = useLocation();
   const currentPath = location.pathname;
 
-  const navigate = useNavigate();
-
-  const handleIconClick = () => {
-    navigate("/profile");
-  };
-
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
   const closeMenu = () => setMenuOpen(false);
 
-  // Đóng modal đăng xuất
   const closeLogoutModal = () => {
     setShowLogoutModal(false);
   };
@@ -140,12 +133,10 @@ const Header = () => {
           </ul>
 
           <div className="userIcons">
-            <div className="font-bold  ">{user?.fullName}</div>
-            <Dropdown
-              menu={{ items }}
-              trigger={["hover"]}
-              placement="bottomRight"
-            >
+            <div className="font-bold  ">
+              {user?.fullName}
+            </div>
+            <Dropdown menu={{ items }} trigger={["hover"]} placement="bottomRight">
               <FaUserCircle
                 size={40}
                 className={`icon ${hoveredIcon === "user" ? "hovered" : ""}`}

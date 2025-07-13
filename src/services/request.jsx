@@ -1,10 +1,11 @@
-import axios from 'axios';
-
-const BASE_URL = 'https://wdp301-se1752-be.onrender.com'; 
+import axios from "axios";
+import Cookies from "js-cookie";
+const BASE_URL = "https://wdp301-se1752-be.onrender.com";
 
 export const request = async (method, url, data = null, config = {}) => {
-  const access_token = localStorage.getItem('access_token');
-  
+  const token = Cookies.get("token");
+
+  const authheader = token ? { Authorization: `Bearer ${token}` } : {};
   try {
     const response = await axios({
       method,
@@ -12,23 +13,23 @@ export const request = async (method, url, data = null, config = {}) => {
       data,
       headers: {
         // Add Authorization header if token exists
-        ...(access_token && { Authorization: `Bearer ${access_token}` }),
+        ...authheader,
         // Merge with any existing headers from config
         ...config.headers,
       },
-      ...config,  
+      ...config,
       validateStatus: (status) => status >= 200 && status < 300,
     });
 
     // For blob responses, return the data directly (should be a Blob)
-    if (config.responseType === 'blob') {
+    if (config.responseType === "blob") {
       // Ensure we return a proper Blob
       if (response.data instanceof Blob) {
         return response.data;
       } else {
         // If axios didn't create a proper blob, create one manually
         return new Blob([response.data], {
-          type: response.headers['content-type'] || 'application/octet-stream'
+          type: response.headers["content-type"] || "application/octet-stream",
         });
       }
     }
@@ -36,16 +37,16 @@ export const request = async (method, url, data = null, config = {}) => {
     // For JSON responses, return the structured response
     return response.data;
   } catch (error) {
-    console.error('Request error:', error);
-    
+    console.error("Request error:", error);
+
     // Handle authentication errors
     if (error.response?.status === 401) {
       // Token might be expired or invalid
-      localStorage.removeItem('access_token');
+      localStorage.removeItem("access_token");
       // Optionally redirect to login page
       // window.location.href = '/login';
     }
-    
+
     throw error;
   }
 };
