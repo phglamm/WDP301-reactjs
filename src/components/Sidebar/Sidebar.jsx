@@ -3,31 +3,32 @@ import React, { useEffect, useState } from "react";
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { logout } from '../../redux/features/userSlice'
+import { logout, selectUser } from '../../redux/features/userSlice'
 import { IoHomeOutline, IoLogOutOutline, IoDocumentTextOutline, IoSettingsOutline, IoNotificationsOutline  } from "react-icons/io5";
 import { LuUserSearch } from "react-icons/lu";
 import { TiMessages } from "react-icons/ti";
 import { MdOutlineSupervisorAccount, MdAssignmentInd } from "react-icons/md";
 import { TbEdit } from "react-icons/tb";
 import { BiSupport } from "react-icons/bi";
-import * as Texts from "./text"; // Import texts
-import NotificationSection from "../NotificationSection/NotificationSection";
+import * as Texts from './text'; // Import texts
+import NotificationSection from '../NotificationSection/NotificationSection';
+
 
 const Sidebar = ({ selectedItem, setSelectedItem }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [user] = useState(null);
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const role = useSelector((state) => state.user.user?.role);
+    const user = useSelector(selectUser)
 
     // Base menu items for nurse
     const baseMenuItems = [
-        { id: 'Trang Chu', label: 'Trang Chủ', icon: <IoHomeOutline/>, link:'/nurse' },
         { id: 'Thong Bao', label: 'Yêu cầu từ phụ huynh', icon: <IoNotificationsOutline/>, link:'/nurse/parentrequest' },
-        { id: 'thuoc va vat tu ', label: 'Thuốc và Vật Tư', icon: <IoDocumentTextOutline/>, link:'/nurse/medicine' },
-        { id: 'Danh sách học sinh ', label: 'Danh sách Học Sinh', icon: <MdOutlineSupervisorAccount/>, link:'/nurse/studentlist' },
-        { id: 'Tin nhan', label: 'Tin Nhắn ', icon: <TiMessages/>, link:'/nurse/messages' },
-        { id: 'Tiem chung', label: 'Tiêm Chủng ', icon: <IoSettingsOutline/>, link:'/nurse/vaccination' },
+    { id: 'thuoc va vat tu ', label: 'Thuốc và Vật Tư', icon: <IoDocumentTextOutline/>, link:'/nurse/medicine' },
+    { id: 'Danh sách học sinh ', label: 'Danh sách Học Sinh', icon: <MdOutlineSupervisorAccount/>, link:'/nurse/studentlist' },
+    { id: 'Tiem chung', label: 'Tiêm Chủng ', icon: <IoSettingsOutline/>, link:'/nurse/injection-event' },
+    { id: 'Lich hen', label: 'Lịch Hẹn ', icon: <TbEdit/>, link:'/nurse/appointment' },
+    { id: 'Tin nhan', label: 'Tin Nhắn ', icon: <TiMessages/>, link:'/nurse/messages' },
     ];
 
     // Additional menu item for manager
@@ -126,13 +127,6 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
             >
                 {/* Profile Section */}
                 <motion.div className="flex flex-row items-center mb-3">
-                    <img
-                        src="/logo.png"
-                        alt="logo"
-                        width={48}
-                        height={48}
-                        className="bg-black rounded-full flex-shrink-0"
-                    />
                     <motion.div
                         className="overflow-hidden" // To hide text smoothly
                         initial="closed"
@@ -141,37 +135,31 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
                         transition={profileTextTransition}
                     >
                         <p className="text-sm whitespace-nowrap">{Texts.GREETING}</p>
-                        <p className="text-sm font-bold whitespace-nowrap">{user?.name}</p>
-                        <p className="text-xs text-gray-600 whitespace-nowrap hover:underline cursor-pointer">
-                            {Texts.VIEW_PROFILE}
-                        </p>
+                        <p className="text-sm font-bold whitespace-nowrap">{user?.fullName}</p>
                     </motion.div>
                 </motion.div>
 
-                {/* Write Post Button */}
                 <motion.div
-                    className="flex flex-row rounded-xl bg-[linear-gradient(90deg,_#FF7345_33.76%,_#FFDC95_99.87%)] items-center mb-2 shadow-md cursor-pointer"
+                    className="flex flex-row rounded-xl bg-gradient-to-br from-blue-500 to-blue-900 items-center mb-2 shadow-md cursor-pointer"
                     initial={{ scale: 1 }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     onClick={() => {
-                        setSelectedItem("Write Post");
-                        navigate("/nurse/write-post");
+                        setSelectedItem('Trang Chu');
+                        navigate('/nurse');
                     }}
                 >
-                    <motion.div className="flex items-center py-2 transition-colors duration-150">
-                        <TbEdit className="text-xl w-12 h-7 text-white flex items-center justify-center flex-shrink-0" />
-                        <motion.div
-                            className="overflow-hidden text-sm font-medium whitespace-nowrap" // To hide text smoothly
+                    <motion.div className='flex items-center py-2 transition-colors duration-150'>
+                        <IoHomeOutline className='text-xl w-12 h-7 text-white  flex items-center justify-center flex-shrink-0' />
+                        <motion.div 
+                            className='overflow-hidden text-sm font-medium  whitespace-nowrap' // To hide text smoothly
                             initial="closed"
                             animate={isOpen ? "open" : "closed"}
                             variants={textVariants}
                             transition={profileTextTransition}
                         >
-                            <p className="text-sm text-white whitespace-nowrap">
-                                {Texts.WRITE_POST}
-                            </p>
+                            <p className='text-sm text-white whitespace-nowrap'>{Texts.HOME}</p>
                         </motion.div>
                     </motion.div>
                 </motion.div>
@@ -213,9 +201,9 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
                                         </motion.span>
                                     </motion.div>
                                 </li>
-                                {(item.id === "Tiem chung" || (role === 'manager' && item.id === "Assign Nurse")) && (
-                                    <motion.hr
-                                        className="border-gray-300 mx-4"
+                                {item.id === 'Tin nhan' && (
+                                    <motion.hr 
+                                        className="border-gray-300 mx-4 "
                                         initial="closed"
                                         animate={isOpen ? "open" : "closed"}
                                         variants={{
