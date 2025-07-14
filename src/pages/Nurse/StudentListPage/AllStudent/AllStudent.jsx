@@ -214,7 +214,7 @@ const AllStudent = ({ students, searchText, filterType }) => {
             </Card>
 
             {/* Parent/Guardian Information Card - Always show */}
-            <Card title="Parent/Guardian Information">
+            <Card title="Parent/Guardian Information" style={{ marginBottom: 16 }}>
               <Descriptions column={2} bordered>
                 <Descriptions.Item label="Parent Name">
                   {selectedStudent.user?.fullName ||

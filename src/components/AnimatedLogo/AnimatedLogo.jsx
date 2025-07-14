@@ -1,6 +1,6 @@
 import React from "react";
 
-const AnimatedLogo = ({ width = 200, height = 174, className, style }) => {
+const AnimatedLogo = ({ width = 200, height = 174, className, style, isInfinite = false }) => {
   return (
     <svg
       width={width}
@@ -19,7 +19,7 @@ const AnimatedLogo = ({ width = 200, height = 174, className, style }) => {
               stroke-width: 8;
               stroke-dasharray: 2000;
               stroke-dashoffset: 2000;
-              animation: drawLogo 5s ease-in-out forwards;
+              animation: drawLogo 5s ease-in-out ${isInfinite ? 'infinite alternate' : 'forwards'};
             }
             
             @keyframes drawLogo {

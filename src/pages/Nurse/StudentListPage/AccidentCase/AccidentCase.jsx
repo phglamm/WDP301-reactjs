@@ -174,7 +174,6 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
         studentCode: values.studentCode,
         summary: values.summary,
         type: values.type,
-        severity: values.severity || 'Vừa',
       };
 
       console.log('Submitting accident report:', reportData);

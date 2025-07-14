@@ -20,6 +20,7 @@ const injectionEventService = {
             'Cache-Control': 'no-cache'
         },
     }),
+
 }
 
 export default injectionEventService;

@@ -2,7 +2,7 @@ import { request } from "../request";
 
 const UserService = {
 
-    getAllParents: () => request("GET", "user/parent"),
+    getAllParents: () => request("GET", "user/parents"),
 
 }
 

@@ -6,6 +6,7 @@ import { login } from "../../redux/features/userSlice";
 import authService from "../../services/authService";
 import toast from "react-hot-toast";
 import AnimatedLogo from "../../components/AnimatedLogo/AnimatedLogo";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 
 const Login = () => {
@@ -46,7 +47,7 @@ const Login = () => {
       const userRole = response.user?.role;
       switch (userRole) {
         case "nurse":
-          navigate("/nurse");
+          navigate("/nurse/parentrequest");
           break;
         case "parent":
           navigate("/");

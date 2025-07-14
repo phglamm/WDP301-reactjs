@@ -12,6 +12,7 @@ import CalendarView from '../../../components/appointment/CalendarView';
 import TableView from '../../../components/appointment/TableView';
 import AppointmentFormModal from '../../../components/appointment/AppointmentFormModal';
 import AppointmentDetailModal from '../../../components/appointment/AppointmentDetailModal';
+import UserService from '../../../services/User/UserService';
 
 const Appointment = () => {
   // State management
@@ -29,6 +30,7 @@ const Appointment = () => {
   const [viewMode, setViewMode] = useState('calendar');
   const [dateRange, setDateRange] = useState(null);
   const [showDateFilter, setShowDateFilter] = useState(false);
+  const [parent, setParent] = useState(null); // Assuming parentId is needed for filtering
   const [statistics, setStatistics] = useState({
     total: 0,
     today: 0,
@@ -37,6 +39,26 @@ const Appointment = () => {
     cancelled: 0,
     inProgress: 0
   });
+
+const getParent = async () => {
+  try {
+    setLoading(true);
+    const response = await UserService.getAllParents();
+    
+    if (response && response.status) {
+      console.log('Parent data:', response.data);
+      const parents = response.data || [];
+      setParent(parents);
+    } else {
+      message.error(response?.message || 'Không thể tải danh sách phụ huynh');
+    }
+  } catch (error) {
+    console.error('Error fetching parents:', error);
+    message.error('Có lỗi xảy ra khi tải danh sách phụ huynh');
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Calculate statistics function
   const calculateStatistics = (appointmentList, todayList) => {
@@ -160,6 +182,7 @@ const Appointment = () => {
 
   useEffect(() => {
     fetchAppointments();
+    getParent();
   }, []);
 
   // Update applyFilters when todayAppointments changes
@@ -250,10 +273,10 @@ const Appointment = () => {
     try {
       setLoading(true);
       const formData = {
+        parentId: values.parentId,
         purpose: values.purpose,
-        appointmentTime: values.appointmentTime.toISOString(),
-        googleMeetLink: values.googleMeetLink,
-        status: values.status || 'scheduled',
+        appointmentTime: values.appointmentTime,
+        duration: 60,
       };
 
       if (editingId) {
@@ -337,6 +360,7 @@ const Appointment = () => {
         editingId={editingId}
         form={form}
         loading={loading}
+        parent={parent}
         onCancel={() => {
           setModalVisible(false);
           form.resetFields();

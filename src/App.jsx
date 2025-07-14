@@ -5,7 +5,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import UserLayout from "./layouts/UserLayout/UserLayout";
 import Homepage from "./pages/Homepage/Homepage";
 import Login from "./pages/Login/Login";
@@ -21,12 +21,25 @@ import HealthHistory from "./pages/HealthHistory/HealthHistory";
 import { logout } from "./redux/features/userSlice";
 import InjectionEvent from "./pages/Nurse/InjectionEvent/InjectionEvent";
 import Appointment from "./pages/Nurse/Appointment/Appointment";
+import HealthEvent from "./pages/Nurse/HealthEvent/HealthEvent";
+import UnderM from "./pages/UnderMaintainance/UnderM";
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRoles = [], requireAuth = true }) {
   const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
   const userRole = useSelector((state) => state.user.user?.role);
   const dispatch = useDispatch();
+
+  const logOut = useCallback(() => {
+    // Dispatch logout action - adjust this based on your Redux store structure
+    dispatch(logout()); // or dispatch(logout()) if you have a logout action creator
+
+    // Clear any stored tokens/data
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    // Navigate to login will be handled by the Navigate component below
+  }, [dispatch]);
 
   useEffect(() => {
     // Check if user needs to be authenticated
@@ -44,18 +57,7 @@ function ProtectedRoute({ children, allowedRoles = [], requireAuth = true }) {
       logOut();
       return;
     }
-  }, [isAuthenticated, userRole, allowedRoles, requireAuth, dispatch]);
-
-  const logOut = () => {
-    // Dispatch logout action - adjust this based on your Redux store structure
-    dispatch(logout()); // or dispatch(logout()) if you have a logout action creator
-
-    // Clear any stored tokens/data
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
-    // Navigate to login will be handled by the Navigate component below
-  };
+  }, [isAuthenticated, userRole, allowedRoles, requireAuth, logOut]);
 
   // If not authenticated and auth is required, redirect to login
   if (requireAuth && !isAuthenticated) {
@@ -170,12 +172,19 @@ function App() {
               <MedicineStorage />
             </ProtectedRoute>
           ),
-        },
-        {
+        },        {
           path: "injection-event",
           element: (
             <ProtectedRoute allowedRoles={['nurse', 'admin']}>
               <InjectionEvent />
+            </ProtectedRoute>
+          ),  
+        },
+        {
+          path: "health-event",
+          element: (
+            <ProtectedRoute allowedRoles={['nurse', 'admin']}>
+              <HealthEvent />
             </ProtectedRoute>
           ),
         },
@@ -186,27 +195,15 @@ function App() {
               <Appointment />
             </ProtectedRoute>
           ),
-        }
+        },
+        {
+      path: "*",
+      element:(
+        <UnderM />
+      )
+    },
       ],
     },
-
-    //  {
-    //   path: "/manager",
-    //   element: (
-    //     <ProtectedRoute allowedRoles={["manager"]}>
-    //       <ManagerLayout />
-    //     </ProtectedRoute>
-    //   ),
-    //   children: [
-    //     {
-    //       path: "manager-slot",
-    //       element: <ManagerSlotPage />,
-    //     },
-    //   ],
-    // },
-
-    // Catch all route - redirect to login if not authenticated, otherwise to home
-
   ]);
 
   return <RouterProvider router={router} />;
