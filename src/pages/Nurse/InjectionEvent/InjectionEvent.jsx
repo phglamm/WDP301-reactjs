@@ -14,12 +14,15 @@ import {
   Row, 
   Col,
   Descriptions,
-  InputNumber
+  InputNumber,
+  Upload
 } from 'antd';
 import { 
   PlusOutlined, 
   EyeOutlined, 
-  DownloadOutlined
+  DownloadOutlined,
+  UploadOutlined,
+  ReloadOutlined
 } from '@ant-design/icons';
 import injectionEventService from '../../../services/Nurse/InjectionEvent/InjectionEvent';
 import CardData from '../../../components/CardData/CardData';
@@ -30,14 +33,16 @@ const { Option } = Select;
 const { TextArea } = Input;
 const { Search } = Input;
 
-const InjectionEvent = () => {
-  const [injectionEvents, setInjectionEvents] = useState([]);
+const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = useState([]);
   const [vaccinations, setVaccinations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState({}); // Change to object
+  const [uploadLoading, setUploadLoading] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [uploadFileList, setUploadFileList] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [selectedCard, setSelectedCard] = useState('all');
   const [form] = Form.useForm();
@@ -127,8 +132,65 @@ const InjectionEvent = () => {
         key: `download-${event.id}` 
       });
     } finally {
-      setDownloadLoading(prev => ({ ...prev, [event.id]: false }));
+      setDownloadLoading(prev => ({ ...prev, [event.id]: false }));    }
+  };
+
+  // Handle upload result
+  const handleUploadResult = (event) => {
+    setSelectedEvent(event);
+    setUploadFileList([]);
+    setUploadModalVisible(true);
+  };
+  // Handle file upload for result
+  const handleUploadResultFile = async () => {
+    if (!uploadFileList.length) {
+      message.error('Vui lòng chọn file Excel');
+      return;
     }
+
+    try {
+      setUploadLoading(prev => ({ ...prev, [selectedEvent.id]: true }));
+      
+      const formData = new FormData();
+      // Make sure we're using the actual file object, not just the file info
+      const file = uploadFileList[0].originFileObj || uploadFileList[0];
+      formData.append('file', file);
+
+      console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
+
+      const response = await injectionEventService.importInjectionEventResult(selectedEvent.id, formData);
+      
+      if (response.status) {
+        message.success('Upload kết quả thành công!');
+        setUploadModalVisible(false);
+        setUploadFileList([]);
+        fetchInjectionEvents();
+      } else {
+        message.error(response.message || 'Có lỗi xảy ra khi upload kết quả!');
+      }
+    } catch (error) {
+      console.error('Error uploading result:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Có lỗi xảy ra khi upload kết quả!';
+      message.error(errorMessage);
+    } finally {
+      setUploadLoading(prev => ({ ...prev, [selectedEvent.id]: false }));
+    }
+  };
+
+  // Upload props
+  const uploadProps = {
+    beforeUpload: (file) => {
+      const isExcel = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+                     file.type === 'application/vnd.ms-excel';
+      if (!isExcel) {
+        message.error('Chỉ có thể upload file Excel (.xlsx, .xls)!');
+        return false;
+      }
+      setUploadFileList([file]);
+      return false;
+    },
+    fileList: uploadFileList,
+    onRemove: () => setUploadFileList([])
   };
 
   useEffect(() => {
@@ -192,10 +254,16 @@ const InjectionEvent = () => {
       message.error('Có lỗi xảy ra khi tạo sự kiện tiêm chủng!');
     }
   };
-
   const handleViewDetail = (event) => {
     setSelectedEvent(event);
     setDetailModalVisible(true);
+  };
+
+  // Handle refresh
+  const handleRefresh = () => {
+    fetchInjectionEvents();
+    fetchVaccinations();
+    message.success('Đã làm mới danh sách sự kiện tiêm chủng');
   };
 
   const columns = [
@@ -282,11 +350,10 @@ const InjectionEvent = () => {
           return <Tag color="gray">Đã hoàn thành</Tag>;
         }
       }
-    },
-    {
+    },    {
       title: 'Thao tác',
       key: 'actions',
-      width: 150,
+      width: 200,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
@@ -303,6 +370,13 @@ const InjectionEvent = () => {
             onClick={() => handleDownloadStudents(record)}
             loading={downloadLoading[record.id] || false} // Use event-specific loading
             title="Tải danh sách học sinh"
+          />
+          <Button
+            icon={<UploadOutlined />}
+            size="small"
+            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', color: 'white' }}
+            onClick={() => handleUploadResult(record)}
+            title="Upload kết quả"
           />
         </Space>
       ),
@@ -357,9 +431,7 @@ const InjectionEvent = () => {
             Lọc: {selectedCard === 'free' ? 'Sự kiện miễn phí' : selectedCard === 'paid' ? 'Sự kiện có phí' : 'Tất cả'}
           </Tag>
         </div>
-      )}
-
-      {/* Header with Search and Add Button */}
+      )}      {/* Header with Search and Add Button */}
       <div className="mb-4 flex justify-between items-center">
         <h3 className="text-xl font-semibold">Quản lý sự kiện tiêm chủng</h3>
         <Space>
@@ -370,6 +442,13 @@ const InjectionEvent = () => {
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
           />
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={handleRefresh}
+            title="Làm mới danh sách"
+          >
+            Làm Mới
+          </Button>
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -551,8 +630,122 @@ const InjectionEvent = () => {
             </Descriptions.Item>
             <Descriptions.Item label="Ngày tiêm">
               {moment(selectedEvent.date).format('DD/MM/YYYY HH:mm')}
-            </Descriptions.Item>
-          </Descriptions>
+            </Descriptions.Item>          </Descriptions>
+        )}
+      </Modal>
+
+      {/* Upload Result Modal */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <UploadOutlined style={{ color: '#52c41a' }} />
+            <span>Upload Kết Quả Tiêm Chủng</span>
+          </div>
+        }
+        open={uploadModalVisible}
+        onCancel={() => {
+          setUploadModalVisible(false);
+          setUploadFileList([]);
+        }}
+        footer={[
+          <Button key="cancel" onClick={() => {
+            setUploadModalVisible(false);
+            setUploadFileList([]);
+          }}>
+            Hủy
+          </Button>,
+          <Button
+            key="upload"
+            type="primary"
+            icon={<UploadOutlined />}
+            loading={uploadLoading[selectedEvent?.id] || false}
+            onClick={handleUploadResultFile}
+            disabled={!uploadFileList.length}
+            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+          >
+            Upload Kết Quả
+          </Button>
+        ]}
+        width={600}
+      >
+        {selectedEvent && (
+          <div>
+            {/* Event Summary */}
+            <Card 
+              size="small" 
+              style={{ marginBottom: 16, backgroundColor: '#f6ffed' }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <strong>Sự kiện: {selectedEvent.vaccination?.name}</strong>
+                </div>
+                <Tag color={selectedEvent.vaccination?.type === 'free' ? 'green' : 'blue'}>
+                  {selectedEvent.vaccination?.type === 'free' ? 'Miễn phí' : 'Có phí'}
+                </Tag>
+              </div>
+              <div style={{ marginTop: 8, color: '#666' }}>
+                Ngày tiêm: {selectedEvent.date ? moment(selectedEvent.date).format('DD/MM/YYYY HH:mm') : 'N/A'}
+              </div>
+            </Card>
+
+            {/* File Upload */}
+            <Card 
+              title="Chọn File Kết Quả"
+              size="small"
+            >
+              <Upload.Dragger {...uploadProps}>
+                <p className="ant-upload-drag-icon">
+                  <UploadOutlined style={{ fontSize: '48px', color: '#52c41a' }} />
+                </p>
+                <p className="ant-upload-text">
+                  Kéo thả file vào đây hoặc click để chọn file
+                </p>
+                <p className="ant-upload-hint">
+                  Chỉ hỗ trợ file Excel (.xlsx, .xls) chứa kết quả tiêm chủng
+                </p>
+              </Upload.Dragger>
+              
+              {uploadFileList.length > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <h4>File đã chọn:</h4>
+                  <div style={{ 
+                    padding: '8px 12px', 
+                    backgroundColor: '#f0f9ff', 
+                    border: '1px solid #91caff',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <span>{uploadFileList[0].name}</span>
+                    <Button 
+                      type="text" 
+                      size="small" 
+                      onClick={() => setUploadFileList([])}
+                      style={{ color: '#ff4d4f' }}
+                    >
+                      Xóa
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </Card>
+
+            <div style={{ 
+              marginTop: 16, 
+              padding: '12px', 
+              backgroundColor: '#fff7e6', 
+              border: '1px solid #ffd591',
+              borderRadius: '6px'
+            }}>
+              <h4 style={{ margin: '0 0 8px 0', color: '#fa8c16' }}>Lưu ý:</h4>
+              <ul style={{ margin: 0, paddingLeft: 16, color: '#666' }}>
+                <li>File Excel phải chứa kết quả tiêm chủng cho các học sinh đã đăng ký</li>
+                <li>Đảm bảo định dạng file đúng theo mẫu quy định</li>
+                <li>Kiểm tra kỹ dữ liệu trước khi upload</li>
+              </ul>
+            </div>
+          </div>
         )}
       </Modal>
     </div>

@@ -23,7 +23,7 @@ import {
   FileTextOutlined,
   PlusOutlined,
   MinusCircleOutlined,
-  
+  ReloadOutlined
 } from '@ant-design/icons';
 import AccidentService from '../../../../services/Nurse/AccidentService/AccidentService';
 import medicineStorageService from '../../../../services/Nurse/MedicineStorage/MedicineStorage';
@@ -31,7 +31,7 @@ import medicineStorageService from '../../../../services/Nurse/MedicineStorage/M
 const { TextArea } = Input;
 const { Option } = Select;
 
-const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) => {
+const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onRefresh }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [medicineModalVisible, setMedicineModalVisible] = useState(false);
@@ -157,36 +157,30 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
             onClick={() => handleViewDetail(record)}
             title="Xem Chi Tiết"
           />
-          <Button 
-            icon={<MedicineBoxOutlined />} 
-            size="small" 
-            type="default"
-            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', color: 'white' }}
-            onClick={() => handleAssignMedicine(record)}
-            title="Phân Bổ Thuốc"
-          />
         </Space>
       ),
     },
   ];
+  const handleViewDetail = async (accident) => {
+    try {
+      console.log('View detail for accident:', accident);
+      setLoading(true);
+      setSelectedAccident(accident); // Set basic accident data first
+      setModalVisible(true);
+      
+      // Fetch detailed accident information including medicines
+      const response = await AccidentService.getAccidentById(accident.id);
+      if (response && response.status && response.data) {
+        setSelectedAccident(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching accident details:', error);
+      message.error('Có lỗi xảy ra khi tải chi tiết tai nạn');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleViewDetail = (accident) => {
-    console.log('View detail for accident:', accident);
-    setSelectedAccident(accident);
-    setModalVisible(true);
-  };
-  const handleEdit = (accident) => {
-    console.log('Edit accident:', accident);
-    // Add your edit logic here
-  };
-
-  // Handle Assign Medicine
-  const handleAssignMedicine = (accident) => {
-    setSelectedAccident(accident);
-    setSelectedMedicines([{ medicineId: '', quantity: 1 }]);
-    medicineForm.resetFields();
-    setMedicineModalVisible(true);
-  };
 
   // Handle Add Medicine Row
   const addMedicineRow = () => {
@@ -226,7 +220,7 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
       const assignmentData = {
         accidentId: selectedAccident.id.toString(),
         medicines: validMedicines.map(med => ({
-          medicineId: med.medicineId,
+          medicineId: med.medicineId.toString(),
           quantity: parseInt(med.quantity)
         }))
       };
@@ -240,6 +234,9 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
         setMedicineModalVisible(false);
         setSelectedMedicines([{ medicineId: '', quantity: 1 }]);
         medicineForm.resetFields();
+        //reload accident details
+        const updatedAccident = await AccidentService.getAccidentById(selectedAccident.id);
+        setSelectedAccident(updatedAccident.data);
         
         // Callback to refresh accidents list if needed
         if (onAccidentReported) {
@@ -253,11 +250,18 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
       setLoading(false);
     }
   };
-
   // Handle Report New Accident
   const handleReportAccident = () => {
     form.resetFields();
     setReportModalVisible(true);
+  };
+
+  // Handle Refresh
+  const handleRefresh = () => {
+    if (onRefresh) {
+      onRefresh();
+      message.success('Đã làm mới danh sách tai nạn');
+    }
   };
 
   // Handle Submit Accident Report
@@ -325,8 +329,7 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
   };
 
   return (
-    <div className="w-full h-[90%] flex flex-wrap justify-center items-center">
-      {/* Header with Report Button */}
+    <div className="w-full h-[90%] flex flex-wrap justify-center items-center">      {/* Header with Report Button */}
       <div className="w-full mb-4 flex justify-between items-center">
         <div>
           <h3 className="text-lg font-semibold mb-1">Danh Sách Tai Nạn</h3>
@@ -335,15 +338,25 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
             {searchText && ` phù hợp với "${searchText}"`}
           </p>
         </div>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={handleReportAccident}
-          size="large"
-          danger
-        >
-          Báo Cáo Tai Nạn
-        </Button>
+        <Space>
+          <Button 
+            icon={<ReloadOutlined />}
+            onClick={handleRefresh}
+            size="large"
+            title="Làm mới danh sách"
+          >
+            Làm Mới
+          </Button>
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />}
+            onClick={handleReportAccident}
+            size="large"
+            danger
+          >
+            Báo Cáo Tai Nạn
+          </Button>
+        </Space>
       </div>
 
       <Table
@@ -351,7 +364,7 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
         dataSource={filteredAccidents}
         rowKey="id"
         pagination={{ 
-          pageSize: 5,
+          pageSize: 8,
           showTotal: (total, range) => 
             `${range[0]}-${range[1]} trong ${total} tai nạn`
         }}
@@ -441,9 +454,7 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
             </Space>
           </Form.Item>
         </Form>
-      </Modal>
-
-      {/* Accident Detail Modal */}
+      </Modal>      {/* Accident Detail Modal */}
       <Modal
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -460,20 +471,10 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
           <Button key="close" onClick={() => setModalVisible(false)}>
             Đóng
           </Button>,
-          <Button 
-            key="edit" 
-            type="primary" 
-            icon={<EditOutlined />}
-            onClick={() => {
-              handleEdit(selectedAccident);
-              setModalVisible(false);
-            }}
-          >
-            Chỉnh Sửa
-          </Button>
         ]}
         width={900}
         centered
+        confirmLoading={loading}
       >
         {selectedAccident && (
           <div>
@@ -599,9 +600,7 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
                   </div>
                 </>
               )}
-            </Card>
-
-            {/* Nurse Information Card */}
+            </Card>            {/* Nurse Information Card */}
             <Card 
               title={
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -609,6 +608,7 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
                   <span>Y Tá Phụ Trách</span>
                 </div>
               }
+              style={{ marginBottom: 16 }}
               size="small"
             >
               <Descriptions column={2} bordered size="small">
@@ -625,7 +625,170 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
                   {selectedAccident.nurse?.phone || selectedAccident.nurse?.email || 'Không có'}
                 </Descriptions.Item>
               </Descriptions>
-            </Card>          </div>
+            </Card>            {/* Medicine Information Card */}
+            <Card 
+              title={
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <MedicineBoxOutlined style={{ color: '#722ed1' }} />
+                  <span>Thuốc Đã Phân Bổ</span>
+                </div>
+              }
+              
+              size="small"
+            >
+              {/* Assigned Medicines Display */}
+              {selectedAccident.accidentMedicines && selectedAccident.accidentMedicines.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <h4 style={{ margin: '0 0 12px 0', color: '#722ed1' }}>Thuốc đã phân bổ:</h4>
+                  {selectedAccident.accidentMedicines.map((accidentMedicine, index) => (
+                    <Card
+                      key={index}
+                      size="small"
+                      style={{ 
+                        marginBottom: index === selectedAccident.accidentMedicines.length - 1 ? 0 : 12,
+                        backgroundColor: '#f8f4ff',
+                        border: '1px solid #d3adf7'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                            <Tag color="purple" style={{ fontSize: '12px' }}>
+                              {accidentMedicine.medicine?.name}
+                            </Tag>
+                            <Tag color="blue" style={{ fontSize: '11px' }}>
+                              {accidentMedicine.medicine?.type}
+                            </Tag>
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#666' }}>
+                            <strong>Nhà sản xuất:</strong> {accidentMedicine.medicine?.manufacturer || 'Không có'}
+                          </div>
+                          {accidentMedicine.medicine?.description && (
+                            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                              <strong>Mô tả:</strong> {accidentMedicine.medicine.description}
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ textAlign: 'center', minWidth: '80px' }}>
+                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#722ed1' }}>
+                            {accidentMedicine.quantity}
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#666' }}>
+                            {accidentMedicine.medicine?.type || 'viên'}
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                  <div style={{ 
+                    marginTop: 12, 
+                    padding: '8px 12px', 
+                    backgroundColor: '#f0f9ff', 
+                    border: '1px solid #91caff',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    color: '#0958d9'
+                  }}>
+                    <strong>Tổng số loại thuốc:</strong> {selectedAccident.accidentMedicines.length} loại
+                  </div>
+                </div>
+              )}
+
+              {/* Medicine Assignment Section */}
+              <div>
+                <h4 style={{ margin: '16px 0 12px 0', color: '#52c41a' }}>Phân bổ thuốc mới:</h4>
+                {selectedMedicines.map((medicine, index) => (
+                  <div key={index} style={{ 
+                    display: 'flex', 
+                    gap: '12px', 
+                    alignItems: 'center', 
+                    marginBottom: 12,
+                    padding: '12px',
+                    backgroundColor: '#f6ffed',
+                    border: '1px solid #b7eb8f',
+                    borderRadius: '6px'
+                  }}>
+                    <div style={{ flex: 2 }}>
+                      <Select
+                        placeholder="Chọn thuốc"
+                        style={{ width: '100%' }}
+                        value={medicine.medicineId}
+                        onChange={(value) => handleMedicineChange(index, 'medicineId', value)}
+                        showSearch
+                        filterOption={(input, option) =>
+                          option?.children?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                        }
+                      >
+                        {medicines.map(med => (
+                          <Option key={med.id} value={med.id}>
+                            {med.name} - {med.type} ({med.availableQuantity} có sẵn)
+                          </Option>
+                        ))}
+                      </Select>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <Input
+                        type="number"
+                        placeholder="Số lượng"
+                        min={1}
+                        value={medicine.quantity}
+                        onChange={(e) => handleMedicineChange(index, 'quantity', parseInt(e.target.value) || 1)}
+                        addonBefore="Số lượng"
+                      />
+                    </div>
+                    <Space>
+                      {selectedMedicines.length > 1 && (
+                        <Button 
+                          type="text" 
+                          danger
+                          icon={<MinusCircleOutlined />}
+                          onClick={() => removeMedicineRow(index)}
+                          title="Xóa"
+                        />
+                      )}
+                      {index === selectedMedicines.length - 1 && (
+                        <Button 
+                          type="dashed" 
+                          icon={<PlusOutlined />}
+                          onClick={addMedicineRow}
+                          size="small"
+                          title="Thêm thuốc"
+                        />
+                      )}
+                    </Space>
+                  </div>
+                ))}
+                
+                <div style={{ textAlign: 'center', marginTop: 16, marginBottom: 8 }}>
+                  <Button 
+                    type="primary" 
+                    icon={<MedicineBoxOutlined />}
+                    loading={loading}
+                    onClick={handleSubmitMedicineAssignment}
+                    style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+                    disabled={!selectedMedicines.some(med => med.medicineId && med.quantity > 0)}
+                  >
+                    Phân Bổ Thuốc
+                  </Button>
+                </div>
+              </div>
+
+              {/* Empty State when no medicines assigned */}
+              {(!selectedAccident.accidentMedicines || selectedAccident.accidentMedicines.length === 0) && (
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: '20px', 
+                  color: '#999',
+                  backgroundColor: '#fafafa',
+                  borderRadius: '6px',
+                  border: '1px dashed #d9d9d9',
+                  marginBottom: 16
+                }}>
+                  <MedicineBoxOutlined style={{ fontSize: '24px', marginBottom: '8px' }} />
+                  <div>Chưa có thuốc nào được phân bổ</div>
+                </div>
+              )}
+            </Card></div>
         )}
       </Modal>
 
@@ -735,7 +898,7 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
                       min={1}
                       value={medicine.quantity}
                       onChange={(e) => handleMedicineChange(index, 'quantity', parseInt(e.target.value) || 1)}
-                      addonAfter="viên"
+                      addonBefore="Số Lượng"
                     />
                   </div>
                   {selectedMedicines.length > 1 && (
