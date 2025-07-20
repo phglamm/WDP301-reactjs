@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Plus, Edit, Check, Clock, AlertCircle, User, Stethoscope } from 'lucide-react';
+import { Modal } from 'antd';
 
 const VaccineReminder = () => {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -9,6 +10,12 @@ const VaccineReminder = () => {
   const [completedVaccines, setCompletedVaccines] = useState([]);
   const [form, setForm] = useState({ vaccinationId: '', doses: 1 });
   const [notification, setNotification] = useState('');
+  const [injectionEvents, setInjectionEvents] = useState([]);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [registeredEventIds, setRegisteredEventIds] = useState([]);
+  const [registeredVaccines, setRegisteredVaccines] = useState([]);
+  const [registeredEvents, setRegisteredEvents] = useState([]);
 
 
   // Tạo calendar cho tháng hiện tại
@@ -89,15 +96,64 @@ const VaccineReminder = () => {
     setCompletedVaccines(Array.isArray(data.data) ? data.data : []);
   };
 
+  // Fetch injection events
+  const fetchInjectionEvents = async () => {
+    const res = await fetch(`${API_URL}/injection-event/available`);
+    const data = await res.json();
+    setInjectionEvents(Array.isArray(data.data) ? data.data : []);
+  };
+
+  const fetchRegisteredVaccines = async (studentId) => {
+    const res = await fetch(`${API_URL}/vaccination/student/${studentId}`);
+    const data = await res.json();
+    setRegisteredVaccines(Array.isArray(data.data) ? data.data : []);
+  };
+
+  const fetchRegisteredEvents = async (studentId) => {
+    const res = await fetch(`${API_URL}/injection-record/student/${studentId}`);
+    const data = await res.json();
+    setRegisteredEvents(Array.isArray(data.data) ? data.data : []);
+  };
+
   useEffect(() => {
     fetchStudents();
     fetchSchoolVaccines();
+    fetchInjectionEvents(); // fetch các event tiêm chủng
   }, []);
 
   useEffect(() => {
-    if (selectedStudent) fetchStudentVaccines(selectedStudent);
-    else setCompletedVaccines([]);
+    if (selectedStudent) {
+      fetchStudentVaccines(selectedStudent);
+      fetchRegisteredVaccines(selectedStudent);
+      fetchRegisteredEvents(selectedStudent);
+    } else {
+      setCompletedVaccines([]);
+      setRegisteredVaccines([]);
+      setRegisteredEvents([]);
+    }
   }, [selectedStudent]);
+
+  useEffect(() => {
+    if (!selectedStudent) {
+      setRegisteredEventIds([]);
+      return;
+    }
+    // Giả sử đã fetch xong injectionEvents
+    const fetchRegisteredEvents = async () => {
+      const ids = [];
+      for (const event of injectionEvents) {
+        const res = await fetch(`${API_URL}/injection-event/${event.id}/students`);
+        const data = await res.json();
+        if (Array.isArray(data.data)) {
+          if (data.data.some(s => String(s.id) === String(selectedStudent))) {
+            ids.push(event.id);
+          }
+        }
+      }
+      setRegisteredEventIds(ids);
+    };
+    if (injectionEvents.length > 0) fetchRegisteredEvents();
+  }, [selectedStudent, injectionEvents]);
 
   const submitExternalVaccine = async (studentId, vaccinationId, doses) => {
     const token = localStorage.getItem('access_token');
@@ -211,222 +267,199 @@ const VaccineReminder = () => {
             </div>
           </div>
         </div>
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Cần tiêm</p>
-                <p className="text-3xl font-bold text-orange-500">{/*overdueCount*/}</p>
-              </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-6 h-6 text-orange-500" />
-              </div>
-            </div>
+
+
+        {/* Vaccine nhà trường hỗ trợ */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-blue-900">Vaccine nhà trường hỗ trợ</h2>
+            <span className="text-gray-500 font-medium">Của: {selectedStudent ? students.find(s => s.id === selectedStudent)?.fullName : '---'}</span>
           </div>
-          
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Sắp tới (30 ngày)</p>
-                <p className="text-3xl font-bold" style={{color: '#407CE2'}}>{upcomingVaccines.length}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {schoolVaccines.map(vaccine => (
+              <div key={vaccine.id} className="rounded-xl border border-gray-200 bg-gradient-to-br from-blue-50 to-white p-5 flex flex-col gap-2 shadow hover:shadow-xl transition-all duration-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <User className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-blue-800 text-lg">{vaccine.name}</h3>
+                    <p className="text-gray-500 text-sm">Loại vaccine: {vaccine.name}</p>
+                    <p className="text-gray-400 text-xs">Ngày: {vaccine.date ? formatDate(vaccine.date) : '---'}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-600 text-xs font-medium">Sắp tới</span>
+                  <button className="ml-auto px-4 py-1 rounded-lg bg-blue-500 text-white text-sm font-semibold shadow hover:bg-blue-600 transition">Hoàn thành</button>
+                </div>
               </div>
-              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{backgroundColor: '#407CE2', opacity: 0.1}}>
-                <Clock className="w-6 h-6" style={{color: '#407CE2'}} />
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Đã hoàn thành</p>
-                <p className="text-3xl font-bold text-green-500">{completedVaccines.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <Check className="w-6 h-6 text-green-500" />
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Upcoming Reminders */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-800">Vaccine nhà trường hỗ trợ</h2>
-                {selectedStudent !== 'all' && (
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <span>Của:</span>
-                    <span className="font-medium text-blue-600">
-                      {students.find(s => s.id === selectedStudent)?.name}
-                    </span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="space-y-4">
-                {upcomingVaccines.map(vaccine => (
-                  <div key={vaccine.id} className="flex items-center justify-between p-4 border rounded-lg hover:shadow-md transition-all">
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                        vaccine.overdue ? 'bg-red-100' : 'bg-blue-100'
-                      }`}>
-                        <User className={`w-6 h-6 ${vaccine.overdue ? 'text-red-500' : 'text-blue-500'}`} />
-                      </div>
-                      
-                      <div>
-                        <h3 className="font-semibold text-gray-800">{vaccine.name}</h3>
-                        <p className="text-sm text-gray-600">
-                          {selectedStudent === 'all' 
-                            ? `Học sinh: ${vaccine.patient}` 
-                            : `Loại vaccine: ${vaccine.name.split('(')[0].trim()}`
-                          }
-                        </p>
-                        <p className="text-sm text-gray-500">Ngày: {formatDate(vaccine.date)}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        vaccine.overdue 
-                          ? 'bg-red-100 text-red-600' 
-                          : 'bg-blue-100 text-blue-600'
-                      }`}>
-                        {vaccine.overdue ? 'Quá hạn' : 'Sắp tới'}
-                      </span>
-                      
-                      <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      
-                      <button 
-                        className="px-3 py-1 rounded-lg text-white text-sm font-medium transition-all hover:scale-105"
-                        style={{backgroundColor: vaccine.overdue ? '#EF4444' : '#407CE2'}}
-                      >
-                        {vaccine.overdue ? 'Đặt lịch ngay' : 'Hoàn thành'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Completed Vaccinations */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-800">Đã tiêm chủng</h2>
-                {selectedStudent !== 'all' && (
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <span>Của:</span>
-                    <span className="font-medium text-green-600">
-                      {students.find(s => s.id === selectedStudent)?.name}
-                    </span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="space-y-3">
-                {completedVaccines.map(vaccine => (
-                  <div key={vaccine.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <Check className="w-5 h-5 text-green-500" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-gray-800">
-                          {vaccine.vaccination && vaccine.vaccination.name
-                            ? vaccine.vaccination.name
-                            : 'Không rõ tên vaccine'}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          {vaccine.vaccination && vaccine.vaccination.description
-                            ? vaccine.vaccination.description
-                            : ''}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Số mũi đã tiêm: {vaccine.doses}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="px-3 py-1 bg-green-100 text-green-600 rounded-full text-xs font-medium">
-                        Hoàn thành
-                      </span>
-                      <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-md p-6 mt-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Khai báo vaccine đã tiêm ngoài</h2>
-          <form
-            className="flex flex-col md:flex-row gap-4 items-center"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              if (!selectedStudent || !form.vaccinationId) {
-                setNotification('Vui lòng chọn học sinh và vaccine!');
-                return;
-              }
-              const token = localStorage.getItem('access_token');
-              const res = await fetch(`${API_URL}/vaccination/student`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                  studentId: String(selectedStudent),
-                  vaccinationId: String(form.vaccinationId),
-                  doses: Number(form.doses)
-                })
-              });
-              const result = await res.json().catch(() => ({}));
-              console.log('Khai báo response:', result);
-              if (res.ok) {
-                setNotification('Khai báo thành công!');
-                fetchStudentVaccines(selectedStudent);
-              } else {
-                setNotification('Khai báo thất bại!');
-              }
-              setTimeout(() => setNotification(''), 4000);
-            }}
-          >
-            <select
-              className="border rounded-lg px-3 py-2"
-              value={form.vaccinationId}
-              onChange={e => setForm(f => ({ ...f, vaccinationId: e.target.value }))}
-              required
+        {/* Khai báo vaccine đã tiêm ngoài + Đăng ký tiêm chủng cho học sinh */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          {/* Khai báo vaccine đã tiêm ngoài */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 flex-1">
+            <h2 className="text-xl font-bold text-blue-900 mb-4">Khai báo vaccine đã tiêm ngoài</h2>
+            <form
+              className="flex flex-col md:flex-row gap-4 items-center"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!selectedStudent || !form.vaccinationId) {
+                  setNotification('Vui lòng chọn học sinh và vaccine!');
+                  return;
+                }
+                const token = localStorage.getItem('access_token');
+                const res = await fetch(`${API_URL}/vaccination/student`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                  },
+                  body: JSON.stringify({
+                    studentId: String(selectedStudent),
+                    vaccinationId: String(form.vaccinationId),
+                    doses: Number(form.doses)
+                  })
+                });
+                const result = await res.json().catch(() => ({}));
+                if (res.ok) {
+                  setNotification('Khai báo thành công!');
+                  fetchStudentVaccines(selectedStudent);
+                } else {
+                  setNotification('Khai báo thất bại!');
+                }
+                setTimeout(() => setNotification(''), 4000);
+              }}
             >
-              <option value="">Chọn vaccine</option>
-              {schoolVaccines.map(v => (
-                <option key={v.id} value={v.id}>{v.name}</option>
-              ))}
-            </select>
-            <input
-              className="border rounded-lg px-3 py-2"
-              type="number"
-              min={1}
-              value={form.doses}
-              onChange={e => setForm(f => ({ ...f, doses: e.target.value }))}
-              placeholder="Số mũi"
-              required
-            />
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-            >
-              Khai báo
-            </button>
-          </form>
+              <select
+                className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                value={form.vaccinationId}
+                onChange={e => setForm(f => ({ ...f, vaccinationId: e.target.value }))}
+                required
+              >
+                <option value="">Chọn vaccine</option>
+                {schoolVaccines.map(v => (
+                  <option key={v.id} value={v.id}>{v.name}</option>
+                ))}
+              </select>
+              <input
+                className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                type="number"
+                min={1}
+                value={form.doses}
+                onChange={e => setForm(f => ({ ...f, doses: e.target.value }))}
+                placeholder="Số mũi"
+                required
+              />
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold shadow"
+              >
+                Khai báo
+              </button>
+            </form>
+          </div>
+
+          {/* Đăng ký tiêm chủng cho học sinh + Đã đăng ký tiêm chủng */}
+          <div className="flex flex-col gap-6 flex-1">
+            <div className="bg-white rounded-2xl shadow-lg p-6 flex-1">
+              <h2 className="text-xl font-bold text-blue-900 mb-4">Đăng ký tiêm chủng cho học sinh</h2>
+              {selectedStudent ? (
+                <>
+                  {injectionEvents.length === 0 ? (
+                    <div className="text-gray-500">Hiện không có sự kiện tiêm chủng nào đang mở đăng ký.</div>
+                  ) : (
+                    <div className="space-y-4">
+                      {injectionEvents.map(event => {
+                        const isRegistered = registeredEvents.some(e => String(e.id) === String(event.id));
+                        return (
+                          <div key={event.id} className="flex flex-col md:flex-row md:items-center md:justify-between border rounded-lg p-4 bg-gradient-to-br from-blue-50 to-white hover:shadow-xl transition-all duration-200">
+                            <div>
+                              <div className="font-semibold text-blue-700">{event.name || 'Sự kiện tiêm chủng'}</div>
+                              <div className="text-gray-600 text-sm">{event.description}</div>
+                              <div className="text-gray-500 text-xs">Thời gian: {event.date ? formatDate(event.date) : ''}</div>
+                            </div>
+                            {isRegistered ? (
+                              <span className="mt-2 md:mt-0 bg-gray-200 text-green-600 px-4 py-2 rounded-lg font-semibold cursor-not-allowed select-none">Đã đăng ký</span>
+                            ) : (
+                              <button
+                                className="mt-2 md:mt-0 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition font-semibold shadow"
+                                onClick={() => { setSelectedEvent(event); setShowRegisterModal(true); }}
+                                disabled={isRegistered}
+                              >
+                                Đăng ký
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-gray-500">Vui lòng chọn học sinh để đăng ký tiêm chủng.</div>
+              )}
+            </div>
+            <div className="bg-white rounded-2xl shadow-lg p-6 flex-1">
+              <h2 className="text-xl font-bold text-blue-900 mb-4">Đã đăng ký tiêm chủng</h2>
+              {registeredEvents.length === 0 ? (
+                <div className="text-gray-500">Chưa đăng ký sự kiện tiêm chủng nào.</div>
+              ) : (
+                <div className="space-y-3">
+                  {registeredEvents.map(event => (
+                    <div key={event.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100 shadow-sm">
+                      <div>
+                        <h3 className="font-medium text-blue-800">{event.name || 'Không rõ tên sự kiện'}</h3>
+                        <p className="text-sm text-gray-600">{event.description || ''}</p>
+                        <p className="text-sm text-gray-500">Thời gian: {event.date ? formatDate(event.date) : ''}</p>
+                      </div>
+                      <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-medium">Đã đăng ký</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* Modal xác nhận đăng ký */}
+        <Modal
+          open={showRegisterModal}
+          onCancel={() => setShowRegisterModal(false)}
+          onOk={async () => {
+            if (!selectedStudent || !selectedEvent?.id) {
+              setNotification('Thiếu thông tin học sinh hoặc sự kiện!');
+              return;
+            }
+            setShowRegisterModal(false);
+            const token = localStorage.getItem('access_token');
+            const res = await fetch(`${API_URL}/injection-event/register`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                studentId: String(selectedStudent),
+                injectionEventId: String(selectedEvent.id)
+              })
+            });
+            if (res.ok) {
+              setNotification('Đăng ký tiêm chủng thành công!');
+            } else {
+              setNotification('Đăng ký tiêm chủng thất bại!');
+            }
+            setTimeout(() => setNotification(''), 4000);
+          }}
+          okText="Xác nhận"
+          cancelText="Hủy"
+          title="Xác nhận đăng ký tiêm chủng"
+        >
+          <div>Bạn có chắc chắn muốn đăng ký sự kiện tiêm chủng này cho học sinh đã chọn?</div>
+          <div className="mt-2 font-semibold text-blue-700">{selectedEvent?.name}</div>
+        </Modal>
       </div>
     </div>
   );
