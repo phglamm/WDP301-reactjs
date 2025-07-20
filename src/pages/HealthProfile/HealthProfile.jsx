@@ -280,7 +280,7 @@ const HealthProfile = () => {
         {
           method: "POST",
           headers: {
-            Authorization: token,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
