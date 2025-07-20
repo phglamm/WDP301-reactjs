@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Form, message } from "antd";
 import moment from "moment";
 import AppointmentService from "../../../services/Nurse/AppointmentService/AppointmentService";
@@ -118,9 +118,8 @@ const Appointment = () => {
       setLoading(false);
     }
   };
-
   // Combined filter function
-  const applyFilters = (appointmentList, filterType, dateRangeFilter) => {
+  const applyFilters = useCallback((appointmentList, filterType, dateRangeFilter) => {
     let filtered = [...appointmentList];
 
     // Apply status filter first
@@ -158,7 +157,7 @@ const Appointment = () => {
     }
 
     setFilteredAppointments(filtered);
-  };
+  }, [todayAppointments]);
 
   // Filter appointments by status
   const filterAppointments = (filterType) => {
@@ -185,23 +184,22 @@ const Appointment = () => {
       clearDateRange();
     }
   };
-
   useEffect(() => {
     fetchAppointments();
     getParent();
-  }, []);
-
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   // Update applyFilters when todayAppointments changes
   useEffect(() => {
     if (appointments.length > 0) {
       applyFilters(appointments, activeFilter, dateRange);
     }
-  }, [todayAppointments]);
-
-  // Convert appointments to calendar events
+  }, [todayAppointments, appointments, activeFilter, dateRange, applyFilters]);
+    // Convert appointments to calendar events
   const calendarEvents = filteredAppointments.map((appointment) => {
     const startTime = moment(appointment.appointmentTime);
-    const endTime = moment(appointment.appointmentTime).add(1, "hour"); // 1 hour duration
+    // Use duration from appointment data or default to 45 minutes
+    const duration = appointment.duration || 45;
+    const endTime = moment(appointment.appointmentTime).add(duration, "minutes");
 
     const getEventColor = (status) => {
       const colors = {
@@ -215,7 +213,7 @@ const Appointment = () => {
 
     return {
       id: appointment.id.toString(),
-      title: appointment.purpose,
+      title: `${appointment.purpose} (${duration}min)`,
       start: startTime.toISOString(),
       end: endTime.toISOString(),
       backgroundColor: getEventColor(appointment.status),
@@ -224,6 +222,7 @@ const Appointment = () => {
         appointment: appointment,
         status: appointment.status,
         googleMeetLink: appointment.googleMeetLink,
+        duration: duration,
       },
     };
   });
@@ -235,19 +234,6 @@ const Appointment = () => {
     if (appointment) {
       await handleViewDetail(appointment);
     }
-  };
-
-  // Handle date select (for creating new appointments)
-  const handleDateSelect = (selectInfo) => {
-    const selectedDate = moment(selectInfo.start);
-
-    // Pre-fill the form with selected date/time
-    form.setFieldsValue({
-      appointmentTime: selectedDate,
-    });
-
-    setEditingId(null);
-    setModalVisible(true);
   };
 
   // Handle view detail
@@ -267,27 +253,56 @@ const Appointment = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Handle create new appointment
+  };  // Handle create new appointment
   const handleCreate = () => {
     setEditingId(null);
     form.resetFields();
+    // Set default duration when creating new appointment
+    form.setFieldsValue({
+      duration: 45
+    });
     setModalVisible(true);
-  };
-
-  // Handle form submit
+  };  // Handle calendar date selection
+  const handleDateSelect = (selectInfo) => {
+    setEditingId(null);
+    form.resetFields();
+    
+    // Convert to local moment and ensure it's in the correct format
+    const selectedDateTime = moment(selectInfo.start).local();
+    console.log("Original selectInfo.start:", selectInfo.start);
+    console.log("Moment parsed:", selectedDateTime.format("DD/MM/YYYY HH:mm:ss"));
+    console.log("Moment toISOString:", selectedDateTime.toISOString());
+    console.log("Is valid moment:", selectedDateTime.isValid());
+    
+    // Set form values after a small delay to ensure form is ready
+    setTimeout(() => {
+      form.setFieldsValue({
+        appointmentTime: selectedDateTime,
+        duration: 45
+      });
+      console.log("Form values set:", form.getFieldsValue());
+    }, 100);
+    
+    setModalVisible(true);
+  };// Handle form submit
   const handleSubmit = async (values) => {
+    console.log("appointmentTime type:", typeof values.appointmentTime);
+    console.log("appointmentTime moment check:", values.appointmentTime.format("DD/MM/YYYY HH:mm:ss"));
+    console.log("appointmentTime raw:", (values.appointmentTime).format("DD/MM/YYYY HH:mm:ss"));
+    console.log("Form values formatted:", (values.appointmentTime).format("DD-MM-YYYY HH:mm:ss"));
+    
     try {
       setLoading(true);
       const formData = {
         parentId: values.parentId.toString(),
         purpose: values.purpose,
-        appointmentTime: moment(values.appointmentTime).format(
+        appointmentTime: (values.appointmentTime).format(
           "DD-MM-YYYY HH:mm:ss"
         ),
-        duration: 60,
+        duration: values.duration || 45, // Default to 45 minutes if not provided
       };
+
+      console.log("Final formData:", formData);
 
       if (editingId) {
         // Add update API call when available
@@ -309,6 +324,12 @@ const Appointment = () => {
     }
   };
 
+  // Handle refresh
+  const handleRefresh = async () => {
+    await fetchAppointments();
+    message.success("Dữ liệu đã được làm mới");
+  };
+
   const formatDateTime = (dateString) => {
     return moment(dateString).format("dddd, DD/MM/YYYY HH:mm");
   };
@@ -322,9 +343,7 @@ const Appointment = () => {
           activeFilter={activeFilter}
           onFilterChange={filterAppointments}
         />
-      )}
-
-      {/* Header with controls */}
+      )}      {/* Header with controls */}
       <AppointmentHeader
         viewMode={viewMode}
         setViewMode={setViewMode}
@@ -333,6 +352,7 @@ const Appointment = () => {
         calendarView={calendarView}
         setCalendarView={setCalendarView}
         onCreateNew={handleCreate}
+        onRefresh={handleRefresh}
       />
 
       {/* Date Range Filter */}
@@ -345,9 +365,7 @@ const Appointment = () => {
       )}
 
       {/* Calendar Legend */}
-      {viewMode === "calendar" && <CalendarLegend />}
-
-      {/* Main Content Area */}
+      {viewMode === "calendar" && <CalendarLegend />}      {/* Main Content Area */}
       {viewMode === "calendar" ? (
         <CalendarView
           calendarEvents={calendarEvents}

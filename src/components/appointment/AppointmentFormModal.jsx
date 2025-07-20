@@ -1,6 +1,13 @@
 import React from 'react';
-import { Modal, Form, Input, DatePicker, Select, Button, Space, Avatar } from 'antd';
-import { CalendarOutlined, VideoCameraOutlined, UserOutlined } from '@ant-design/icons';
+import { Modal, Form, Input, DatePicker, Select, Button, Space, Avatar, InputNumber } from 'antd';
+import { 
+  PlusOutlined, 
+  CalendarOutlined, 
+  UnorderedListOutlined, 
+  FilterOutlined,
+  ReloadOutlined,
+  ClockCircleOutlined 
+} from '@ant-design/icons';
 import moment from 'moment';
 
 const { TextArea } = Input;
@@ -15,6 +22,19 @@ const AppointmentFormModal = ({
   onCancel,
   onSubmit
 }) => {
+  // Debug form values when modal opens
+  React.useEffect(() => {
+    if (visible) {
+      console.log("Modal opened, current form values:", form.getFieldsValue());
+      const appointmentTime = form.getFieldValue('appointmentTime');
+      if (appointmentTime) {
+        console.log("AppointmentTime in modal:", appointmentTime);
+        console.log("AppointmentTime formatted:", moment(appointmentTime).format("DD/MM/YYYY HH:mm:ss"));
+        console.log("Is moment:", moment.isMoment(appointmentTime));
+      }
+    }
+  }, [visible, form]);
+
   return (
     <Modal
       title={
@@ -132,23 +152,114 @@ const AppointmentFormModal = ({
             maxLength={500}
             showCount
           />
-        </Form.Item>
-
-        {/* Appointment Time */}
+        </Form.Item>        
+          {/* Appointment Time and Duration */}
+        <div style={{ display: 'flex', gap: '16px' }}>          
         <Form.Item
-          name="appointmentTime"
-          label="Thời Gian Hẹn"
-          rules={[{ required: true, message: 'Vui lòng chọn thời gian hẹn' }]}
-        >
-          <DatePicker 
-            showTime
-            format="DD/MM/YYYY HH:mm"
-            placeholder="Chọn ngày và giờ hẹn"
-            style={{ width: '100%' }}
-            disabledDate={(current) => current && current < moment().startOf('day')}
-            showNow={false}
-          />
-        </Form.Item>
+            name="appointmentTime"
+            label="Thời Gian Hẹn"
+            rules={[
+              { required: true, message: 'Vui lòng chọn thời gian hẹn' },              {
+                validator: (_, value) => {
+                  if (!value) return Promise.resolve();
+                  
+                  const now = moment();
+                  
+                  // Check if selected time is in the past
+                  if (value.isBefore(now)) {
+                    return Promise.reject(new Error('Không thể chọn thời gian trong quá khứ'));
+                  }
+                  
+                  // Check if time is between 20:00 and 07:00
+                  const hour = value.hour();
+                  if (hour >= 20 || hour < 7) {
+                    return Promise.reject(new Error('Thời gian hẹn phải từ 07:00 đến 19:59'));
+                  }
+                  
+                  return Promise.resolve();
+                }
+              }
+            ]}
+            style={{ flex: 2 }}
+          >
+            <DatePicker 
+              showTime
+              format="DD/MM/YYYY HH:mm"
+              placeholder="Chọn ngày và giờ hẹn"
+              style={{ width: '100%' }}
+              disabledDate={(current) => current && current < moment().startOf('day')}
+              disabledTime={(current) => {
+                const now = moment();
+                const isToday = current && current.isSame(now, 'day');
+                
+                return {
+                  disabledHours: () => {
+                    const disabledHours = [];
+                    
+                    // Disable hours from 20:00 to 23:59
+                    for (let i = 20; i <= 23; i++) {
+                      disabledHours.push(i);
+                    }
+                    
+                    // Disable hours from 00:00 to 06:59
+                    for (let i = 0; i < 7; i++) {
+                      disabledHours.push(i);
+                    }
+                      // If today, also disable past hours (but only within working hours)
+                    if (isToday) {
+                      const currentHour = now.hour();
+                      // Only disable past hours within the working time range (7-19)
+                      for (let i = 7; i <= currentHour && i < 20; i++) {
+                        if (!disabledHours.includes(i)) {
+                          disabledHours.push(i);
+                        }
+                      }
+                    }
+                    
+                    return disabledHours;
+                  },
+                  disabledMinutes: (selectedHour) => {
+                    const disabledMinutes = [];
+                    
+                    // If today and current hour, disable past minutes
+                    if (isToday && selectedHour === now.hour()) {
+                      const currentMinute = now.minute();
+                      for (let i = 0; i <= currentMinute; i++) {
+                        disabledMinutes.push(i);
+                      }
+                    }
+                    
+                    return disabledMinutes;
+                  }
+                };
+              }}
+              showNow={false}
+              onChange={(value) => {
+                console.log("DatePicker onChange:", value);
+                if (value) {
+                  console.log("DatePicker onChange formatted:", value.format("DD/MM/YYYY HH:mm:ss"));
+                }
+              }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="duration"
+            label="Thời Gian (phút)"
+            rules={[{ required: true, message: 'Vui lòng nhập thời gian dự kiến' }]}
+            initialValue={45}
+            style={{ flex: 1 }}
+          >
+            <InputNumber
+              min={15}
+              max={180}
+              step={15}
+              placeholder="45"
+              style={{ width: '100%' }}
+              suffix={<ClockCircleOutlined />}
+            />
+          </Form.Item>
+        </div>
 
         {/* Form Actions */}
         <Form.Item className="mb-0" style={{ textAlign: 'right', marginTop: '24px' }}>

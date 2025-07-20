@@ -15,8 +15,7 @@ const CalendarView = ({
   onDateSelect 
 }) => {
   return (
-    <Card loading={loading}>
-      <FullCalendar
+    <Card loading={loading}>      <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView={calendarView}
         headerToolbar={{

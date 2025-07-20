@@ -4,7 +4,8 @@ import {
   PlusOutlined, 
   CalendarOutlined, 
   UnorderedListOutlined, 
-  FilterOutlined 
+  FilterOutlined,
+  ReloadOutlined 
 } from '@ant-design/icons';
 
 const { Option } = Select;
@@ -16,7 +17,8 @@ const AppointmentHeader = ({
   toggleDateFilter,
   calendarView,
   setCalendarView,
-  onCreateNew
+  onCreateNew,
+  onRefresh
 }) => {
   return (
     <div className="mb-4 flex justify-between items-center">
@@ -61,9 +63,16 @@ const AppointmentHeader = ({
               <Option value="dayGridMonth">Tháng</Option>
               <Option value="timeGridWeek">Tuần</Option>
               <Option value="timeGridDay">Ngày</Option>
-            </Select>
-          </>
+            </Select>          </>
         )}
+
+        <Button 
+          icon={<ReloadOutlined />}
+          onClick={onRefresh}
+          title="Làm mới dữ liệu"
+        >
+          Làm Mới
+        </Button>
 
         <Button 
           type="primary" 
