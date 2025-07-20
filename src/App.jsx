@@ -174,7 +174,7 @@ function App() {
         {
           path: "injection-event",
           element: (
-            <ProtectedRoute allowedRoles={['nurse', 'admin']}>
+            <ProtectedRoute allowedRoles={["nurse", "admin"]}>
               <InjectionEvent />
             </ProtectedRoute>
           ),
@@ -182,31 +182,30 @@ function App() {
         {
           path: "appointment",
           element: (
-            <ProtectedRoute allowedRoles={['nurse', 'admin']}>
+            <ProtectedRoute allowedRoles={["nurse", "admin"]}>
               <Appointment />
             </ProtectedRoute>
           ),
-        }
+        },
       ],
     },
 
-    //  {
-    //   path: "/manager",
-    //   element: (
-    //     <ProtectedRoute allowedRoles={["manager"]}>
-    //       <ManagerLayout />
-    //     </ProtectedRoute>
-    //   ),
-    //   children: [
-    //     {
-    //       path: "manager-slot",
-    //       element: <ManagerSlotPage />,
-    //     },
-    //   ],
-    // },
+    {
+      path: "/manager",
+      element: (
+        // <ProtectedRoute allowedRoles={["manager"]}>
+        <ManagerLayout />
+        // </ProtectedRoute>
+      ),
+      children: [
+        {
+          path: "manager-slot",
+          element: <ManagerSlotPage />,
+        },
+      ],
+    },
 
     // Catch all route - redirect to login if not authenticated, otherwise to home
-
   ]);
 
   return <RouterProvider router={router} />;

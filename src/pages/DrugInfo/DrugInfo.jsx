@@ -1,27 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, User, Camera, Upload, CheckCircle, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  User,
+  Camera,
+  Upload,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 
 const DrugInfo = () => {
-  const [selectedStudent, setSelectedStudent] = useState('');
+  const [selectedStudent, setSelectedStudent] = useState("");
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [notification, setNotification] = useState({ show: false, type: '', message: '' });
+  const [notification, setNotification] = useState({
+    show: false,
+    type: "",
+    message: "",
+  });
 
   // Get API base URL from environment
   const getAPIBaseURL = () => {
-    return import.meta.env.VITE_API_URL || 'https://wdp301-se1752-be.onrender.com/api';
+    return (
+      import.meta.env.VITE_API_URL || "https://wdp301-se1752-be.onrender.com"
+    );
   };
 
   // Get token from localStorage (from userSlice)
   const getToken = () => {
-    return localStorage.getItem('access_token');
+    return localStorage.getItem("access_token");
   };
 
   // Get user info from localStorage
   const getUserInfo = () => {
-    const userStr = localStorage.getItem('user');
+    const userStr = localStorage.getItem("user");
     return userStr ? JSON.parse(userStr) : null;
   };
 
@@ -35,32 +48,35 @@ const DrugInfo = () => {
     try {
       const token = getToken();
       const apiUrl = getAPIBaseURL();
-      
+
       if (!token) {
-        showNotification('error', 'Vui lòng đăng nhập lại');
+        showNotification("error", "Vui lòng đăng nhập lại");
         return;
       }
 
       const response = await fetch(`${apiUrl}/student/parent`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Students API data:', data);
+        console.log("Students API data:", data);
         setStudents(Array.isArray(data.data) ? data.data : []);
       } else if (response.status === 401) {
-        showNotification('error', 'Phiên đăng nhập hết hạn, vui lòng đăng nhập lại');
+        showNotification(
+          "error",
+          "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại"
+        );
       } else {
-        showNotification('error', 'Không thể tải danh sách học sinh');
+        showNotification("error", "Không thể tải danh sách học sinh");
       }
     } catch (error) {
-      console.error('Error fetching students:', error);
-      showNotification('error', 'Lỗi kết nối khi tải danh sách học sinh');
+      console.error("Error fetching students:", error);
+      showNotification("error", "Lỗi kết nối khi tải danh sách học sinh");
     } finally {
       setLoading(false);
     }
@@ -80,12 +96,12 @@ const DrugInfo = () => {
 
   const handleSendMedicineRequest = async () => {
     if (!selectedStudent) {
-      showNotification('error', 'Vui lòng chọn học sinh');
+      showNotification("error", "Vui lòng chọn học sinh");
       return;
     }
 
     if (!selectedImage) {
-      showNotification('error', 'Vui lòng chọn hình ảnh thuốc');
+      showNotification("error", "Vui lòng chọn hình ảnh thuốc");
       return;
     }
 
@@ -93,40 +109,46 @@ const DrugInfo = () => {
     try {
       const token = getToken();
       const apiUrl = getAPIBaseURL();
-      
+
       if (!token) {
-        showNotification('error', 'Vui lòng đăng nhập lại');
+        showNotification("error", "Vui lòng đăng nhập lại");
         return;
       }
 
       const formData = new FormData();
-      formData.append('image', selectedImage);
-      formData.append('studentId', selectedStudent);
+      formData.append("image", selectedImage);
+      formData.append("studentId", selectedStudent);
 
       const response = await fetch(`${apiUrl}/medicine-request/image`, {
-        method: 'POST',
+        method: "POST",
         body: formData,
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
-        showNotification('success', 'Tạo yêu cầu gửi thuốc thành công');
+        showNotification("success", "Tạo yêu cầu gửi thuốc thành công");
         setSelectedImage(null);
         setImagePreview(null);
         // Reset file input
-        const fileInput = document.getElementById('imageInput');
-        if (fileInput) fileInput.value = '';
+        const fileInput = document.getElementById("imageInput");
+        if (fileInput) fileInput.value = "";
       } else if (response.status === 401) {
-        showNotification('error', 'Phiên đăng nhập hết hạn, vui lòng đăng nhập lại');
+        showNotification(
+          "error",
+          "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại"
+        );
       } else {
         const errorData = await response.json().catch(() => ({}));
-        showNotification('error', errorData.message || 'Không thể tạo yêu cầu gửi thuốc');
+        showNotification(
+          "error",
+          errorData.message || "Không thể tạo yêu cầu gửi thuốc"
+        );
       }
     } catch (error) {
-      console.error('Error sending medicine request:', error);
-      showNotification('error', 'Lỗi kết nối khi gửi yêu cầu');
+      console.error("Error sending medicine request:", error);
+      showNotification("error", "Lỗi kết nối khi gửi yêu cầu");
     } finally {
       setLoading(false);
     }
@@ -135,7 +157,7 @@ const DrugInfo = () => {
   const showNotification = (type, message) => {
     setNotification({ show: true, type, message });
     setTimeout(() => {
-      setNotification({ show: false, type: '', message: '' });
+      setNotification({ show: false, type: "", message: "" });
     }, 5000);
   };
 
@@ -146,21 +168,29 @@ const DrugInfo = () => {
   const removeImage = () => {
     setSelectedImage(null);
     setImagePreview(null);
-    const fileInput = document.getElementById('imageInput');
-    if (fileInput) fileInput.value = '';
+    const fileInput = document.getElementById("imageInput");
+    if (fileInput) fileInput.value = "";
   };
 
   return (
-    <div className="min-h-screen p-6" style={{
-      background: 'linear-gradient(135deg, #ffffff 0%, #d4e4ff 50%, #b3ccff 100%)'
-    }}>
+    <div
+      className="min-h-screen p-6"
+      style={{
+        background:
+          "linear-gradient(135deg, #ffffff 0%, #d4e4ff 50%, #b3ccff 100%)",
+      }}
+    >
       <div className="max-w-6xl mx-auto">
         {/* Notification */}
         {notification.show && (
-          <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center gap-2 ${
-            notification.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-          }`}>
-            {notification.type === 'success' ? (
+          <div
+            className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center gap-2 ${
+              notification.type === "success"
+                ? "bg-green-500 text-white"
+                : "bg-red-500 text-white"
+            }`}
+          >
+            {notification.type === "success" ? (
               <CheckCircle className="w-5 h-5" />
             ) : (
               <AlertCircle className="w-5 h-5" />
@@ -171,56 +201,77 @@ const DrugInfo = () => {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4" style={{ 
-            background: 'linear-gradient(135deg, #223A6A 0%, #407CE2 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
-          }}>
+          <h1
+            className="text-4xl font-bold mb-4"
+            style={{
+              background: "linear-gradient(135deg, #223A6A 0%, #407CE2 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
             Quản Lý Thông Tin Thuốc
           </h1>
-          <p className="text-gray-600 text-lg">Gửi yêu cầu thuốc cho con em bằng hình ảnh</p>
+          <p className="text-gray-600 text-lg">
+            Gửi yêu cầu thuốc cho con em bằng hình ảnh
+          </p>
         </div>
 
         {/* Student Selection */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-8">
           <div className="p-6 border-b border-gray-100">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2" style={{ color: '#223A6A' }}>
-              <User className="w-5 h-5" style={{ color: '#407CE2' }} />
+            <h2
+              className="text-xl font-semibold mb-4 flex items-center gap-2"
+              style={{ color: "#223A6A" }}
+            >
+              <User className="w-5 h-5" style={{ color: "#407CE2" }} />
               Chọn học sinh
             </h2>
-            
+
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Đang tải danh sách học sinh...</p>
+                <p className="mt-4 text-gray-600">
+                  Đang tải danh sách học sinh...
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {students.map(student => (
-                  <div 
+                {students.map((student) => (
+                  <div
                     key={student.id}
                     onClick={() => handleStudentSelect(student.id)}
                     className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 ${
-                      selectedStudent === student.id 
-                        ? 'shadow-lg' 
-                        : 'border-gray-200 hover:border-opacity-50'
+                      selectedStudent === student.id
+                        ? "shadow-lg"
+                        : "border-gray-200 hover:border-opacity-50"
                     }`}
                     style={{
-                      borderColor: selectedStudent === student.id ? '#407CE2' : undefined,
-                      backgroundColor: selectedStudent === student.id ? '#f0f6ff' : undefined,
-                      borderWidth: selectedStudent === student.id ? '2px' : '1px'
+                      borderColor:
+                        selectedStudent === student.id ? "#407CE2" : undefined,
+                      backgroundColor:
+                        selectedStudent === student.id ? "#f0f6ff" : undefined,
+                      borderWidth:
+                        selectedStudent === student.id ? "2px" : "1px",
                     }}
                   >
                     <div className="flex flex-col items-center text-center">
-                      <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{
-                        background: 'linear-gradient(135deg, #407CE2 0%, #223A6A 100%)'
-                      }}>
-                        <span className="text-2xl">{student.avatar || '👦'}</span>
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center mb-2"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #407CE2 0%, #223A6A 100%)",
+                        }}
+                      >
+                        <span className="text-2xl">
+                          {student.avatar || "👦"}
+                        </span>
                       </div>
-                      <div className="font-medium" style={{ color: '#223A6A' }}>{student.fullName}</div>
+                      <div className="font-medium" style={{ color: "#223A6A" }}>
+                        {student.fullName}
+                      </div>
                       <div className="text-sm text-gray-500">
-                        {student.age && `${student.age} tuổi`} 
+                        {student.age && `${student.age} tuổi`}
                         {student.class && ` - ${student.class}`}
                       </div>
                     </div>
@@ -235,8 +286,11 @@ const DrugInfo = () => {
         {selectedStudent && (
           <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
             <div className="flex items-center mb-6">
-              <Camera className="w-6 h-6 mr-2" style={{ color: '#407CE2' }} />
-              <h2 className="text-xl font-semibold" style={{ color: '#223A6A' }}>
+              <Camera className="w-6 h-6 mr-2" style={{ color: "#407CE2" }} />
+              <h2
+                className="text-xl font-semibold"
+                style={{ color: "#223A6A" }}
+              >
                 Gửi Yêu Cầu Thuốc Bằng Hình Ảnh
               </h2>
             </div>
@@ -244,26 +298,32 @@ const DrugInfo = () => {
             <div className="space-y-6">
               {/* Image Upload */}
               <div>
-                <label className="block text-sm font-medium mb-3" style={{ color: '#223A6A' }}>
+                <label
+                  className="block text-sm font-medium mb-3"
+                  style={{ color: "#223A6A" }}
+                >
                   Chọn hình ảnh thuốc
                 </label>
-                
+
                 <div className="flex items-center justify-center w-full">
-                  <label 
-                    htmlFor="imageInput" 
+                  <label
+                    htmlFor="imageInput"
                     className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
                   >
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                       <Upload className="w-8 h-8 mb-4 text-gray-500" />
                       <p className="mb-2 text-sm text-gray-500">
-                        <span className="font-semibold">Nhấp để tải lên</span> hoặc kéo thả
+                        <span className="font-semibold">Nhấp để tải lên</span>{" "}
+                        hoặc kéo thả
                       </p>
-                      <p className="text-xs text-gray-500">PNG, JPG, GIF (MAX. 800x400px)</p>
+                      <p className="text-xs text-gray-500">
+                        PNG, JPG, GIF (MAX. 800x400px)
+                      </p>
                     </div>
-                    <input 
-                      id="imageInput" 
-                      type="file" 
-                      className="hidden" 
+                    <input
+                      id="imageInput"
+                      type="file"
+                      className="hidden"
                       accept="image/*"
                       onChange={handleImageSelect}
                     />
@@ -274,9 +334,9 @@ const DrugInfo = () => {
                 {imagePreview && (
                   <div className="mt-4">
                     <div className="relative inline-block">
-                      <img 
-                        src={imagePreview} 
-                        alt="Preview" 
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
                         className="max-w-xs max-h-48 rounded-lg shadow-lg"
                       />
                       <button
@@ -300,12 +360,14 @@ const DrugInfo = () => {
                   disabled={loading || !selectedImage}
                   className={`flex items-center px-6 py-3 rounded-lg text-white font-medium transition-all duration-200 ${
                     loading || !selectedImage
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl'
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl"
                   }`}
-                  style={{ 
-                    backgroundColor: loading || !selectedImage ? undefined : '#407CE2',
-                    transform: loading || !selectedImage ? 'none' : 'translateY(0)',
+                  style={{
+                    backgroundColor:
+                      loading || !selectedImage ? undefined : "#407CE2",
+                    transform:
+                      loading || !selectedImage ? "none" : "translateY(0)",
                   }}
                 >
                   {loading ? (
@@ -328,22 +390,31 @@ const DrugInfo = () => {
         {/* Selected Student Info */}
         {selectedStudent && (
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-lg font-semibold mb-4" style={{ color: '#223A6A' }}>
+            <h3
+              className="text-lg font-semibold mb-4"
+              style={{ color: "#223A6A" }}
+            >
               Thông tin học sinh đã chọn
             </h3>
             {(() => {
-              const student = students.find(s => s.id === selectedStudent);
+              const student = students.find((s) => s.id === selectedStudent);
               return student ? (
                 <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{
-                    background: 'linear-gradient(135deg, #407CE2 0%, #223A6A 100%)'
-                  }}>
-                    <span className="text-2xl">{student.avatar || '👦'}</span>
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #407CE2 0%, #223A6A 100%)",
+                    }}
+                  >
+                    <span className="text-2xl">{student.avatar || "👦"}</span>
                   </div>
                   <div>
-                    <p className="font-medium" style={{ color: '#223A6A' }}>{student.fullName}</p>
+                    <p className="font-medium" style={{ color: "#223A6A" }}>
+                      {student.fullName}
+                    </p>
                     <p className="text-sm text-gray-500">
-                      {student.age && `${student.age} tuổi`} 
+                      {student.age && `${student.age} tuổi`}
                       {student.class && ` - ${student.class}`}
                     </p>
                   </div>
