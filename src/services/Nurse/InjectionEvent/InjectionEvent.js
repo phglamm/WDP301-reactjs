@@ -1,14 +1,15 @@
 import { request } from "../../request";
 
 const injectionEventService = {
-    // Get all injection events
-    getAllInjectionEvents: () => request("GET", "injection-event/available"),
+  // Get all injection events
+  getAllInjectionEvents: () => request("GET", "injection-event/available"),
 
-    // Create a new injection event
-    createInjectionEvent: (formData) => request("POST", "injection-event", formData, {
-        headers: {
-            'Content-Type': 'application/json'
-        }
+  // Create a new injection event
+  createInjectionEvent: (formData) =>
+    request("POST", "injection-event", formData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
     }),
 
     // Download student list for a specific injection event
@@ -26,7 +27,6 @@ const injectionEventService = {
         },
         timeout: 60000, // Increase timeout for file upload
     }),
-
-}
+};
 
 export default injectionEventService;
