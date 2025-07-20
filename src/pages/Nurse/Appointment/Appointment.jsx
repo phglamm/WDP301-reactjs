@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Form, message } from 'antd';
-import moment from 'moment';
-import AppointmentService from '../../../services/Nurse/AppointmentService/AppointmentService';
+import React, { useState, useEffect } from "react";
+import { Form, message } from "antd";
+import moment from "moment";
+import AppointmentService from "../../../services/Nurse/AppointmentService/AppointmentService";
 
 // Import components
-import AppointmentStats from '../../../components/appointment/AppointmentStats';
-import AppointmentHeader from '../../../components/appointment/AppointmentHeader';
-import DateFilter from '../../../components/appointment/DateFilter';
-import CalendarLegend from '../../../components/appointment/CalendarLegend';
-import CalendarView from '../../../components/appointment/CalendarView';
-import TableView from '../../../components/appointment/TableView';
-import AppointmentFormModal from '../../../components/appointment/AppointmentFormModal';
-import AppointmentDetailModal from '../../../components/appointment/AppointmentDetailModal';
-import UserService from '../../../services/User/UserService';
+import AppointmentStats from "../../../components/appointment/AppointmentStats";
+import AppointmentHeader from "../../../components/appointment/AppointmentHeader";
+import DateFilter from "../../../components/appointment/DateFilter";
+import CalendarLegend from "../../../components/appointment/CalendarLegend";
+import CalendarView from "../../../components/appointment/CalendarView";
+import TableView from "../../../components/appointment/TableView";
+import AppointmentFormModal from "../../../components/appointment/AppointmentFormModal";
+import AppointmentDetailModal from "../../../components/appointment/AppointmentDetailModal";
+import UserService from "../../../services/User/UserService";
 
 const Appointment = () => {
   // State management
@@ -25,9 +25,9 @@ const Appointment = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [form] = Form.useForm();
   const [editingId, setEditingId] = useState(null);
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [calendarView, setCalendarView] = useState('timeGridWeek');
-  const [viewMode, setViewMode] = useState('calendar');
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [calendarView, setCalendarView] = useState("timeGridWeek");
+  const [viewMode, setViewMode] = useState("calendar");
   const [dateRange, setDateRange] = useState(null);
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [parent, setParent] = useState(null); // Assuming parentId is needed for filtering
@@ -37,50 +37,54 @@ const Appointment = () => {
     scheduled: 0,
     completed: 0,
     cancelled: 0,
-    inProgress: 0
+    inProgress: 0,
   });
 
-const getParent = async () => {
-  try {
-    setLoading(true);
-    const response = await UserService.getAllParents();
-    
-    if (response && response.status) {
-      console.log('Parent data:', response.data);
-      const parents = response.data || [];
-      setParent(parents);
-    } else {
-      message.error(response?.message || 'Không thể tải danh sách phụ huynh');
+  const getParent = async () => {
+    try {
+      setLoading(true);
+      const response = await UserService.getAllParents();
+
+      if (response && response.status) {
+        console.log("Parent data:", response.data);
+        const parents = response.data || [];
+        setParent(parents);
+      } else {
+        message.error(response?.message || "Không thể tải danh sách phụ huynh");
+      }
+    } catch (error) {
+      console.error("Error fetching parents:", error);
+      message.error("Có lỗi xảy ra khi tải danh sách phụ huynh");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Error fetching parents:', error);
-    message.error('Có lỗi xảy ra khi tải danh sách phụ huynh');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   // Calculate statistics function
   const calculateStatistics = (appointmentList, todayList) => {
     const stats = {
       total: appointmentList.length,
       today: todayList.length,
-      scheduled: appointmentList.filter(apt => apt.status === 'scheduled').length,
-      completed: appointmentList.filter(apt => apt.status === 'completed').length,
-      cancelled: appointmentList.filter(apt => apt.status === 'cancelled').length,
-      inProgress: appointmentList.filter(apt => apt.status === 'in-progress').length
+      scheduled: appointmentList.filter((apt) => apt.status === "scheduled")
+        .length,
+      completed: appointmentList.filter((apt) => apt.status === "completed")
+        .length,
+      cancelled: appointmentList.filter((apt) => apt.status === "cancelled")
+        .length,
+      inProgress: appointmentList.filter((apt) => apt.status === "in-progress")
+        .length,
     };
-    
+
     setStatistics(stats);
   };
 
   // Apply date range filter
   const applyDateRangeFilter = (appointmentList, startDate, endDate) => {
     if (!startDate || !endDate) return appointmentList;
-    
-    return appointmentList.filter(appointment => {
+
+    return appointmentList.filter((appointment) => {
       const appointmentDate = moment(appointment.appointmentTime);
-      return appointmentDate.isBetween(startDate, endDate, 'day', '[]');
+      return appointmentDate.isBetween(startDate, endDate, "day", "[]");
     });
   };
 
@@ -88,13 +92,13 @@ const getParent = async () => {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      
+
       const [allResponse, todayResponse] = await Promise.all([
         AppointmentService.getAllAppointments(),
-        AppointmentService.getTodayAppointments().catch(error => {
-          console.error('Error fetching today appointments:', error);
+        AppointmentService.getTodayAppointments().catch((error) => {
+          console.error("Error fetching today appointments:", error);
           return { status: false, data: [] };
-        })
+        }),
       ]);
 
       if (allResponse && allResponse.status) {
@@ -106,14 +110,10 @@ const getParent = async () => {
         setTodayAppointments(todayResponse.data || []);
       }
 
-      calculateStatistics(
-        allResponse?.data || [], 
-        todayResponse?.data || []
-      );
-
+      calculateStatistics(allResponse?.data || [], todayResponse?.data || []);
     } catch (error) {
-      console.error('Error fetching appointments:', error);
-      message.error('Có lỗi xảy ra khi tải danh sách cuộc hẹn');
+      console.error("Error fetching appointments:", error);
+      message.error("Có lỗi xảy ra khi tải danh sách cuộc hẹn");
     } finally {
       setLoading(false);
     }
@@ -122,35 +122,41 @@ const getParent = async () => {
   // Combined filter function
   const applyFilters = (appointmentList, filterType, dateRangeFilter) => {
     let filtered = [...appointmentList];
-    
+
     // Apply status filter first
     switch (filterType) {
-      case 'today':
+      case "today":
         filtered = todayAppointments;
         break;
-      case 'scheduled':
-        filtered = appointmentList.filter(apt => apt.status === 'scheduled');
+      case "scheduled":
+        filtered = appointmentList.filter((apt) => apt.status === "scheduled");
         break;
-      case 'completed':
-        filtered = appointmentList.filter(apt => apt.status === 'completed');
+      case "completed":
+        filtered = appointmentList.filter((apt) => apt.status === "completed");
         break;
-      case 'cancelled':
-        filtered = appointmentList.filter(apt => apt.status === 'cancelled');
+      case "cancelled":
+        filtered = appointmentList.filter((apt) => apt.status === "cancelled");
         break;
-      case 'in-progress':
-        filtered = appointmentList.filter(apt => apt.status === 'in-progress');
+      case "in-progress":
+        filtered = appointmentList.filter(
+          (apt) => apt.status === "in-progress"
+        );
         break;
-      case 'all':
+      case "all":
       default:
         filtered = appointmentList;
         break;
     }
-    
+
     // Apply date range filter
     if (dateRangeFilter && dateRangeFilter.length === 2) {
-      filtered = applyDateRangeFilter(filtered, dateRangeFilter[0], dateRangeFilter[1]);
+      filtered = applyDateRangeFilter(
+        filtered,
+        dateRangeFilter[0],
+        dateRangeFilter[1]
+      );
     }
-    
+
     setFilteredAppointments(filtered);
   };
 
@@ -193,18 +199,18 @@ const getParent = async () => {
   }, [todayAppointments]);
 
   // Convert appointments to calendar events
-  const calendarEvents = filteredAppointments.map(appointment => {
+  const calendarEvents = filteredAppointments.map((appointment) => {
     const startTime = moment(appointment.appointmentTime);
-    const endTime = moment(appointment.appointmentTime).add(1, 'hour'); // 1 hour duration
-    
+    const endTime = moment(appointment.appointmentTime).add(1, "hour"); // 1 hour duration
+
     const getEventColor = (status) => {
       const colors = {
-        'scheduled': '#1890ff',
-        'completed': '#52c41a',
-        'cancelled': '#ff4d4f',
-        'in-progress': '#fa8c16'
+        scheduled: "#1890ff",
+        completed: "#52c41a",
+        cancelled: "#ff4d4f",
+        "in-progress": "#fa8c16",
       };
-      return colors[status] || '#1890ff';
+      return colors[status] || "#1890ff";
     };
 
     return {
@@ -217,15 +223,15 @@ const getParent = async () => {
       extendedProps: {
         appointment: appointment,
         status: appointment.status,
-        googleMeetLink: appointment.googleMeetLink
-      }
+        googleMeetLink: appointment.googleMeetLink,
+      },
     };
   });
 
   // Handle calendar event click
   const handleEventClick = async (info) => {
     const appointmentId = parseInt(info.event.id);
-    const appointment = appointments.find(apt => apt.id === appointmentId);
+    const appointment = appointments.find((apt) => apt.id === appointmentId);
     if (appointment) {
       await handleViewDetail(appointment);
     }
@@ -234,12 +240,12 @@ const getParent = async () => {
   // Handle date select (for creating new appointments)
   const handleDateSelect = (selectInfo) => {
     const selectedDate = moment(selectInfo.start);
-    
+
     // Pre-fill the form with selected date/time
     form.setFieldsValue({
-      appointmentTime: selectedDate
+      appointmentTime: selectedDate,
     });
-    
+
     setEditingId(null);
     setModalVisible(true);
   };
@@ -248,14 +254,16 @@ const getParent = async () => {
   const handleViewDetail = async (appointment) => {
     try {
       setLoading(true);
-      const response = await AppointmentService.getAppointmentById(appointment.id);
+      const response = await AppointmentService.getAppointmentById(
+        appointment.id
+      );
       if (response && response.status) {
         setSelectedAppointment(response.data);
         setDetailModalVisible(true);
       }
     } catch (error) {
-      console.error('Error fetching appointment details:', error);
-      message.error('Có lỗi xảy ra khi tải chi tiết cuộc hẹn');
+      console.error("Error fetching appointment details:", error);
+      message.error("Có lỗi xảy ra khi tải chi tiết cuộc hẹn");
     } finally {
       setLoading(false);
     }
@@ -273,7 +281,7 @@ const getParent = async () => {
     try {
       setLoading(true);
       const formData = {
-        parentId: values.parentId,
+        parentId: values.parentId.toString(),
         purpose: values.purpose,
         appointmentTime: values.appointmentTime,
         duration: 60,
@@ -282,32 +290,32 @@ const getParent = async () => {
       if (editingId) {
         // Add update API call when available
         // await AppointmentService.updateAppointment(editingId, formData);
-        message.success('Cập nhật cuộc hẹn thành công');
+        message.success("Cập nhật cuộc hẹn thành công");
       } else {
         await AppointmentService.createAppointment(formData);
-        message.success('Tạo cuộc hẹn thành công');
+        message.success("Tạo cuộc hẹn thành công");
       }
 
       setModalVisible(false);
       form.resetFields();
       fetchAppointments();
     } catch (error) {
-      console.error('Error saving appointment:', error);
-      message.error('Có lỗi xảy ra khi lưu cuộc hẹn');
+      console.error("Error saving appointment:", error);
+      message.error("Có lỗi xảy ra khi lưu cuộc hẹn");
     } finally {
       setLoading(false);
     }
   };
 
   const formatDateTime = (dateString) => {
-    return moment(dateString).format('dddd, DD/MM/YYYY HH:mm');
+    return moment(dateString).format("dddd, DD/MM/YYYY HH:mm");
   };
 
   return (
     <div className="p-6">
       {/* Statistics Cards - Only show in List view */}
-      {viewMode === 'list' && (
-        <AppointmentStats 
+      {viewMode === "list" && (
+        <AppointmentStats
           statistics={statistics}
           activeFilter={activeFilter}
           onFilterChange={filterAppointments}
@@ -326,7 +334,7 @@ const getParent = async () => {
       />
 
       {/* Date Range Filter */}
-      {viewMode === 'calendar' && showDateFilter && (
+      {viewMode === "calendar" && showDateFilter && (
         <DateFilter
           dateRange={dateRange}
           onDateRangeChange={handleDateRangeChange}
@@ -335,10 +343,10 @@ const getParent = async () => {
       )}
 
       {/* Calendar Legend */}
-      {viewMode === 'calendar' && <CalendarLegend />}
+      {viewMode === "calendar" && <CalendarLegend />}
 
       {/* Main Content Area */}
-      {viewMode === 'calendar' ? (
+      {viewMode === "calendar" ? (
         <CalendarView
           calendarEvents={calendarEvents}
           calendarView={calendarView}
