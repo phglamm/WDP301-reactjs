@@ -283,7 +283,9 @@ const Appointment = () => {
       const formData = {
         parentId: values.parentId.toString(),
         purpose: values.purpose,
-        appointmentTime: values.appointmentTime,
+        appointmentTime: moment(values.appointmentTime).format(
+          "DD-MM-YYYY HH:mm:ss"
+        ),
         duration: 60,
       };
 
