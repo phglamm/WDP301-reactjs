@@ -5,8 +5,7 @@ import { Breadcrumb } from "antd";
 
 export default function NurseLayout() {
   const [selectedItem, setSelectedItem] = useState('');
-  const location = useLocation();
-    // Vietnamese translations for breadcrumb paths
+  const location = useLocation();    // Vietnamese translations for breadcrumb paths
   const pathTranslations = {
     'nurse': 'Y tá',
     'studentlist': 'Danh sách học sinh',
@@ -41,11 +40,11 @@ export default function NurseLayout() {
     return breadcrumbItems;
   };
     return (
-    <div className="flex h-screen w-screen overflow-hidden">
-      <div className="lg:w-[20%] md:w-[40%] sm:w-[40%] w-[40%] fixed left-0 top-0 h-full z-10">
+    <div className=" h-screen overflow-hidden">
+      <div className="w-[5%] fixed left-0 top-0 h-full z-10">
         <Sidebar selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
       </div>
-      <div className="lg:w-[80%] md:w-[60%] sm:w-[60%] w-[60%] lg:ml-[20%] md:ml-[40%] sm:ml-[40%] ml-[40%] p-[2%] overflow-y-auto h-full">
+      <div className=" ml-[5%] p-[2%] overflow-y-auto h-full">
         <div className="text-2xl font-bold mb-1">{selectedItem}</div>
         <Breadcrumb
           items={generateBreadcrumbItems()}

@@ -41,9 +41,7 @@ const Login = () => {
 
       // Dispatch login action to Redux store
       dispatch(login(response));
-      toast.success("Đăng nhập thành công!");
-
-      // Navigate based on user role
+      toast.success("Đăng nhập thành công!");      // Navigate based on user role
       const userRole = response.user?.role;
       switch (userRole) {
         case "nurse":
@@ -52,11 +50,8 @@ const Login = () => {
         case "parent":
           navigate("/");
           break;
-        case "admin":
-          navigate("/admin/dashboard");
-          break;
         default:
-          navigate("/dashboard");
+          navigate("/");
       }
     } catch (error) {
       console.error("Lỗi đăng nhập:", error);

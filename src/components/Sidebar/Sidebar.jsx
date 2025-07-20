@@ -19,79 +19,73 @@ import { TiMessages } from "react-icons/ti";
 import { MdOutlineSupervisorAccount, MdAssignmentInd, MdOutlineInventory2 } from "react-icons/md";
 import { TbEdit, TbVaccine, TbClipboardList } from "react-icons/tb";
 import { BiSupport } from "react-icons/bi";
-import { FaUserNurse, FaUsers } from "react-icons/fa";
+import { FaUsers } from "react-icons/fa";
 import { RiParentLine, RiMedicineBottleLine } from "react-icons/ri";
 import * as Texts from "./text"; // Import texts
 import NotificationSection from "../NotificationSection/NotificationSection";
 import AnimatedLogo from "../AnimatedLogo/AnimatedLogo";
 
 const Sidebar = ({ selectedItem, setSelectedItem }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);  const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const role = useSelector((state) => state.user.user?.role);
-  const user = useSelector(selectUser);
+  const user = useSelector(selectUser);// Get route prefix based on user role
+  const getRoutePrefix = () => {
+    return "/nurse";
+  };
+
   // Base menu items for nurse
   const baseMenuItems = [
     {
       id: "Yêu cầu từ phụ huynh",
       label: "Yêu cầu từ phụ huynh",
       icon: <RiParentLine />,
-      link: "/nurse/parentrequest",
+      link: `${getRoutePrefix()}/parentrequest`,
     },
     {
       id: "Thuốc và Vật Tư",
       label: "Thuốc và Vật Tư",
       icon: <MdOutlineInventory2 />,
-      link: "/nurse/medicine",
+      link: `${getRoutePrefix()}/medicine`,
     },
     {
       id: "Danh sách học sinh ",
       label: "Danh sách Học Sinh",
       icon: <FaUsers />,
-      link: "/nurse/studentlist",
+      link: `${getRoutePrefix()}/studentlist`,
     },
     {
       id: "Tiem chung",
       label: "Tiêm Chủng ",
       icon: <TbVaccine />,
-      link: "/nurse/injection-event",
+      link: `${getRoutePrefix()}/injection-event`,
     },
     {
       id: "Kham Suc Khoe",
       label: "Khám Sức Khỏe",
       icon: <LuStethoscope />,
-      link: "/nurse/health-event",
+      link: `${getRoutePrefix()}/health-event`,
     },
     {
       id: "Lich hen",
       label: "Lịch Hẹn ",
-      icon: <IoCalendarOutline />,
-      link: "/nurse/appointment",
+      icon: <IoCalendarOutline />,      link: `${getRoutePrefix()}/appointment`,
     },
   ];
-  // Additional menu item for manager
-  const managerMenuItem = {
-    id: "Assign Nurse",
-    label: "Assign Nurse",
-    icon: <FaUserNurse />,
-    link: "/manager/manager-slot",
-  };
-
+  
   // Bottom menu items
   const bottomMenuItems = [
     {
       id: "Hỗ trợ",
       label: Texts.SUPPORT,
       icon: <BiSupport />,
-      link: "/nurse/support",
+      link: `${getRoutePrefix()}/support`,
     },
     {
       id: "Điều khoản/chính sách",
       label: Texts.TERMS_POLICY,
       icon: <TbClipboardList />,
-      link: "/nurse/terms-policy",
+      link: `${getRoutePrefix()}/terms-policy`,
     },
     {
       id: "Đăng xuất",
@@ -100,23 +94,9 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
       action: "logout",
     },
   ];
-
   // Construct menu items based on role
   const getMenuItems = () => {
     let menuItems = [...baseMenuItems];
-
-    // Add manager-specific menu item if role is manager
-    if (role === "manager") {
-      // Insert Assign Nurse after "Tiêm Chủng"
-      const tiemChungIndex = menuItems.findIndex(
-        (item) => item.id === "Tiem chung"
-      );
-      if (tiemChungIndex !== -1) {
-        menuItems.splice(tiemChungIndex + 1, 0, managerMenuItem);
-      } else {
-        menuItems.push(managerMenuItem);
-      }
-    }
 
     // Add bottom menu items
     menuItems = [...menuItems, ...bottomMenuItems];
@@ -184,7 +164,7 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
   };
 
   return (
-    <div className="h-full w-full flex flex-row bg-gray-100">
+    <div className="h-full w-full flex flex-row">
       <motion.div
         className={`h-full ${
           isOpen ? "bg-[#F3F7FF]" : "bg-white"
@@ -295,10 +275,6 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
         </nav>
       </motion.div>
 
-      {/* Main Content Area */}
-      <div className="bg-[#F3F7FF] lg:pl-[5vw] md:pl-[9vw] sm:pl-[11vw] pl-[14vw] z-10 grow p-4">
-        <NotificationSection />
-      </div>
     </div>
   );
 };

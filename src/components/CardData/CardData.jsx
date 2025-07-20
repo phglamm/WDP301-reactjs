@@ -49,9 +49,7 @@ const CardData = ({title, value, subTitle, onClick}) => {
       case 'sự kiện trong tháng':
         return <FaCalendarAlt size={22} className="text-green-600" />;
       case 'sự kiện trong tuần':
-        return <FaCalendarAlt size={22} className="text-blue-600" />;
-      
-      // Medicine request related
+        return <FaCalendarAlt size={22} className="text-blue-600" />;      // Medicine request related
       case 'tất cả yêu cầu':
         return <IoMdMail size={22} className="text-purple-500" />;
       

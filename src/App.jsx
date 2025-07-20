@@ -86,13 +86,11 @@ function App() {
     {
       path: "/register",
       element: <Register />,
-    },
-
-    // Protected User Routes
+    },    // Protected User Routes
     {
       path: "/",
       element: (
-        <ProtectedRoute allowedRoles={["user", "parent", "admin"]}>
+        <ProtectedRoute allowedRoles={["user", "parent"]}>
           <UserLayout />
         </ProtectedRoute>
       ),
@@ -104,7 +102,7 @@ function App() {
         {
           path: "health-profile",
           element: (
-            <ProtectedRoute allowedRoles={["user", "parent", "admin"]}>
+            <ProtectedRoute allowedRoles={["user", "parent"]}>
               <HealthProfile />
             </ProtectedRoute>
           ),
@@ -112,7 +110,7 @@ function App() {
         {
           path: "drug-information",
           element: (
-            <ProtectedRoute allowedRoles={["user", "parent", "admin"]}>
+            <ProtectedRoute allowedRoles={["user", "parent"]}>
               <DrugInfo />
             </ProtectedRoute>
           ),
@@ -120,7 +118,7 @@ function App() {
         {
           path: "vaccine-reminder",
           element: (
-            <ProtectedRoute allowedRoles={["user", "parent", "admin"]}>
+            <ProtectedRoute allowedRoles={["user", "parent"]}>
               <VaccineReminder />
             </ProtectedRoute>
           ),
@@ -128,19 +126,17 @@ function App() {
         {
           path: "health-history",
           element: (
-            <ProtectedRoute allowedRoles={["user", "parent", "admin"]}>
+            <ProtectedRoute allowedRoles={["user", "parent"]}>
               <HealthHistory />
             </ProtectedRoute>
           ),
         },
       ],
-    },
-
-    // Protected Nurse Routes
+    },    // Protected Nurse Routes
     {
       path: "/nurse",
       element: (
-        <ProtectedRoute allowedRoles={["nurse", "admin"]}>
+        <ProtectedRoute allowedRoles={["nurse"]}>
           <NurseLayout />
         </ProtectedRoute>
       ),
@@ -152,7 +148,7 @@ function App() {
         {
           path: "studentlist",
           element: (
-            <ProtectedRoute allowedRoles={["nurse", "admin"]}>
+            <ProtectedRoute allowedRoles={["nurse"]}>
               <StudentListPage />
             </ProtectedRoute>
           ),
@@ -160,7 +156,7 @@ function App() {
         {
           path: "parentrequest",
           element: (
-            <ProtectedRoute allowedRoles={["nurse", "admin"]}>
+            <ProtectedRoute allowedRoles={["nurse"]}>
               <ParentRequest />
             </ProtectedRoute>
           ),
@@ -168,14 +164,15 @@ function App() {
         {
           path: "medicine",
           element: (
-            <ProtectedRoute allowedRoles={["nurse", "admin"]}>
+            <ProtectedRoute allowedRoles={["nurse"]}>
               <MedicineStorage />
             </ProtectedRoute>
           ),
-        },        {
+        },
+        {
           path: "injection-event",
           element: (
-            <ProtectedRoute allowedRoles={['nurse', 'admin']}>
+            <ProtectedRoute allowedRoles={["nurse"]}>
               <InjectionEvent />
             </ProtectedRoute>
           ),  
@@ -183,7 +180,7 @@ function App() {
         {
           path: "health-event",
           element: (
-            <ProtectedRoute allowedRoles={['nurse', 'admin']}>
+            <ProtectedRoute allowedRoles={["nurse"]}>
               <HealthEvent />
             </ProtectedRoute>
           ),
@@ -191,18 +188,21 @@ function App() {
         {
           path: "appointment",
           element: (
-            <ProtectedRoute allowedRoles={['nurse', 'admin']}>
+            <ProtectedRoute allowedRoles={["nurse"]}>
               <Appointment />
             </ProtectedRoute>
           ),
         },
         {
-      path: "*",
-      element:(
-        <UnderM />
-      )
+          path: "*",
+          element: <UnderM />,
+        },      ],
     },
-      ],
+
+    // Catch all route for undefined paths
+    {
+      path: "*",
+      element: <UnderM />,
     },
   ]);
 
