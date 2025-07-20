@@ -22,9 +22,11 @@ import {
   CalendarOutlined, 
   FileTextOutlined,
   PlusOutlined,
+  MinusCircleOutlined,
   
 } from '@ant-design/icons';
 import AccidentService from '../../../../services/Nurse/AccidentService/AccidentService';
+import medicineStorageService from '../../../../services/Nurse/MedicineStorage/MedicineStorage';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -32,10 +34,13 @@ const { Option } = Select;
 const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [medicineModalVisible, setMedicineModalVisible] = useState(false);
   const [selectedAccident, setSelectedAccident] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [medicines, setMedicines] = useState([]);
+  const [selectedMedicines, setSelectedMedicines] = useState([{ medicineId: '', quantity: 1 }]);
   const [form] = Form.useForm();
-
+  const [medicineForm] = Form.useForm();
   // Filter accidents based on search text
   const filteredAccidents = accidents.filter(accident => {
     if (!searchText) return true;
@@ -46,6 +51,23 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
       accident.student?.studentCode?.toLowerCase().includes(searchLower) 
     );
   });
+
+  // Fetch medicines when component mounts
+  React.useEffect(() => {
+    fetchMedicines();
+  }, []);
+
+  const fetchMedicines = async () => {
+    try {
+      const response = await medicineStorageService.getAllMedicineStorage();
+      if (response?.data) {
+        setMedicines(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching medicines:', error);
+      message.error('Không thể tải danh sách thuốc');
+    }
+  };
 
   const columns = [
     { 
@@ -122,11 +144,10 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
           {text || 'Không có'}
         </span>
       ),
-    },
-    {
+    },    {
       title: 'Thao Tác',
       key: 'actions',
-      width: 120,
+      width: 180,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
@@ -137,11 +158,12 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
             title="Xem Chi Tiết"
           />
           <Button 
-            icon={<EditOutlined />} 
+            icon={<MedicineBoxOutlined />} 
             size="small" 
-            type="primary"
-            onClick={() => handleEdit(record)}
-            title="Chỉnh Sửa"
+            type="default"
+            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', color: 'white' }}
+            onClick={() => handleAssignMedicine(record)}
+            title="Phân Bổ Thuốc"
           />
         </Space>
       ),
@@ -153,10 +175,83 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
     setSelectedAccident(accident);
     setModalVisible(true);
   };
-
   const handleEdit = (accident) => {
     console.log('Edit accident:', accident);
     // Add your edit logic here
+  };
+
+  // Handle Assign Medicine
+  const handleAssignMedicine = (accident) => {
+    setSelectedAccident(accident);
+    setSelectedMedicines([{ medicineId: '', quantity: 1 }]);
+    medicineForm.resetFields();
+    setMedicineModalVisible(true);
+  };
+
+  // Handle Add Medicine Row
+  const addMedicineRow = () => {
+    setSelectedMedicines([...selectedMedicines, { medicineId: '', quantity: 1 }]);
+  };
+
+  // Handle Remove Medicine Row
+  const removeMedicineRow = (index) => {
+    if (selectedMedicines.length > 1) {
+      const newMedicines = selectedMedicines.filter((_, i) => i !== index);
+      setSelectedMedicines(newMedicines);
+    }
+  };
+
+  // Handle Medicine Change
+  const handleMedicineChange = (index, field, value) => {
+    const newMedicines = [...selectedMedicines];
+    newMedicines[index][field] = value;
+    setSelectedMedicines(newMedicines);
+  };
+
+  // Handle Submit Medicine Assignment
+  const handleSubmitMedicineAssignment = async () => {
+    try {
+      setLoading(true);
+      
+      // Validate that all medicines are selected and have quantities
+      const validMedicines = selectedMedicines.filter(
+        med => med.medicineId && med.quantity > 0
+      );
+      
+      if (validMedicines.length === 0) {
+        message.error('Vui lòng chọn ít nhất một loại thuốc');
+        return;
+      }
+
+      const assignmentData = {
+        accidentId: selectedAccident.id.toString(),
+        medicines: validMedicines.map(med => ({
+          medicineId: med.medicineId,
+          quantity: parseInt(med.quantity)
+        }))
+      };
+
+      console.log('Assigning medicines:', assignmentData);
+      
+      const response = await medicineStorageService.setMedicineForAccident(assignmentData);
+      
+      if (response) {
+        message.success('Thuốc đã được phân bổ thành công');
+        setMedicineModalVisible(false);
+        setSelectedMedicines([{ medicineId: '', quantity: 1 }]);
+        medicineForm.resetFields();
+        
+        // Callback to refresh accidents list if needed
+        if (onAccidentReported) {
+          onAccidentReported();
+        }
+      }
+    } catch (error) {
+      console.error('Error assigning medicines:', error);
+      message.error('Có lỗi xảy ra khi phân bổ thuốc');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handle Report New Accident
@@ -174,7 +269,6 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
         studentCode: values.studentCode,
         summary: values.summary,
         type: values.type,
-        severity: values.severity || 'Vừa',
       };
 
       console.log('Submitting accident report:', reportData);
@@ -331,7 +425,7 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
               <Option value="Chấn thương">Chấn thương</Option>
               <Option value="Vật lý">Vật lý</Option>
               <Option value="Tinh thần">Tinh thần</Option>
-              <Option value="Y tế">Y tế</Option>
+              <Option value="Y tế">Bệnh Tật</Option>
             </Select>
           </Form.Item>
 
@@ -531,6 +625,140 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students }) =
                   {selectedAccident.nurse?.phone || selectedAccident.nurse?.email || 'Không có'}
                 </Descriptions.Item>
               </Descriptions>
+            </Card>          </div>
+        )}
+      </Modal>
+
+      {/* Medicine Assignment Modal */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <MedicineBoxOutlined style={{ color: '#52c41a' }} />
+            <span>Phân Bổ Thuốc - {selectedAccident?.student?.fullName}</span>
+          </div>
+        }
+        visible={medicineModalVisible}
+        onCancel={() => {
+          setMedicineModalVisible(false);
+          setSelectedMedicines([{ medicineId: '', quantity: 1 }]);
+          medicineForm.resetFields();
+        }}
+        footer={[
+          <Button key="cancel" onClick={() => {
+            setMedicineModalVisible(false);
+            setSelectedMedicines([{ medicineId: '', quantity: 1 }]);
+            medicineForm.resetFields();
+          }}>
+            Hủy
+          </Button>,
+          <Button 
+            key="submit" 
+            type="primary" 
+            icon={<MedicineBoxOutlined />}
+            loading={loading}
+            onClick={handleSubmitMedicineAssignment}
+            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+          >
+            Phân Bổ Thuốc
+          </Button>
+        ]}
+        width={800}
+        centered
+      >
+        {selectedAccident && (
+          <div>
+            {/* Accident Summary */}
+            <Card 
+              size="small" 
+              style={{ marginBottom: 16, backgroundColor: '#f6ffed' }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <strong>Tai nạn #{selectedAccident.id}</strong> - {selectedAccident.type}
+                </div>
+                <Tag color={getTypeColor(selectedAccident.type)}>
+                  {selectedAccident.type}
+                </Tag>
+              </div>
+              <div style={{ marginTop: 8, color: '#666' }}>
+                {selectedAccident.summary}
+              </div>
+            </Card>
+
+            {/* Medicine Selection */}
+            <Card 
+              title="Chọn Thuốc và Số Lượng"
+              size="small"
+              extra={
+                <Button 
+                  type="dashed" 
+                  icon={<PlusOutlined />}
+                  onClick={addMedicineRow}
+                  size="small"
+                >
+                  Thêm Thuốc
+                </Button>
+              }
+            >
+              {selectedMedicines.map((medicine, index) => (
+                <div key={index} style={{ 
+                  display: 'flex', 
+                  gap: '12px', 
+                  alignItems: 'center', 
+                  marginBottom: index === selectedMedicines.length - 1 ? 0 : 12,
+                  padding: '12px',
+                  backgroundColor: index % 2 === 0 ? '#fafafa' : 'white',
+                  borderRadius: '6px'
+                }}>
+                  <div style={{ flex: 2 }}>
+                    <Select
+                      placeholder="Chọn thuốc"
+                      style={{ width: '100%' }}
+                      value={medicine.medicineId}
+                      onChange={(value) => handleMedicineChange(index, 'medicineId', value)}
+                      showSearch
+                      filterOption={(input, option) =>
+                        option?.children?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                      }
+                    >
+                      {medicines.map(med => (
+                        <Option key={med.id} value={med.id}>
+                          {med.name} - {med.type} ({med.availableQuantity} có sẵn)
+                        </Option>
+                      ))}
+                    </Select>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <Input
+                      type="number"
+                      placeholder="Số lượng"
+                      min={1}
+                      value={medicine.quantity}
+                      onChange={(e) => handleMedicineChange(index, 'quantity', parseInt(e.target.value) || 1)}
+                      addonAfter="viên"
+                    />
+                  </div>
+                  {selectedMedicines.length > 1 && (
+                    <Button 
+                      type="text" 
+                      danger
+                      icon={<MinusCircleOutlined />}
+                      onClick={() => removeMedicineRow(index)}
+                      title="Xóa"
+                    />
+                  )}
+                </div>
+              ))}
+              
+              {selectedMedicines.length === 0 && (
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: '20px', 
+                  color: '#999' 
+                }}>
+                  Chưa có thuốc nào được chọn
+                </div>
+              )}
             </Card>
           </div>
         )}

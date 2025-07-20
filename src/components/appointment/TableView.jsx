@@ -107,7 +107,7 @@ const TableView = ({ filteredAppointments, loading, onViewDetail }) => {
       rowKey="id"
       loading={loading}
       pagination={{ 
-        pageSize: 10,
+        pageSize: 5,
         showTotal: (total, range) => 
           `${range[0]}-${range[1]} trong ${total} cuộc hẹn`
       }}

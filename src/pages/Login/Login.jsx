@@ -6,6 +6,7 @@ import { login } from "../../redux/features/userSlice";
 import authService from "../../services/authService";
 import toast from "react-hot-toast";
 import AnimatedLogo from "../../components/AnimatedLogo/AnimatedLogo";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 
 const Login = () => {
@@ -42,22 +43,17 @@ const Login = () => {
 
       // Dispatch login action to Redux store
       dispatch(login(response));
-      toast.success("Đăng nhập thành công!");
-
-      // Navigate based on user role
+      toast.success("Đăng nhập thành công!");      // Navigate based on user role
       const userRole = response.user?.role;
       switch (userRole) {
         case "nurse":
-          navigate("/nurse");
+          navigate("/nurse/parentrequest");
           break;
         case "parent":
           navigate("/");
           break;
-        case "admin":
-          navigate("/admin/dashboard");
-          break;
         default:
-          navigate("/dashboard");
+          navigate("/");
       }
     } catch (error) {
       console.error("Lỗi đăng nhập:", error);

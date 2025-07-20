@@ -5,7 +5,20 @@ import { Breadcrumb } from "antd";
 
 export default function NurseLayout() {
   const [selectedItem, setSelectedItem] = useState('');
-  const location = useLocation();
+  const location = useLocation();    // Vietnamese translations for breadcrumb paths
+  const pathTranslations = {
+    'nurse': 'Y tá',
+    'studentlist': 'Danh sách học sinh',
+    'parentrequest': 'Yêu cầu phụ huynh',
+    'medicine': 'Thuốc và Vật Tư',
+    'injection-event': 'Sự kiện tiêm chủng',
+    'health-event': 'Khám sức khỏe',
+    'appointment': 'Lịch hẹn',
+    'health-profile': 'Hồ sơ sức khỏe',
+    'drug-information': 'Thông tin thuốc',
+    'vaccine-reminder': 'Nhắc nhở vaccine',
+    'health-history': 'Lịch sử sức khỏe'
+  };
   
   // Function to generate breadcrumb items from the current path
   const generateBreadcrumbItems = () => {
@@ -15,24 +28,23 @@ export default function NurseLayout() {
       const routeTo = `/${pathnames.slice(0, index + 1).join('/')}`;
       const isLast = index === pathnames.length - 1;
       
-      // Capitalize first letter and format the name
-      const formattedName = name.charAt(0).toUpperCase() + name.slice(1);
+      // Get Vietnamese translation or use formatted English name as fallback
+      const translatedName = pathTranslations[name] || name.charAt(0).toUpperCase() + name.slice(1);
       
       return {
-        title: isLast ? formattedName : <a href={routeTo}>{formattedName}</a>,
+        title: isLast ? translatedName : <a href={routeTo}>{translatedName}</a>,
         key: routeTo,
       };
     });
     
     return breadcrumbItems;
   };
-  
-  return (
-    <div className="flex h-screen w-screen">
-      <div className="lg:w-[20%] md:w-[40%] sm:w-[40%] w-[40%] overflow-hidden">
+    return (
+    <div className=" h-screen overflow-hidden">
+      <div className="w-[5%] fixed left-0 top-0 h-full z-10">
         <Sidebar selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
       </div>
-      <div className="lg:w-[80%] md:w-[60%] sm:w-[60%] w-[60%] p-[2%] overflow-hidden">
+      <div className=" ml-[5%] p-[2%] overflow-y-auto h-full">
         <div className="text-2xl font-bold mb-1">{selectedItem}</div>
         <Breadcrumb
           items={generateBreadcrumbItems()}
