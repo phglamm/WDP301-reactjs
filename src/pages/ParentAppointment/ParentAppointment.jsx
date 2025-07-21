@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Calendar, Clock, MessageSquare, ExternalLink, CheckCircle, AlertCircle, Plus } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "https://wdp301-se1752-be.onrender.com/api";
@@ -23,21 +23,32 @@ const ParentAppointment = () => {
     }
   };
 
-  const getToken = () => localStorage.getItem("access_token");
-
-  // Fetch lịch hẹn của phụ huynh
-  const fetchAppointments = async () => {
+  const getToken = () => localStorage.getItem("access_token");  // Fetch lịch hẹn của phụ huynh
+  const fetchAppointments = useCallback(async () => {
     const token = getToken();
     const res = await fetch(`${API_URL}/appointment/user`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();
-    setAppointments(Array.isArray(data.data) ? data.data : []);
-  };
-
+    const allAppointments = Array.isArray(data.data) ? data.data : [];
+    
+    // Filter to show only future appointments (from now onwards)
+    const now = new Date();
+    const futureAppointments = allAppointments.filter(appointment => {
+      const appointmentDate = new Date(appointment.appointmentTime);
+      return appointmentDate >= now;
+    });
+    
+    // Sort by appointment time (earliest first)
+    futureAppointments.sort((a, b) => {
+      return new Date(a.appointmentTime) - new Date(b.appointmentTime);
+    });
+    
+    setAppointments(futureAppointments);
+  }, []);
   useEffect(() => {
     fetchAppointments();
-  }, []);
+  }, [fetchAppointments]);
 
   // Tạo lịch hẹn mới
   const handleCreateAppointment = async () => {
@@ -71,11 +82,10 @@ const ParentAppointment = () => {
         setAppointmentTime("");
         setPurpose("");
         setDuration(30);
-        fetchAppointments();
-      } else {
+        fetchAppointments();      } else {
         setNotification("Tạo lịch hẹn thất bại!");
       }
-    } catch (error) {
+    } catch {
       setNotification("Có lỗi xảy ra, vui lòng thử lại!");
     } finally {
       setIsLoading(false);
@@ -97,13 +107,14 @@ const ParentAppointment = () => {
       minute: '2-digit'
     });
   };
-
   // Get status color and icon
   const getStatusInfo = (status) => {
     switch (status?.toLowerCase()) {
       case 'confirmed':
       case 'approved':
         return { color: 'text-green-600', bg: 'bg-green-100', icon: CheckCircle, text: 'Đã xác nhận' };
+      case 'scheduled':
+        return { color: 'text-blue-600', bg: 'bg-blue-100', icon: CheckCircle, text: 'Đã lên lịch' };
       case 'pending':
         return { color: 'text-yellow-600', bg: 'bg-yellow-100', icon: AlertCircle, text: 'Chờ xác nhận' };
       case 'cancelled':
@@ -225,17 +236,16 @@ const ParentAppointment = () => {
               <div className="p-3 bg-green-100 rounded-xl">
                 <Calendar className="w-6 h-6 text-green-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-800">Lịch hẹn của bạn</h2>
+              <h2 className="text-2xl font-bold text-gray-800">Lịch hẹn sắp tới</h2>
             </div>
 
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {appointments.length === 0 ? (
+            <div className="space-y-4 max-h-96 overflow-y-auto">              {appointments.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Calendar className="w-8 h-8 text-gray-400" />
                   </div>
-                  <p className="text-gray-500 text-lg">Chưa có lịch hẹn nào</p>
-                  <p className="text-gray-400 text-sm mt-1">Hãy tạo lịch hẹn đầu tiên của bạn</p>
+                  <p className="text-gray-500 text-lg">Không có lịch hẹn sắp tới</p>
+                  <p className="text-gray-400 text-sm mt-1">Hãy tạo lịch hẹn mới cho thời gian tương lai</p>
                 </div>
               ) : (
                 appointments.map(app => {
