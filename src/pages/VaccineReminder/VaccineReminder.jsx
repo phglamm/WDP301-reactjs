@@ -270,7 +270,7 @@ const VaccineReminder = () => {
 
 
         {/* Vaccine nhà trường hỗ trợ */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        {/* <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-blue-900">Vaccine nhà trường hỗ trợ</h2>
             <span className="text-gray-500 font-medium">Của: {selectedStudent ? students.find(s => s.id === selectedStudent)?.fullName : '---'}</span>
@@ -295,7 +295,7 @@ const VaccineReminder = () => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Khai báo vaccine đã tiêm ngoài + Đăng ký tiêm chủng cho học sinh */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
@@ -328,7 +328,7 @@ const VaccineReminder = () => {
                   setNotification('Khai báo thành công!');
                   fetchStudentVaccines(selectedStudent);
                 } else {
-                  setNotification('Khai báo thất bại!');
+                  setNotification('Vaccine đã được khai báo');
                 }
                 setTimeout(() => setNotification(''), 4000);
               }}
