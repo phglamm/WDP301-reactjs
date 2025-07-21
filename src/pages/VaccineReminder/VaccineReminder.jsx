@@ -269,33 +269,6 @@ const VaccineReminder = () => {
         </div>
 
 
-        {/* Vaccine nhà trường hỗ trợ */}
-        {/* <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-blue-900">Vaccine nhà trường hỗ trợ</h2>
-            <span className="text-gray-500 font-medium">Của: {selectedStudent ? students.find(s => s.id === selectedStudent)?.fullName : '---'}</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {schoolVaccines.map(vaccine => (
-              <div key={vaccine.id} className="rounded-xl border border-gray-200 bg-gradient-to-br from-blue-50 to-white p-5 flex flex-col gap-2 shadow hover:shadow-xl transition-all duration-200">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <User className="w-6 h-6 text-blue-500" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-blue-800 text-lg">{vaccine.name}</h3>
-                    <p className="text-gray-500 text-sm">Loại vaccine: {vaccine.name}</p>
-                    <p className="text-gray-400 text-xs">Ngày: {vaccine.date ? formatDate(vaccine.date) : '---'}</p>
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-2">
-                  <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-600 text-xs font-medium">Sắp tới</span>
-                  <button className="ml-auto px-4 py-1 rounded-lg bg-blue-500 text-white text-sm font-semibold shadow hover:bg-blue-600 transition">Hoàn thành</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div> */}
 
         {/* Khai báo vaccine đã tiêm ngoài + Đăng ký tiêm chủng cho học sinh */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
