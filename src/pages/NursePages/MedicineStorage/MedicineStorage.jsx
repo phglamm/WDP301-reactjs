@@ -1,16 +1,26 @@
 import React, { useEffect, useState } from 'react'
-import { Table, Tag, Button, Space, Input, Select } from 'antd'
-import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { Table, Tag, Button, Space, Input, Select, Modal, Form, InputNumber, Upload, message } from 'antd'
+import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons'
 import medicineStorageService from '../../../services/Nurse/MedicineStorage/MedicineStorage'
+import { useSelector } from 'react-redux';
+import { selectUser } from '../../../redux/features/userSlice';
 
 const { Search } = Input;
 const { Option } = Select;
+const { TextArea } = Input;
 
 const MedicineStorage = () => {
     const [medicineData, setMedicineData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchText, setSearchText] = useState('');
     const [filterType, setFilterType] = useState('all');
+    const [addModalVisible, setAddModalVisible] = useState(false);
+    const [importModalVisible, setImportModalVisible] = useState(false);
+    const [uploadFileList, setUploadFileList] = useState([]);
+    const [uploadLoading, setUploadLoading] = useState(false);
+    const [form] = Form.useForm();
+    const user = useSelector(selectUser);
+
 
     const columns = [
         {
@@ -112,29 +122,29 @@ const MedicineStorage = () => {
             ],
             onFilter: (value, record) => record.type === value,
         },
-        {
-            title: 'Actions',
-            key: 'actions',
-            width: 150,
-            fixed: 'right',
-            render: (_, record) => (
-                <Space size="small">
-                    <Button
-                        icon={<EditOutlined />}
-                        size="small"
-                        onClick={() => handleEdit(record)}
-                        title="Edit Medicine"
-                    />
-                    <Button
-                        icon={<DeleteOutlined />}
-                        size="small"
-                        danger
-                        onClick={() => handleDelete(record)}
-                        title="Delete Medicine"
-                    />
-                </Space>
-            ),
-        },
+        // {
+        //     title: 'Actions',
+        //     key: 'actions',
+        //     width: 150,
+        //     fixed: 'right',
+        //     render: (_, record) => (
+        //         <Space size="small">
+        //             <Button
+        //                 icon={<EditOutlined />}
+        //                 size="small"
+        //                 onClick={() => handleEdit(record)}
+        //                 title="Edit Medicine"
+        //             />
+        //             <Button
+        //                 icon={<DeleteOutlined />}
+        //                 size="small"
+        //                 danger
+        //                 onClick={() => handleDelete(record)}
+        //                 title="Delete Medicine"
+        //             />
+        //         </Space>
+        //     ),
+        // },
     ];
 
     const fetchMedicineData = async () => {
@@ -162,9 +172,7 @@ const MedicineStorage = () => {
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleEdit = (medicine) => {
+    };    const handleEdit = (medicine) => {
         console.log('Edit medicine:', medicine);
         // Add your edit logic here
         // You can show a modal or navigate to edit page
@@ -177,8 +185,95 @@ const MedicineStorage = () => {
     };
 
     const handleAddNew = () => {
-        console.log('Add new medicine');
-        // Add your add new medicine logic here
+        if (user.role !== 'admin') {
+            message.error('Chỉ admin mới có thể thêm thuốc mới!');
+            return;
+        }
+        setAddModalVisible(true);
+    };
+
+    const handleImportExcel = () => {
+        if (user.role !== 'admin') {
+            message.error('Chỉ admin mới có thể import dữ liệu!');
+            return;
+        }
+        setImportModalVisible(true);
+    };
+
+    // Handle medicine creation
+    const handleMedicineSubmit = async (values) => {
+        try {
+            const medicineData = {
+                name: values.name,
+                manufacturer: values.manufacturer,
+                description: values.description,
+                quantity: values.quantity,
+                type: values.type
+            };
+
+            const response = await medicineStorageService.createMedicine(medicineData);
+            
+            if (response.status) {
+                message.success('Tạo thuốc thành công!');
+                setAddModalVisible(false);
+                form.resetFields();
+                fetchMedicineData(); // Refresh data
+            } else {
+                message.error('Có lỗi xảy ra khi tạo thuốc!');
+            }
+        } catch (error) {
+            console.error('Error creating medicine:', error);
+            message.error('Có lỗi xảy ra khi tạo thuốc!');
+        }
+    };
+
+    // Handle Excel import
+    const handleImportSubmit = async () => {
+        if (!uploadFileList.length) {
+            message.error('Vui lòng chọn file Excel');
+            return;
+        }
+
+        try {
+            setUploadLoading(true);
+            
+            const formData = new FormData();
+            const file = uploadFileList[0].originFileObj || uploadFileList[0];
+            formData.append('file', file);
+
+            const response = await medicineStorageService.importMedicineDataFromExcel(formData);
+            
+            if (response.status) {
+                message.success('Import dữ liệu thành công!');
+                setImportModalVisible(false);
+                setUploadFileList([]);
+                fetchMedicineData(); // Refresh data
+            } else {
+                message.error(response.message || 'Có lỗi xảy ra khi import dữ liệu!');
+            }
+        } catch (error) {
+            console.error('Error importing data:', error);
+            const errorMessage = error.response?.data?.message || error.message || 'Có lỗi xảy ra khi import dữ liệu!';
+            message.error(errorMessage);
+        } finally {
+            setUploadLoading(false);
+        }
+    };
+
+    // Upload props for Excel import
+    const uploadProps = {
+        beforeUpload: (file) => {
+            const isExcel = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+                           file.type === 'application/vnd.ms-excel';
+            if (!isExcel) {
+                message.error('Chỉ có thể upload file Excel (.xlsx, .xls)!');
+                return false;
+            }
+            setUploadFileList([file]);
+            return false;
+        },
+        fileList: uploadFileList,
+        onRemove: () => setUploadFileList([])
     };
 
     useEffect(() => {
@@ -196,19 +291,25 @@ const MedicineStorage = () => {
     return (
         <div className="w-full h-full pt-[2%]">
             {/* Header with controls */}
-            <div className="w-full mb-4">
-                <div className="flex justify-between items-center mb-4">
+            <div className="w-full mb-4">                <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold text-gray-700">
                         Medicine Storage ({medicineData.length} items)
                     </h2>
-                    <Button
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        onClick={handleAddNew}
-                        size="large"
-                    >
-                        Add New Medicine
-                    </Button>
+                    <Space>
+                        {user.role === 'admin' && (
+                            <>
+                                <Button
+                                    icon={<UploadOutlined />}
+                                    onClick={handleImportExcel}
+                                    size="large"
+                                    style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', color: 'white' }}
+                                >
+                                    Import Medicine
+                                </Button>
+                                
+                            </>
+                        )}
+                    </Space>
                 </div>
                 
                 {/* Search and Filter Controls */}
@@ -255,9 +356,180 @@ const MedicineStorage = () => {
                 rowClassName={(record) => {
                     if (record.quantity < 10) return 'bg-red-50';
                     if (record.quantity < 50) return 'bg-yellow-50';
-                    return '';
-                }}
+                    return '';                }}
             />
+
+            {/* Add Medicine Modal (Admin Only) */}
+            <Modal
+                title="Thêm thuốc mới"
+                open={addModalVisible}
+                onCancel={() => {
+                    setAddModalVisible(false);
+                    form.resetFields();
+                }}
+                footer={null}
+                width={600}
+            >
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={handleMedicineSubmit}
+                >
+                    <Form.Item
+                        label="Tên thuốc"
+                        name="name"
+                        rules={[{ required: true, message: 'Vui lòng nhập tên thuốc!' }]}
+                    >
+                        <Input placeholder="Nhập tên thuốc" />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Nhà sản xuất"
+                        name="manufacturer"
+                        rules={[{ required: true, message: 'Vui lòng nhập nhà sản xuất!' }]}
+                    >
+                        <Input placeholder="Nhập nhà sản xuất" />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Mô tả"
+                        name="description"
+                    >
+                        <TextArea 
+                            rows={4} 
+                            placeholder="Nhập mô tả về thuốc" 
+                        />
+                    </Form.Item>
+
+                    <Space style={{ width: '100%' }} size="large">
+                        <Form.Item
+                            label="Số lượng"
+                            name="quantity"
+                            rules={[{ required: true, message: 'Vui lòng nhập số lượng!' }]}
+                            style={{ flex: 1 }}
+                        >
+                            <InputNumber 
+                                min={0} 
+                                placeholder="Số lượng" 
+                                style={{ width: '100%' }}
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            label="Loại"
+                            name="type"
+                            rules={[{ required: true, message: 'Vui lòng chọn loại thuốc!' }]}
+                            style={{ flex: 1 }}
+                        >
+                            <Select placeholder="Chọn loại thuốc">
+                                <Option value="Viên">Viên</Option>
+                                <Option value="Chai">Chai</Option>
+                                <Option value="Tuýp">Tuýp</Option>
+                                <Option value="Gói">Gói</Option>
+                                <Option value="Hộp">Hộp</Option>
+                            </Select>
+                        </Form.Item>
+                    </Space>
+
+                    <Form.Item className="mb-0 text-right">
+                        <Space>
+                            <Button onClick={() => {
+                                setAddModalVisible(false);
+                                form.resetFields();
+                            }}>
+                                Hủy
+                            </Button>
+                            <Button type="primary" htmlType="submit">
+                                Tạo thuốc
+                            </Button>
+                        </Space>
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            {/* Import Excel Modal (Admin Only) */}
+            <Modal
+                title="Import dữ liệu thuốc từ Excel"
+                open={importModalVisible}
+                onCancel={() => {
+                    setImportModalVisible(false);
+                    setUploadFileList([]);
+                }}
+                footer={[
+                    <Button key="cancel" onClick={() => {
+                        setImportModalVisible(false);
+                        setUploadFileList([]);
+                    }}>
+                        Hủy
+                    </Button>,
+                    <Button
+                        key="import"
+                        type="primary"
+                        icon={<UploadOutlined />}
+                        loading={uploadLoading}
+                        onClick={handleImportSubmit}
+                        disabled={!uploadFileList.length}
+                        style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+                    >
+                        Import Dữ Liệu
+                    </Button>
+                ]}
+                width={600}
+            >
+                <div>
+                    <Upload.Dragger {...uploadProps}>
+                        <p className="ant-upload-drag-icon">
+                            <UploadOutlined style={{ fontSize: '48px', color: '#52c41a' }} />
+                        </p>
+                        <p className="ant-upload-text">
+                            Kéo thả file vào đây hoặc click để chọn file
+                        </p>
+                        <p className="ant-upload-hint">
+                            Chỉ hỗ trợ file Excel (.xlsx, .xls) chứa dữ liệu thuốc
+                        </p>
+                    </Upload.Dragger>
+                    
+                    {uploadFileList.length > 0 && (
+                        <div style={{ marginTop: 16 }}>
+                            <h4>File đã chọn:</h4>
+                            <div style={{ 
+                                padding: '8px 12px', 
+                                backgroundColor: '#f0f9ff', 
+                                border: '1px solid #91caff',
+                                borderRadius: '6px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                            }}>
+                                <span>{uploadFileList[0].name}</span>
+                                <Button 
+                                    type="text" 
+                                    size="small" 
+                                    onClick={() => setUploadFileList([])}
+                                    style={{ color: '#ff4d4f' }}
+                                >
+                                    Xóa
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
+                    <div style={{ 
+                        marginTop: 16, 
+                        padding: '12px', 
+                        backgroundColor: '#fff7e6', 
+                        border: '1px solid #ffd591',
+                        borderRadius: '6px'
+                    }}>
+                        <h4 style={{ margin: '0 0 8px 0', color: '#fa8c16' }}>Lưu ý:</h4>
+                        <ul style={{ margin: 0, paddingLeft: 16, color: '#666' }}>
+                            <li>File Excel phải chứa các cột: name, manufacturer, description, quantity, type</li>
+                            <li>Đảm bảo định dạng file đúng theo mẫu quy định</li>
+                            <li>Kiểm tra kỹ dữ liệu trước khi import</li>
+                        </ul>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

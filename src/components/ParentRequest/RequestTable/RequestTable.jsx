@@ -115,7 +115,7 @@ const RequestTable = ({
               style={{ width: 350 }}
               allowClear
             />
-            <Button 
+            {/* <Button 
               type="primary" 
               icon={<PlusOutlined />}
               onClick={onCreateClick}
@@ -125,7 +125,7 @@ const RequestTable = ({
               }}
             >
               Tạo yêu cầu
-            </Button>
+            </Button> */}
           </div>
         </div>
       )}

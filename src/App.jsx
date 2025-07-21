@@ -9,6 +9,7 @@ import { useEffect, useCallback } from "react";
 import UserLayout from "./layouts/UserLayout/UserLayout";
 
 import NurseLayout from "./layouts/NurseLayout/NurseLayout";
+import AdminLayout from "./layouts/AdminLayout/AdminLayout";
 
 import { logout } from "./redux/features/userSlice";
 
@@ -26,6 +27,7 @@ import MedicineStorage from "./pages/NursePages/MedicineStorage/MedicineStorage"
 import InjectionEvent from "./pages/NursePages/InjectionEvent/InjectionEvent";
 import HealthEvent from "./pages/NursePages/HealthEvent/HealthEvent";
 import Appointment from "./pages/NursePages/Appointment/Appointment";
+import UserManagement from "./pages/AdminPages/UserManagement/UserManagement";
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRoles = [], requireAuth = true }) {
@@ -192,6 +194,67 @@ function App() {
           path: "appointment",
           element: (
             <ProtectedRoute allowedRoles={["nurse"]}>
+              <Appointment />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "*",
+          element: <UnderM />,
+        },
+      ],
+    },     {
+      path: "/admin",
+      element: (
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminLayout />
+        </ProtectedRoute>
+      ),
+      children: [
+        {
+          path: "userManagement",
+          element: (
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <UserManagement />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "parentrequest",
+          element: (
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <ParentRequest />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "medicine",
+          element: (
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <MedicineStorage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "injection-event",
+          element: (
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <InjectionEvent />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "health-event",
+          element: (
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <HealthEvent />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "appointment",
+          element: (
+            <ProtectedRoute allowedRoles={["admin"]}>
               <Appointment />
             </ProtectedRoute>
           ),

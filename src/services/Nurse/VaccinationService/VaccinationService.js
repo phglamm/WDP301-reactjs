@@ -8,7 +8,11 @@ const VaccinationService = {
     getVaccinationByStudentId: (studentId) => request("GET", `vaccination/student/${studentId}`),
     
     // Report a new vaccination
-    reportVaccination: (data) => request("POST", "vaccination", data),
+    reportVaccination: (data) => request("POST", "vaccination", data),    // Update new vaccination
+    updateVaccination: (data) => request("POST", "vaccination", data), 
+    
+    // Create a new vaccine (admin only)
+    createVaccine: (data) => request("POST", "vaccination", data),
     
 }
 

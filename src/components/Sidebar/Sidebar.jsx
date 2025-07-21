@@ -29,13 +29,15 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
   const [isOpen, setIsOpen] = useState(false);  const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const user = useSelector(selectUser);// Get route prefix based on user role
+  const user = useSelector(selectUser);  // Get route prefix based on user role
   const getRoutePrefix = () => {
+    if (user?.role === 'admin') {
+      return "/admin";
+    }
     return "/nurse";
   };
-
   // Base menu items for nurse
-  const baseMenuItems = [
+  const nurseMenuItems = [
     {
       id: "Yêu cầu từ phụ huynh",
       label: "Yêu cầu từ phụ huynh",
@@ -69,7 +71,48 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
     {
       id: "Lich hen",
       label: "Lịch Hẹn ",
-      icon: <IoCalendarOutline />,      link: `${getRoutePrefix()}/appointment`,
+      icon: <IoCalendarOutline />,
+      link: `${getRoutePrefix()}/appointment`,
+    },
+  ];
+
+  // Admin menu items
+  const adminMenuItems = [
+    {
+      id: "Quản lý người dùng",
+      label: "Quản lý người dùng",
+      icon: <MdOutlineSupervisorAccount />,
+      link: `${getRoutePrefix()}/userManagement`,
+    },
+    {
+      id: "Yêu cầu từ phụ huynh",
+      label: "Yêu cầu từ phụ huynh",
+      icon: <RiParentLine />,
+      link: `${getRoutePrefix()}/parentrequest`,
+    },
+    {
+      id: "Thuốc và Vật Tư",
+      label: "Thuốc và Vật Tư",
+      icon: <MdOutlineInventory2 />,
+      link: `${getRoutePrefix()}/medicine`,
+    },
+    {
+      id: "Tiem chung",
+      label: "Tiêm Chủng ",
+      icon: <TbVaccine />,
+      link: `${getRoutePrefix()}/injection-event`,
+    },
+    {
+      id: "Kham Suc Khoe",
+      label: "Khám Sức Khỏe",
+      icon: <LuStethoscope />,
+      link: `${getRoutePrefix()}/health-event`,
+    },
+    {
+      id: "Lich hen",
+      label: "Lịch Hẹn ",
+      icon: <IoCalendarOutline />,
+      link: `${getRoutePrefix()}/appointment`,
     },
   ];
   
@@ -93,10 +136,16 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
       icon: <IoLogOutOutline />,
       action: "logout",
     },
-  ];
-  // Construct menu items based on role
+  ];  // Construct menu items based on role
   const getMenuItems = () => {
-    let menuItems = [...baseMenuItems];
+    let menuItems = [];
+
+    // Add role-specific menu items
+    if (user?.role === 'admin') {
+      menuItems = [...adminMenuItems];
+    } else {
+      menuItems = [...nurseMenuItems];
+    }
 
     // Add bottom menu items
     menuItems = [...menuItems, ...bottomMenuItems];
@@ -116,13 +165,13 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
       if (currentItem) {
         return currentItem.label;
       }
-      
-      // Fallback to default if no match found
+        // Fallback to default based on role
+      if (user?.role === 'admin') {
+        return "Quản lý người dùng";
+      }
       return "Yêu cầu từ phụ huynh";
-    };
-
-    setSelectedItem(getCurrentSelectedItem());
-  }, [setSelectedItem, location.pathname, menuItems]);
+    };    setSelectedItem(getCurrentSelectedItem());
+  }, [setSelectedItem, location.pathname, menuItems, user?.role]);
 
   const handleLogOut = () => {
     dispatch(logout());

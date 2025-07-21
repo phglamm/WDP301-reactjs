@@ -28,6 +28,8 @@ import injectionEventService from '../../../services/Nurse/InjectionEvent/Inject
 import CardData from '../../../components/CardData/CardData';
 import moment from 'moment';
 import VaccinationService from '../../../services/Nurse/VaccinationService/VaccinationService';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../../../redux/features/userSlice';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -39,6 +41,7 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
   const [downloadLoading, setDownloadLoading] = useState({}); // Change to object
   const [uploadLoading, setUploadLoading] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
+  const [vaccineModalVisible, setVaccineModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -46,6 +49,8 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
   const [searchText, setSearchText] = useState('');
   const [selectedCard, setSelectedCard] = useState('all');
   const [form] = Form.useForm();
+  const [vaccineForm] = Form.useForm();
+  const user = useSelector(selectUser);
 
   // Fetch injection events
   const fetchInjectionEvents = async () => {
@@ -259,7 +264,33 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
     setDetailModalVisible(true);
   };
 
-  // Handle refresh
+  // Handle vaccine creation
+  const handleVaccineSubmit = async (values) => {
+    try {
+      const vaccineData = {
+        name: values.name,
+        description: values.description,
+        type: values.type,
+        numberOfDoses: values.numberOfDoses
+      };
+
+      const response = await VaccinationService.createVaccine(vaccineData);
+      
+      if (response.status) {
+        message.success('Tạo vaccine thành công!');
+        setVaccineModalVisible(false);
+        vaccineForm.resetFields();
+        fetchVaccinations(); // Refresh vaccine list
+      } else {
+        message.error('Có lỗi xảy ra khi tạo vaccine!');
+      }
+    } catch (error) {
+      console.error('Error creating vaccine:', error);
+      message.error('Có lỗi xảy ra khi tạo vaccine!');
+    }
+  };
+
+  // Refresh data
   const handleRefresh = () => {
     fetchInjectionEvents();
     fetchVaccinations();
@@ -441,14 +472,23 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
             style={{ width: 300 }}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-          />
-          <Button
+          />          <Button
             icon={<ReloadOutlined />}
             onClick={handleRefresh}
             title="Làm mới danh sách"
           >
             Làm Mới
           </Button>
+          {user.role === 'admin' && (
+            <Button
+              type="default"
+              icon={<PlusOutlined />}
+              onClick={() => setVaccineModalVisible(true)}
+              style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', color: 'white' }}
+            >
+              Thêm vaccine
+            </Button>
+          )}
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -630,8 +670,87 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
             </Descriptions.Item>
             <Descriptions.Item label="Ngày tiêm">
               {moment(selectedEvent.date).format('DD/MM/YYYY HH:mm')}
-            </Descriptions.Item>          </Descriptions>
-        )}
+            </Descriptions.Item>          </Descriptions>        )}
+      </Modal>
+
+      {/* Create Vaccine Modal (Admin Only) */}
+      <Modal
+        title="Tạo vaccine mới"
+        open={vaccineModalVisible}
+        onCancel={() => {
+          setVaccineModalVisible(false);
+          vaccineForm.resetFields();
+        }}
+        footer={null}
+        width={600}
+      >
+        <Form
+          form={vaccineForm}
+          layout="vertical"
+          onFinish={handleVaccineSubmit}
+        >
+          <Form.Item
+            label="Tên vaccine"
+            name="name"
+            rules={[{ required: true, message: 'Vui lòng nhập tên vaccine!' }]}
+          >
+            <Input placeholder="Nhập tên vaccine" />
+          </Form.Item>
+
+          <Form.Item
+            label="Mô tả"
+            name="description"
+            rules={[{ required: true, message: 'Vui lòng nhập mô tả vaccine!' }]}
+          >
+            <TextArea 
+              rows={4} 
+              placeholder="Nhập mô tả về vaccine" 
+            />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Loại vaccine"
+                name="type"
+                rules={[{ required: true, message: 'Vui lòng chọn loại vaccine!' }]}
+              >
+                <Select placeholder="Chọn loại vaccine">
+                  <Option value="free">Miễn phí</Option>
+                  <Option value="paid">Có phí</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Số liều"
+                name="numberOfDoses"
+                rules={[{ required: true, message: 'Vui lòng nhập số liều!' }]}
+              >
+                <InputNumber 
+                  min={1} 
+                  max={10}
+                  placeholder="Số liều" 
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item className="mb-0 text-right">
+            <Space>
+              <Button onClick={() => {
+                setVaccineModalVisible(false);
+                vaccineForm.resetFields();
+              }}>
+                Hủy
+              </Button>
+              <Button type="primary" htmlType="submit">
+                Tạo vaccine
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
       </Modal>
 
       {/* Upload Result Modal */}

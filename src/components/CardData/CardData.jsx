@@ -11,7 +11,10 @@ import {
   FaAmbulance,
   FaSyringe,
   FaGift,
-  FaDollarSign
+  FaDollarSign,
+  FaUserMd,
+  FaUserShield,
+  FaUserFriends
 } from "react-icons/fa";
 
 const CardData = ({title, value, subTitle, onClick}) => {
@@ -44,14 +47,25 @@ const CardData = ({title, value, subTitle, onClick}) => {
         return <FaDollarSign size={22} className="text-blue-600" />;
       case 'sự kiện sắp tới':
         return <FaCalendarAlt size={22} className="text-orange-600" />;
-      
-      // HealthEvent icons
+        // HealthEvent icons
       case 'sự kiện trong tháng':
         return <FaCalendarAlt size={22} className="text-green-600" />;
       case 'sự kiện trong tuần':
-        return <FaCalendarAlt size={22} className="text-blue-600" />;      // Medicine request related
+        return <FaCalendarAlt size={22} className="text-blue-600" />;
+      
+      // Medicine request related
       case 'tất cả yêu cầu':
         return <IoMdMail size={22} className="text-purple-500" />;
+      
+      // User Management icons
+      case 'tổng số người dùng':
+        return <FaUsers size={22} className="text-blue-600" />;
+      case 'y tá':
+        return <FaUserMd size={22} className="text-blue-500" />;
+      case 'phụ huynh':
+        return <FaUserFriends size={22} className="text-green-500" />;
+      case 'quản trị viên':
+        return <FaUserShield size={22} className="text-red-500" />;
       
       default:
         return <IoMdMail size={22} className="text-gray-500" />;
