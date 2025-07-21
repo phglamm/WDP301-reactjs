@@ -1,12 +1,12 @@
 import React from 'react';
-import healthcareimg from '../../assets/healthcare.png'; 
-import pro5 from '../../assets/homepage/pro5.png';
-import qlythuoc from '../../assets/homepage/qlythuoc.png';
-import tiemchung from '../../assets/homepage/tiemchung.png';
-import lichsu from '../../assets/homepage/lichsu.png';
-import baomat from '../../assets/homepage/baomat.png';
-import truycap from '../../assets/homepage/truycap.png';
-import Footer from '../../components/Footer/Footer';
+import healthcareimg from '../../../assets/healthcare.png'; 
+import pro5 from '../../../assets/homepage/pro5.png';
+import qlythuoc from '../../../assets/homepage/qlythuoc.png';
+import tiemchung from '../../../assets/homepage/tiemchung.png';
+import lichsu from '../../../assets/homepage/lichsu.png';
+import baomat from '../../../assets/homepage/baomat.png';
+import truycap from '../../../assets/homepage/truycap.png';
+import Footer from '../../../components/Footer/Footer';
 
 const features = [
   {

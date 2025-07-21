@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { FaGoogle, FaFacebookF } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { login } from "../../redux/features/userSlice";
-import authService from "../../services/authService";
+import { login } from "../../../redux/features/userSlice";
+import authService from "../../../services/authService";
 import toast from "react-hot-toast";
-import AnimatedLogo from "../../components/AnimatedLogo/AnimatedLogo";
+import AnimatedLogo from "../../../components/AnimatedLogo/AnimatedLogo";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 

@@ -7,22 +7,25 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useCallback } from "react";
 import UserLayout from "./layouts/UserLayout/UserLayout";
-import Homepage from "./pages/Homepage/Homepage";
-import Login from "./pages/Login/Login";
-import Register from "./pages/Register/Register";
-import HealthProfile from "./pages/HealthProfile/HealthProfile";
-import DrugInfo from "./pages/DrugInfo/DrugInfo";
-import VaccineReminder from "./pages/VaccineReminder/VaccineReminder";
+
 import NurseLayout from "./layouts/NurseLayout/NurseLayout";
-import StudentListPage from "./pages/Nurse/StudentListPage/StudentListPage";
-import ParentRequest from "./pages/Nurse/ParentRequest/ParentRequest";
-import MedicineStorage from "./pages/Nurse/MedicineStorage/MedicineStorage";
-import HealthHistory from "./pages/HealthHistory/HealthHistory";
+
 import { logout } from "./redux/features/userSlice";
-import InjectionEvent from "./pages/Nurse/InjectionEvent/InjectionEvent";
-import Appointment from "./pages/Nurse/Appointment/Appointment";
-import HealthEvent from "./pages/Nurse/HealthEvent/HealthEvent";
+
 import UnderM from "./pages/UnderMaintainance/UnderM";
+import Login from "./pages/AuthPages/Login/Login";
+import Register from "./pages/AuthPages/Register/Register";
+import Homepage from "./pages/UserPages/Homepage/Homepage";
+import HealthProfile from "./pages/UserPages/HealthProfile/HealthProfile";
+import DrugInfo from "./pages/UserPages/DrugInfo/DrugInfo";
+import VaccineReminder from "./pages/UserPages/VaccineReminder/VaccineReminder";
+import HealthHistory from "./pages/UserPages/HealthHistory/HealthHistory";
+import StudentListPage from "./pages/NursePages/StudentListPage/StudentListPage";
+import ParentRequest from "./pages/NursePages/ParentRequest/ParentRequest";
+import MedicineStorage from "./pages/NursePages/MedicineStorage/MedicineStorage";
+import InjectionEvent from "./pages/NursePages/InjectionEvent/InjectionEvent";
+import HealthEvent from "./pages/NursePages/HealthEvent/HealthEvent";
+import Appointment from "./pages/NursePages/Appointment/Appointment";
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRoles = [], requireAuth = true }) {
