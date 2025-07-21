@@ -429,10 +429,7 @@ const VaccineReminder = () => {
           open={showRegisterModal}
           onCancel={() => setShowRegisterModal(false)}
           onOk={async () => {
-            if (!selectedStudent || !selectedEvent?.id) {
-              setNotification('Thiếu thông tin học sinh hoặc sự kiện!');
-              return;
-            }
+            if (!selectedStudent || !selectedEvent) return;
             setShowRegisterModal(false);
             const token = localStorage.getItem('access_token');
             const res = await fetch(`${API_URL}/injection-event/register`, {
@@ -448,6 +445,8 @@ const VaccineReminder = () => {
             });
             if (res.ok) {
               setNotification('Đăng ký tiêm chủng thành công!');
+            } else if (res.status === 400) {
+              setNotification('Đã đăng kí tiêm chủng cho học sinh');
             } else {
               setNotification('Đăng ký tiêm chủng thất bại!');
             }
