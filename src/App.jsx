@@ -28,6 +28,7 @@ import InjectionEvent from "./pages/NursePages/InjectionEvent/InjectionEvent";
 import HealthEvent from "./pages/NursePages/HealthEvent/HealthEvent";
 import Appointment from "./pages/NursePages/Appointment/Appointment";
 import UserManagement from "./pages/AdminPages/UserManagement/UserManagement";
+import ParentAppointment from "./pages/ParentAppointment/ParentAppointment";
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRoles = [], requireAuth = true }) {
@@ -136,6 +137,14 @@ function App() {
             </ProtectedRoute>
           ),
         },
+        {
+          path: "parent-appointment",
+          element: (
+            <ProtectedRoute allowedRoles={["user", "parent"]}>
+              <ParentAppointment />
+            </ProtectedRoute>
+          ),
+        },
       ],
     }, // Protected Nurse Routes
     {
@@ -203,7 +212,8 @@ function App() {
           element: <UnderM />,
         },
       ],
-    },     {
+    },
+    {
       path: "/admin",
       element: (
         <ProtectedRoute allowedRoles={["admin"]}>

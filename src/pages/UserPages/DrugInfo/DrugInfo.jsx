@@ -19,6 +19,12 @@ const DrugInfo = () => {
     type: "",
     message: "",
   });
+  const [note, setNote] = useState('');
+  const [slot, setSlot] = useState('Sáng');
+  const [medicineName, setMedicineName] = useState('');
+  const [medicineDesc, setMedicineDesc] = useState('');
+  const [medicineQty, setMedicineQty] = useState(1);
+  const [imageUrl, setImageUrl] = useState('');
 
   // Get API base URL from environment
   const getAPIBaseURL = () => {
@@ -82,15 +88,43 @@ const DrugInfo = () => {
     }
   };
 
-  const handleImageSelect = (event) => {
+  const uploadImageAndGetUrl = async (file) => {
+    const apiUrl = getAPIBaseURL();
+    const token = getToken();
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await fetch(`${apiUrl}/medicine-request/image`, {
+      method: 'POST',
+      body: formData,
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      // Giả sử backend trả về { imageUrl: "https://..." }
+      return data.imageUrl || data.url || data.data?.imageUrl || data.data?.url;
+    }
+    throw new Error('Upload ảnh thất bại');
+  };
+
+  const handleImageSelect = async (event) => {
     const file = event.target.files[0];
     if (file) {
       setSelectedImage(file);
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target.result);
-      };
+      reader.onload = (e) => setImagePreview(e.target.result);
       reader.readAsDataURL(file);
+
+      // Upload ảnh lên server và lấy URL
+      try {
+        setLoading(true);
+        const url = await uploadImageAndGetUrl(file);
+        setImageUrl(url);
+      } catch (err) {
+        showNotification('error', 'Upload ảnh thất bại');
+        setImageUrl('');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -99,9 +133,12 @@ const DrugInfo = () => {
       showNotification("error", "Vui lòng chọn học sinh");
       return;
     }
-
-    if (!selectedImage) {
-      showNotification("error", "Vui lòng chọn hình ảnh thuốc");
+    if (!imageUrl) {
+      showNotification("error", "Vui lòng chọn và upload hình ảnh thuốc");
+      return;
+    }
+    if (!medicineName || !medicineQty) {
+      showNotification("error", "Vui lòng nhập tên thuốc và liều lượng");
       return;
     }
 
@@ -110,44 +147,53 @@ const DrugInfo = () => {
       const token = getToken();
       const apiUrl = getAPIBaseURL();
 
-      if (!token) {
-        showNotification("error", "Vui lòng đăng nhập lại");
-        return;
-      }
+      const body = {
+        studentId: String(selectedStudent),
+        note,
+        imageUrl,
+        slots: [
+          {
+            session: slot,
+            medicines: [
+              {
+                name: medicineName,
+                description: medicineDesc,
+                quantity: Number(medicineQty)
+              }
+            ]
+          }
+        ]
+      };
 
-      const formData = new FormData();
-      formData.append("image", selectedImage);
-      formData.append("studentId", selectedStudent);
-
-      const response = await fetch(`${apiUrl}/medicine-request/image`, {
+      const response = await fetch(`${apiUrl}/medicine-request`, {
         method: "POST",
-        body: formData,
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify(body),
       });
 
       if (response.ok) {
         showNotification("success", "Tạo yêu cầu gửi thuốc thành công");
+        // Reset form...
         setSelectedImage(null);
         setImagePreview(null);
-        // Reset file input
+        setImageUrl('');
+        setNote('');
+        setMedicineName('');
+        setMedicineDesc('');
+        setMedicineQty(1);
+        setSlot('Sáng');
         const fileInput = document.getElementById("imageInput");
         if (fileInput) fileInput.value = "";
       } else if (response.status === 401) {
-        showNotification(
-          "error",
-          "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại"
-        );
+        showNotification("error", "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại");
       } else {
         const errorData = await response.json().catch(() => ({}));
-        showNotification(
-          "error",
-          errorData.message || "Không thể tạo yêu cầu gửi thuốc"
-        );
+        showNotification("error", errorData.message || "Không thể tạo yêu cầu gửi thuốc");
       }
     } catch (error) {
-      console.error("Error sending medicine request:", error);
       showNotification("error", "Lỗi kết nối khi gửi yêu cầu");
     } finally {
       setLoading(false);
@@ -353,21 +399,77 @@ const DrugInfo = () => {
                 )}
               </div>
 
+              {/* Medicine Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#223A6A" }}>Buổi sử dụng thuốc</label>
+                  <select
+                    className="w-full border rounded-lg px-3 py-2"
+                    value={slot}
+                    onChange={e => setSlot(e.target.value)}
+                  >
+                    <option value="Sáng">Sáng</option>
+                    <option value="Chiều">Chiều</option>
+                    <option value="Tối">Tối</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#223A6A" }}>Tên thuốc</label>
+                  <input
+                    className="w-full border rounded-lg px-3 py-2"
+                    value={medicineName}
+                    onChange={e => setMedicineName(e.target.value)}
+                    placeholder="Nhập tên thuốc"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#223A6A" }}>Liều lượng</label>
+                  <input
+                    className="w-full border rounded-lg px-3 py-2"
+                    type="number"
+                    min={1}
+                    value={medicineQty}
+                    onChange={e => setMedicineQty(e.target.value)}
+                    placeholder="Số lượng"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#223A6A" }}>Ghi chú</label>
+                  <input
+                    className="w-full border rounded-lg px-3 py-2"
+                    value={medicineDesc}
+                    onChange={e => setMedicineDesc(e.target.value)}
+                    placeholder="Ghi chú (cách dùng, lưu ý...)"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#223A6A" }}>Ghi chú chung</label>
+                  <input
+                    className="w-full border rounded-lg px-3 py-2"
+                    value={note}
+                    onChange={e => setNote(e.target.value)}
+                    placeholder="Ghi chú cho nhà trường"
+                  />
+                </div>
+              </div>
+
               {/* Submit Button */}
               <div className="flex justify-end">
                 <button
                   onClick={handleSendMedicineRequest}
-                  disabled={loading || !selectedImage}
+                  disabled={loading || !imageUrl}
                   className={`flex items-center px-6 py-3 rounded-lg text-white font-medium transition-all duration-200 ${
-                    loading || !selectedImage
+                    loading || !imageUrl
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl"
                   }`}
                   style={{
                     backgroundColor:
-                      loading || !selectedImage ? undefined : "#407CE2",
+                      loading || !imageUrl ? undefined : "#407CE2",
                     transform:
-                      loading || !selectedImage ? "none" : "translateY(0)",
+                      loading || !imageUrl ? "none" : "translateY(0)",
                   }}
                 >
                   {loading ? (

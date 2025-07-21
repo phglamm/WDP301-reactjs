@@ -80,12 +80,14 @@ const Header = () => {
     medication: "Thông Tin Thuốc",
     vaccination: "Nhắc Nhở Tiêm Chủng",
     history: "Lịch Sử Sức Khỏe",
+    appointment: "Tạo lịch hẹn",
   };
   const paths = {
     profile: "/health-profile",
     medication: "/drug-information",
     vaccination: "/vaccine-reminder",
     history: "/health-history",
+    appointment: "/parent-appointment",
   };
 
   return (
