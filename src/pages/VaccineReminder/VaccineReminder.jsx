@@ -125,7 +125,7 @@ const VaccineReminder = () => {
     if (selectedStudent) {
       fetchStudentVaccines(selectedStudent);
       fetchRegisteredVaccines(selectedStudent);
-      fetchRegisteredEvents(selectedStudent);
+      fetchRegisteredEvents(selectedStudent); // vẫn giữ cho logic ẩn event đã tiêm
     } else {
       setCompletedVaccines([]);
       setRegisteredVaccines([]);
@@ -368,17 +368,17 @@ const VaccineReminder = () => {
               <h2 className="text-xl font-bold text-blue-900 mb-4">Đăng ký tiêm chủng cho học sinh</h2>
               {selectedStudent ? (
                 <>
-                  {injectionEvents.length === 0 ? (
+                  {injectionEvents.filter(event => !registeredEvents.some(e => String(e.id) === String(event.id))).length === 0 ? (
                     <div className="text-gray-500">Hiện không có sự kiện tiêm chủng nào đang mở đăng ký.</div>
                   ) : (
                     <div className="space-y-4">
-                      {injectionEvents.map(event => {
-                        const isRegistered = registeredEvents.some(e => String(e.id) === String(event.id));
+                      {injectionEvents.filter(event => !registeredEvents.some(e => String(e.id) === String(event.id))).map(event => {
+                        const isRegistered = false; // vì đã filter rồi, không cần kiểm tra lại
                         return (
                           <div key={event.id} className="flex flex-col md:flex-row md:items-center md:justify-between border rounded-lg p-4 bg-gradient-to-br from-blue-50 to-white hover:shadow-xl transition-all duration-200">
                             <div>
-                              <div className="font-semibold text-blue-700">{event.name || 'Sự kiện tiêm chủng'}</div>
-                              <div className="text-gray-600 text-sm">{event.description}</div>
+                            <h3 className="font-medium text-blue-800">{event.vaccination?.name ? event.vaccination.name : (event.name ? event.name : 'Sự kiện tiêm chủng')}</h3>
+                            <div className="text-gray-600 text-sm">{event.description}</div>
                               <div className="text-gray-500 text-xs">Thời gian: {event.date ? formatDate(event.date) : ''}</div>
                             </div>
                             {isRegistered ? (
@@ -404,16 +404,16 @@ const VaccineReminder = () => {
             </div>
             <div className="bg-white rounded-2xl shadow-lg p-6 flex-1">
               <h2 className="text-xl font-bold text-blue-900 mb-4">Đã đăng ký tiêm chủng</h2>
-              {registeredEvents.length === 0 ? (
-                <div className="text-gray-500">Chưa đăng ký sự kiện tiêm chủng nào.</div>
+              {registeredVaccines.length === 0 ? (
+                <div className="text-gray-500">Chưa đăng ký vaccine nào.</div>
               ) : (
                 <div className="space-y-3">
-                  {registeredEvents.map(event => (
-                    <div key={event.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100 shadow-sm">
+                  {registeredVaccines.map(vaccine => (
+                    <div key={vaccine.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100 shadow-sm">
                       <div>
-                        <h3 className="font-medium text-blue-800">{event.name || 'Không rõ tên sự kiện'}</h3>
-                        <p className="text-sm text-gray-600">{event.description || ''}</p>
-                        <p className="text-sm text-gray-500">Thời gian: {event.date ? formatDate(event.date) : ''}</p>
+                        <h3 className="font-medium text-blue-800">{vaccine.vaccination?.name ? vaccine.vaccination.name : 'Vaccine'}</h3>
+                        <p className="text-sm text-gray-600">{vaccine.vaccination?.description || ''}</p>
+                        <p className="text-sm text-gray-500">Số mũi đã đăng ký: {vaccine.doses}</p>
                       </div>
                       <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-medium">Đã đăng ký</span>
                     </div>
