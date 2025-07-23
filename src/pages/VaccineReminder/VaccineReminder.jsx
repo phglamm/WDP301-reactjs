@@ -17,7 +17,6 @@ const VaccineReminder = () => {
   const [registeredVaccines, setRegisteredVaccines] = useState([]);
   const [registeredEvents, setRegisteredEvents] = useState([]);
 
-
   // Tạo calendar cho tháng hiện tại
   const generateCalendar = () => {
     const today = new Date();
@@ -68,11 +67,6 @@ const VaccineReminder = () => {
     return '';
   };
 
-  // Tính toán thống kê
-  // const overdueCount = upcomingVaccines.filter(v => v.overdue).length;
-  // const upcomingCount = upcomingVaccines.filter(v => !v.overdue).length;
-  // const completedCount = completedVaccines.length;
-
   const API_URL = import.meta.env.VITE_API_URL || 'https://wdp301-se1752-be.onrender.com/api';
 
   const fetchStudents = async () => {
@@ -109,6 +103,7 @@ const VaccineReminder = () => {
     setRegisteredVaccines(Array.isArray(data.data) ? data.data : []);
   };
 
+  // Fetch registered events using injection-record API
   const fetchRegisteredEvents = async (studentId) => {
     const res = await fetch(`${API_URL}/injection-record/student/${studentId}`);
     const data = await res.json();
@@ -118,42 +113,20 @@ const VaccineReminder = () => {
   useEffect(() => {
     fetchStudents();
     fetchSchoolVaccines();
-    fetchInjectionEvents(); // fetch các event tiêm chủng
+    fetchInjectionEvents();
   }, []);
 
   useEffect(() => {
     if (selectedStudent) {
       fetchStudentVaccines(selectedStudent);
       fetchRegisteredVaccines(selectedStudent);
-      fetchRegisteredEvents(selectedStudent); // vẫn giữ cho logic ẩn event đã tiêm
+      fetchRegisteredEvents(selectedStudent);
     } else {
       setCompletedVaccines([]);
       setRegisteredVaccines([]);
       setRegisteredEvents([]);
     }
   }, [selectedStudent]);
-
-  useEffect(() => {
-    if (!selectedStudent) {
-      setRegisteredEventIds([]);
-      return;
-    }
-    // Giả sử đã fetch xong injectionEvents
-    const fetchRegisteredEvents = async () => {
-      const ids = [];
-      for (const event of injectionEvents) {
-        const res = await fetch(`${API_URL}/injection-event/${event.id}/students`);
-        const data = await res.json();
-        if (Array.isArray(data.data)) {
-          if (data.data.some(s => String(s.id) === String(selectedStudent))) {
-            ids.push(event.id);
-          }
-        }
-      }
-      setRegisteredEventIds(ids);
-    };
-    if (injectionEvents.length > 0) fetchRegisteredEvents();
-  }, [selectedStudent, injectionEvents]);
 
   const submitExternalVaccine = async (studentId, vaccinationId, doses) => {
     const token = localStorage.getItem('access_token');
@@ -169,6 +142,20 @@ const VaccineReminder = () => {
   };
 
   const upcomingVaccines = schoolVaccines;
+
+  // Filter available events - only show events that student hasn't registered for
+  const getAvailableEvents = () => {
+    if (!selectedStudent || !injectionEvents.length) return [];
+    
+    return injectionEvents.filter(event => {
+      // Check if student has already registered for this event
+      const isAlreadyRegistered = registeredEvents.some(registeredEvent => 
+        String(registeredEvent.injectionEventId) === String(event.id) ||
+        String(registeredEvent.id) === String(event.id)
+      );
+      return !isAlreadyRegistered;
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -268,44 +255,12 @@ const VaccineReminder = () => {
           </div>
         </div>
 
-
-
         {/* Khai báo vaccine đã tiêm ngoài + Đăng ký tiêm chủng cho học sinh */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           {/* Khai báo vaccine đã tiêm ngoài */}
           <div className="bg-white rounded-2xl shadow-lg p-6 flex-1">
             <h2 className="text-xl font-bold text-blue-900 mb-4">Khai báo vaccine đã tiêm ngoài</h2>
-            <form
-              className="flex flex-col md:flex-row gap-4 items-center"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (!selectedStudent || !form.vaccinationId) {
-                  setNotification('Vui lòng chọn học sinh và vaccine!');
-                  return;
-                }
-                const token = localStorage.getItem('access_token');
-                const res = await fetch(`${API_URL}/vaccination/student`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                  },
-                  body: JSON.stringify({
-                    studentId: String(selectedStudent),
-                    vaccinationId: String(form.vaccinationId),
-                    doses: Number(form.doses)
-                  })
-                });
-                const result = await res.json().catch(() => ({}));
-                if (res.ok) {
-                  setNotification('Khai báo thành công!');
-                  fetchStudentVaccines(selectedStudent);
-                } else {
-                  setNotification('Vaccine đã được khai báo');
-                }
-                setTimeout(() => setNotification(''), 4000);
-              }}
-            >
+            <div className="flex flex-col md:flex-row gap-4 items-center">
               <select
                 className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
                 value={form.vaccinationId}
@@ -327,12 +282,39 @@ const VaccineReminder = () => {
                 required
               />
               <button
-                type="submit"
+                type="button"
+                onClick={async () => {
+                  if (!selectedStudent || !form.vaccinationId) {
+                    setNotification('Vui lòng chọn học sinh và vaccine!');
+                    return;
+                  }
+                  const token = localStorage.getItem('access_token');
+                  const res = await fetch(`${API_URL}/vaccination/student`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                      studentId: String(selectedStudent),
+                      vaccinationId: String(form.vaccinationId),
+                      doses: Number(form.doses)
+                    })
+                  });
+                  const result = await res.json().catch(() => ({}));
+                  if (res.ok) {
+                    setNotification('Khai báo thành công!');
+                    fetchStudentVaccines(selectedStudent);
+                  } else {
+                    setNotification('Vaccine đã được khai báo');
+                  }
+                  setTimeout(() => setNotification(''), 4000);
+                }}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold shadow"
               >
                 Khai báo
               </button>
-            </form>
+            </div>
           </div>
 
           {/* Đăng ký tiêm chủng cho học sinh + Đã đăng ký tiêm chủng */}
@@ -341,33 +323,25 @@ const VaccineReminder = () => {
               <h2 className="text-xl font-bold text-blue-900 mb-4">Đăng ký tiêm chủng cho học sinh</h2>
               {selectedStudent ? (
                 <>
-                  {injectionEvents.filter(event => !registeredEvents.some(e => String(e.id) === String(event.id))).length === 0 ? (
-                    <div className="text-gray-500">Hiện không có sự kiện tiêm chủng nào đang mở đăng ký.</div>
+                  {getAvailableEvents().length === 0 ? (
+                    <div className="text-gray-500">Hiện không có sự kiện tiêm chủng nào đang mở đăng ký hoặc học sinh đã đăng ký tất cả các sự kiện.</div>
                   ) : (
                     <div className="space-y-4">
-                      {injectionEvents.filter(event => !registeredEvents.some(e => String(e.id) === String(event.id))).map(event => {
-                        const isRegistered = false; // vì đã filter rồi, không cần kiểm tra lại
-                        return (
-                          <div key={event.id} className="flex flex-col md:flex-row md:items-center md:justify-between border rounded-lg p-4 bg-gradient-to-br from-blue-50 to-white hover:shadow-xl transition-all duration-200">
-                            <div>
+                      {getAvailableEvents().map(event => (
+                        <div key={event.id} className="flex flex-col md:flex-row md:items-center md:justify-between border rounded-lg p-4 bg-gradient-to-br from-blue-50 to-white hover:shadow-xl transition-all duration-200">
+                          <div>
                             <h3 className="font-medium text-blue-800">{event.vaccination?.name ? event.vaccination.name : (event.name ? event.name : 'Sự kiện tiêm chủng')}</h3>
                             <div className="text-gray-600 text-sm">{event.description}</div>
-                              <div className="text-gray-500 text-xs">Thời gian: {event.date ? formatDate(event.date) : ''}</div>
-                            </div>
-                            {isRegistered ? (
-                              <span className="mt-2 md:mt-0 bg-gray-200 text-green-600 px-4 py-2 rounded-lg font-semibold cursor-not-allowed select-none">Đã đăng ký</span>
-                            ) : (
-                              <button
-                                className="mt-2 md:mt-0 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition font-semibold shadow"
-                                onClick={() => { setSelectedEvent(event); setShowRegisterModal(true); }}
-                                disabled={isRegistered}
-                              >
-                                Đăng ký
-                              </button>
-                            )}
+                            <div className="text-gray-500 text-xs">Thời gian: {event.date ? formatDate(event.date) : ''}</div>
                           </div>
-                        );
-                      })}
+                          <button
+                            className="mt-2 md:mt-0 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition font-semibold shadow"
+                            onClick={() => { setSelectedEvent(event); setShowRegisterModal(true); }}
+                          >
+                            Đăng ký
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </>
@@ -375,18 +349,36 @@ const VaccineReminder = () => {
                 <div className="text-gray-500">Vui lòng chọn học sinh để đăng ký tiêm chủng.</div>
               )}
             </div>
+            
             <div className="bg-white rounded-2xl shadow-lg p-6 flex-1">
-              <h2 className="text-xl font-bold text-blue-900 mb-4">Đã đăng ký tiêm chủng</h2>
-              {registeredVaccines.length === 0 ? (
-                <div className="text-gray-500">Chưa đăng ký vaccine nào.</div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-blue-900">Đã đăng ký tiêm chủng</h2>
+                {selectedStudent && registeredEvents.length > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                      Tổng cộng: {registeredEvents.length} vaccine
+                    </div>
+                  </div>
+                )}
+              </div>
+              {!selectedStudent ? (
+                <div className="text-gray-500">Vui lòng chọn học sinh để xem danh sách đã đăng ký.</div>
+              ) : registeredEvents.length === 0 ? (
+                <div className="text-gray-500">Chưa đăng ký sự kiện tiêm chủng nào.</div>
               ) : (
                 <div className="space-y-3">
-                  {registeredVaccines.map(vaccine => (
-                    <div key={vaccine.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100 shadow-sm">
+                  {registeredEvents.map(event => (
+                    <div key={event.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100 shadow-sm">
                       <div>
-                        <h3 className="font-medium text-blue-800">{vaccine.vaccination?.name ? vaccine.vaccination.name : 'Vaccine'}</h3>
-                        <p className="text-sm text-gray-600">{vaccine.vaccination?.description || ''}</p>
-                        <p className="text-sm text-gray-500">Số mũi đã đăng ký: {vaccine.doses}</p>
+                        <h3 className="font-medium text-blue-800">
+                          {event.injectionEvent?.vaccination?.name || event.injectionEvent?.name || 'Sự kiện tiêm chủng'}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {event.injectionEvent?.description || ''}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Thời gian: {event.injectionEvent?.date ? formatDate(event.injectionEvent.date) : ''}
+                        </p>
                       </div>
                       <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-medium">Đã đăng ký</span>
                     </div>
@@ -418,6 +410,8 @@ const VaccineReminder = () => {
             });
             if (res.ok) {
               setNotification('Đăng ký tiêm chủng thành công!');
+              // Refresh the registered events list
+              fetchRegisteredEvents(selectedStudent);
             } else if (res.status === 400) {
               setNotification('Đã đăng kí tiêm chủng cho học sinh');
             } else {
@@ -430,7 +424,7 @@ const VaccineReminder = () => {
           title="Xác nhận đăng ký tiêm chủng"
         >
           <div>Bạn có chắc chắn muốn đăng ký sự kiện tiêm chủng này cho học sinh đã chọn?</div>
-          <div className="mt-2 font-semibold text-blue-700">{selectedEvent?.name}</div>
+          <div className="mt-2 font-semibold text-blue-700">{selectedEvent?.vaccination?.name || selectedEvent?.name}</div>
         </Modal>
       </div>
     </div>
