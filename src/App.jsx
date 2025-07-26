@@ -24,6 +24,7 @@ import Appointment from "./pages/Nurse/Appointment/Appointment";
 import HealthEvent from "./pages/Nurse/HealthEvent/HealthEvent";
 import UnderM from "./pages/UnderMaintainance/UnderM";
 import ParentAppointment from "./pages/ParentAppointment/ParentAppointment";
+import Profile from "./pages/Profile/ProfilePage";
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRoles = [], requireAuth = true }) {
@@ -137,6 +138,14 @@ function App() {
           element: (
             <ProtectedRoute allowedRoles={["user", "parent"]}>
               <ParentAppointment />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "profile",
+          element: (
+            <ProtectedRoute allowedRoles={["user", "parent"]}>
+              <Profile />
             </ProtectedRoute>
           ),
         },
