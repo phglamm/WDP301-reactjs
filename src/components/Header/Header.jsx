@@ -78,9 +78,9 @@ const Header = () => {
   const titles = {
     profile: "Hồ Sơ Sức Khỏe",
     medication: "Thông Tin Thuốc",
-    vaccination: "Nhắc Nhở Tiêm Chủng",
+    vaccination: "Đăng Kí Tiêm Chủng",
     // history: "Lịch Sử Sức Khỏe",
-    appointment: "Tạo lịch hẹn",
+    appointment: "Lịch hẹn",
   };
   const paths = {
     profile: "/health-profile",
