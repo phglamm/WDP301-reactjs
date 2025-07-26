@@ -184,6 +184,7 @@ const StudentListPage = () => {
           students={students}
           accidents={accidents} 
           searchText={searchText}
+          onRefresh={fetchAccidents}
         />
       ) : null}
     </div>
