@@ -41,8 +41,6 @@ const features = [
   },
 ];
 
-
-
 const reasons = [
   { title: 'Giảm Áp Lực', desc: 'Tập trung mọi thông tin và lịch hẹn sức khỏe giúp bạn yên tâm hơn.' },
   { title: 'Tuân Thủ Lịch Tiêm Chủng', desc: 'Luôn theo sát và cập nhật đúng lịch tiêm và đơn thuốc.' },
@@ -51,80 +49,82 @@ const reasons = [
   { title: 'An Tâm Tuyệt Đối', desc: 'Mọi dữ liệu được tổ chức khoa học, luôn sẵn sàng khi bạn cần.' },
 ];
 
-const Homepage = () => {
+const Homepage = ({ isLoggedIn = false }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background with overlay */}
-        <div 
-          className="absolute inset-0 bg-gradient-to-br from-[#223A6A] via-[#407CE2] to-[#5B9BD5] opacity-95"
-        />
-        <div className="absolute inset-0 bg-black/20" />
-        
-        {/* Decorative elements */}
-        <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-pulse delay-1000" />
-        
-        {/* Content */}
-        <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
-          <div className="mb-8">
-            <div className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 mb-6">
-              <span className="text-white/90 text-sm font-medium">✨ Ứng dụng chăm sóc sức khỏe #1 cho gia đình</span>
-            </div>
-            
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-              Trao Quyền Cho 
-              <span className="block bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent">
-                Phụ Huynh
-              </span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-white/90 mb-4 max-w-3xl mx-auto">
-              Chăm Sóc Trẻ Em Khỏe Mạnh Hơn
-            </p>
-            
-            <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Theo dõi, quản lý và bảo vệ sức khỏe con bạn một cách dễ dàng và hiệu quả với công nghệ hiện đại nhất.
-            </p>
-          </div>
+      {/* Hero Section - Chỉ hiển thị khi chưa đăng nhập */}
+      {!isLoggedIn && (
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+          {/* Background with overlay */}
+          <div 
+            className="absolute inset-0 bg-gradient-to-br from-[#223A6A] via-[#407CE2] to-[#5B9BD5] opacity-95"
+          />
+          <div className="absolute inset-0 bg-black/20" />
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button className="group bg-white text-[#223A6A] px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-50 transform hover:scale-105 transition-all duration-300 shadow-2xl">
-              <span className="flex items-center gap-2">
-                Bắt Đầu Ngay
-                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </span>
-            </button>
-            
-            <button className="text-white border-2 border-white/30 px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-white/10 transition-all duration-300">
-              Xem Demo
-            </button>
-          </div>
+          {/* Decorative elements */}
+          <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-pulse delay-1000" />
           
-          <div className="mt-12 flex items-center justify-center gap-8 text-white/70">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">10,000+</div>
-              <div className="text-sm">Gia đình tin tùng</div>
+          {/* Content */}
+          <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
+            <div className="mb-8">
+              <div className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 mb-6">
+                <span className="text-white/90 text-sm font-medium">✨ Ứng dụng chăm sóc sức khỏe #1 cho gia đình</span>
+              </div>
+              
+              <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+                Trao Quyền Cho 
+                <span className="block bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent">
+                  Phụ Huynh
+                </span>
+              </h1>
+              
+              <p className="text-xl md:text-2xl text-white/90 mb-4 max-w-3xl mx-auto">
+                Chăm Sóc Trẻ Em Khỏe Mạnh Hơn
+              </p>
+              
+              <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto leading-relaxed">
+                Theo dõi, quản lý và bảo vệ sức khỏe con bạn một cách dễ dàng và hiệu quả với công nghệ hiện đại nhất.
+              </p>
             </div>
-            <div className="w-px h-8 bg-white/30" />
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">99.9%</div>
-              <div className="text-sm">Độ tin cậy</div>
-            </div>
-            <div className="w-px h-8 bg-white/30" />
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">24/7</div>
-              <div className="text-sm">Hỗ trợ</div>
+            
+            {/* <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <button className="group bg-white text-[#223A6A] px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-50 transform hover:scale-105 transition-all duration-300 shadow-2xl">
+                <span className="flex items-center gap-2">
+                  Bắt Đầu Ngay
+                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </span>
+              </button>
+              
+              <button className="text-white border-2 border-white/30 px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-white/10 transition-all duration-300">
+                Xem Demo
+              </button>
+            </div> */}
+            
+            <div className="mt-12 flex items-center justify-center gap-8 text-white/70">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">10,000+</div>
+                <div className="text-sm">Gia đình tin tùng</div>
+              </div>
+              <div className="w-px h-8 bg-white/30" />
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">99.9%</div>
+                <div className="text-sm">Độ tin cậy</div>
+              </div>
+              <div className="w-px h-8 bg-white/30" />
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">24/7</div>
+                <div className="text-sm">Hỗ trợ</div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Features Section */}
-      <section className="py-20 px-6 bg-white">
+      <section className={`py-20 px-6 bg-white ${isLoggedIn ? 'pt-32' : ''}`}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-[#223A6A] mb-6">
@@ -225,83 +225,60 @@ const Homepage = () => {
               {/* Decorative elements */}
               <div className="absolute -top-8 -left-8 w-24 h-24 bg-[#407CE2]/20 rounded-full blur-xl" />
               <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-[#223A6A]/20 rounded-full blur-xl" />
-              
-              {/* Floating cards */}
-              {/* <div className="absolute -top-4 left-4 bg-white rounded-2xl p-4 shadow-xl border border-blue-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-green-600 text-xl">✓</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-sm text-gray-800">Tiêm chủng hoàn thành</div>
-                    <div className="text-xs text-gray-500">Vắc-xin COVID-19</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="absolute -bottom-4 right-4 bg-white rounded-2xl p-4 shadow-xl border border-blue-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 text-xl">📊</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-sm text-gray-800">Theo dõi sức khỏe</div>
-                    <div className="text-xs text-gray-500">Cập nhật hàng ngày</div>
-                  </div>
-                </div>
-              </div> */}
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 px-6 bg-gradient-to-r from-[#223A6A] to-[#407CE2] relative overflow-hidden">
-        {/* Decorative background */}
-        <div className="absolute inset-0">
-          <div className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-pulse delay-1000" />
-        </div>
-        
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Sẵn Sàng Làm Chủ 
-            <span className="block text-yellow-300">Sức Khỏe?</span>
-          </h2>
+      {/* CTA Section - Chỉ hiển thị khi chưa đăng nhập */}
+      {!isLoggedIn && (
+        <section className="py-20 px-6 bg-gradient-to-r from-[#223A6A] to-[#407CE2] relative overflow-hidden">
+          {/* Decorative background */}
+          <div className="absolute inset-0">
+            <div className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-pulse delay-1000" />
+          </div>
           
-          <p className="text-xl text-white/90 mb-10 leading-relaxed max-w-2xl mx-auto">
-            Tham gia cùng hàng ngàn phụ huynh đang đơn giản hóa việc quản lý sức khỏe 
-            cho con em mình mỗi ngày.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <button className="group bg-white text-[#223A6A] px-10 py-4 rounded-2xl font-bold text-lg hover:bg-gray-50 transform hover:scale-105 transition-all duration-300 shadow-2xl">
-              <span className="flex items-center gap-2">
-                Tham Gia Ngay
-                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </span>
-            </button>
+          <div className="max-w-4xl mx-auto text-center relative z-10">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Sẵn Sàng Làm Chủ 
+              <span className="block text-yellow-300">Sức Khỏe?</span>
+            </h2>
             
-            <button className="text-white border-2 border-white/30 px-10 py-4 rounded-2xl font-semibold text-lg hover:bg-white/10 transition-all duration-300">
-              Liên Hệ Tư Vấn
-            </button>
-          </div>
-          
-          {/* Trust indicators */}
-          <div className="flex flex-wrap justify-center items-center gap-8 text-white/70 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="text-yellow-400">⭐⭐⭐⭐⭐</span>
-              <span>4.9/5 từ 1,200+ đánh giá</span>
+            <p className="text-xl text-white/90 mb-10 leading-relaxed max-w-2xl mx-auto">
+              Tham gia cùng hàng ngàn phụ huynh đang đơn giản hóa việc quản lý sức khỏe 
+              cho con em mình mỗi ngày.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+              <button className="group bg-white text-[#223A6A] px-10 py-4 rounded-2xl font-bold text-lg hover:bg-gray-50 transform hover:scale-105 transition-all duration-300 shadow-2xl">
+                <span className="flex items-center gap-2">
+                  Tham Gia Ngay
+                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </span>
+              </button>
+              
+              <button className="text-white border-2 border-white/30 px-10 py-4 rounded-2xl font-semibold text-lg hover:bg-white/10 transition-all duration-300">
+                Liên Hệ Tư Vấn
+              </button>
             </div>
-            <div className="hidden sm:block w-px h-4 bg-white/30" />
-            <div>✅ Miễn phí 30 ngày đầu</div>
-            <div className="hidden sm:block w-px h-4 bg-white/30" />
-            <div>🔒 Bảo mật tuyệt đối</div>
+            
+            {/* Trust indicators */}
+            <div className="flex flex-wrap justify-center items-center gap-8 text-white/70 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-yellow-400">⭐⭐⭐⭐⭐</span>
+                <span>4.9/5 từ 1,200+ đánh giá</span>
+              </div>
+              <div className="hidden sm:block w-px h-4 bg-white/30" />
+              <div>✅ Miễn phí 30 ngày đầu</div>
+              <div className="hidden sm:block w-px h-4 bg-white/30" />
+              <div>🔒 Bảo mật tuyệt đối</div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="bg-[#223A6A] text-white py-12 px-6">

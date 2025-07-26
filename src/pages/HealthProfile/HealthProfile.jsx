@@ -11,6 +11,7 @@ import {
   History,
   AlertTriangle,
   CheckCircle,
+  ChevronDown,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -18,6 +19,7 @@ const HealthProfile = () => {
   const [selectedStudent, setSelectedStudent] = useState("");
   const [students, setStudents] = useState([]);
   const [healthHistory, setHealthHistory] = useState([]);
+  const [displayedRecords, setDisplayedRecords] = useState(3); // Number of records to display
   const [loading, setLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [formData, setFormData] = useState({
@@ -33,6 +35,11 @@ const HealthProfile = () => {
     return localStorage.getItem("access_token");
   };
   const token = getToken();
+
+  // Reset displayed records when student selection changes
+  const resetDisplayedRecords = () => {
+    setDisplayedRecords(3);
+  };
 
   // Fetch danh sách học sinh khi component mount
   useEffect(() => {
@@ -99,6 +106,7 @@ const HealthProfile = () => {
 
   const fetchAllHealthHistory = async () => {
     setLoadingHistory(true);
+    resetDisplayedRecords();
     try {
       // Fetch health history cho tất cả học sinh
       const allHealthHistory = [];
@@ -175,6 +183,7 @@ const HealthProfile = () => {
 
   const handleStudentSelect = async (studentId) => {
     setSelectedStudent(studentId);
+    resetDisplayedRecords();
 
     // Nếu chọn "Tất cả" (studentId === ''), fetch tất cả hồ sơ
     if (studentId === "") {
@@ -198,6 +207,7 @@ const HealthProfile = () => {
     }
 
     setLoadingHistory(true);
+    resetDisplayedRecords();
     try {
       const response = await fetch(
         `https://wdp301-se1752-be.onrender.com/health-profile/student/${studentId}`,
@@ -347,6 +357,15 @@ const HealthProfile = () => {
         return "text-gray-600";
     }
   };
+
+  // Function to load more records
+  const loadMoreRecords = () => {
+    setDisplayedRecords(prev => prev + 3);
+  };
+
+  // Get records to display
+  const recordsToShow = healthHistory.slice(0, displayedRecords);
+  const hasMoreRecords = displayedRecords < healthHistory.length;
 
   const currentBMI = calculateBMI(formData.weight, formData.height);
   const bmiStatus = getBMIStatus(currentBMI);
@@ -675,6 +694,11 @@ const HealthProfile = () => {
                     (Tất cả học sinh - {healthHistory.length} hồ sơ)
                   </span>
                 )}
+                {selectedStudent && selectedStudent !== "" && healthHistory.length > 0 && (
+                  <span className="text-sm font-normal text-gray-500 ml-2">
+                    ({healthHistory.length} hồ sơ)
+                  </span>
+                )}
               </h2>
               {loadingHistory && (
                 <span className="text-sm text-gray-500 ml-2">Đang tải...</span>
@@ -682,130 +706,145 @@ const HealthProfile = () => {
             </div>
 
             <div className="space-y-4">
-              {healthHistory.length > 0 ? (
-                healthHistory.map((record) => (
-                  <div
-                    key={`${record.studentId}-${record.id}`}
-                    className="border border-blue-100 rounded-lg p-4 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        {/* Hiển thị tên học sinh khi xem "Tất cả" */}
-                        {selectedStudent === "" && record.studentName && (
-                          <div className="mb-2">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              <User className="w-3 h-3 mr-1" />
-                              {record.studentName} - {record.studentClass}
-                            </span>
+              {recordsToShow.length > 0 ? (
+                <>
+                  {recordsToShow.map((record) => (
+                    <div
+                      key={`${record.studentId}-${record.id}`}
+                      className="border border-blue-100 rounded-lg p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          {/* Hiển thị tên học sinh khi xem "Tất cả" */}
+                          {selectedStudent === "" && record.studentName && (
+                            <div className="mb-2">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <User className="w-3 h-3 mr-1" />
+                                {record.studentName} - {record.studentClass}
+                              </span>
+                            </div>
+                          )}
+                          <h3 className="font-semibold text-[#223A6A]">
+                            Hồ sơ #{record.id}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            📅 Cập nhật: {record.date}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-[#407CE2]">
+                            {record.bmi}
                           </div>
-                        )}
-                        <h3 className="font-semibold text-[#223A6A]">
-                          Hồ sơ #{record.id}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          📅 Cập nhật: {record.date}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-[#407CE2]">
-                          {record.bmi}
+                          <div
+                            className={`text-sm font-medium ${getBMIColor(
+                              record.bmiStatus
+                            )}`}
+                          >
+                            {record.bmiStatus}
+                          </div>
+                          <div className="text-xs text-gray-500">BMI</div>
                         </div>
-                        <div
-                          className={`text-sm font-medium ${getBMIColor(
-                            record.bmiStatus
-                          )}`}
-                        >
-                          {record.bmiStatus}
-                        </div>
-                        <div className="text-xs text-gray-500">BMI</div>
                       </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="flex items-center">
-                        <Weight className="mr-2 text-gray-400" size={16} />
-                        <span>
-                          Cân nặng: <strong>{record.weight}kg</strong>
-                        </span>
-                      </div>
-                      <div className="flex items-center">
-                        <Ruler className="mr-2 text-gray-400" size={16} />
-                        <span>
-                          Chiều cao: <strong>{record.height}cm</strong>
-                        </span>
-                      </div>
-                      <div className="flex items-center">
-                        <Droplet className="mr-2 text-gray-400" size={16} />
-                        <span>
-                          Nhóm máu: <strong>{record.bloodType}</strong>
-                        </span>
-                      </div>
-                      <div className="flex items-center">
-                        <Activity className="mr-2 text-gray-400" size={16} />
-                        <span>
-                          Tổng quát: <strong>{record.overall}</strong>
-                        </span>
-                      </div>
-                      <div className="flex items-center">
-                        <Eye className="mr-2 text-gray-400" size={16} />
-                        <span>
-                          Thị lực: <strong>{record.vision}</strong>
-                        </span>
-                        {record.vision < 8 && (
-                          <AlertTriangle
-                            className="ml-1 text-yellow-500"
-                            size={14}
-                          />
-                        )}
-                      </div>
-                      <div className="flex items-center">
-                        <Activity className="mr-2 text-gray-400" size={16} />
-                        <span>
-                          Thính giác: <strong>{record.spine}</strong>
-                        </span>
-                        {record.spine >= 8 ? (
-                          <CheckCircle
-                            className="ml-1 text-green-500"
-                            size={14}
-                          />
-                        ) : (
-                          <AlertTriangle
-                            className="ml-1 text-yellow-500"
-                            size={14}
-                          />
-                        )}
-                      </div>
-                    </div>
-
-                    {record.allergies && (
-                      <div className="mt-3 p-2 bg-red-50 rounded border border-red-200">
-                        <div className="flex items-center text-red-700">
-                          <AlertTriangle className="mr-2" size={16} />
-                          <span className="font-medium">
-                            Dị ứng: {record.allergies}
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center">
+                          <Weight className="mr-2 text-gray-400" size={16} />
+                          <span>
+                            Cân nặng: <strong>{record.weight}kg</strong>
                           </span>
                         </div>
-                      </div>
-                    )}
-
-                    {record.notes && (
-                      <div className="mt-3">
-                        <div className="flex items-start">
-                          <FileText
-                            className="mr-2 text-gray-400 mt-0.5"
-                            size={16}
-                          />
-                          <div>
-                            <span className="font-medium text-gray-700">
-                              Ghi chú:
-                            </span>
-                            <p className="text-gray-600">{record.notes}</p>
-                          </div>
+                        <div className="flex items-center">
+                          <Ruler className="mr-2 text-gray-400" size={16} />
+                          <span>
+                            Chiều cao: <strong>{record.height}cm</strong>
+                          </span>
+                        </div>
+                        <div className="flex items-center">
+                          <Droplet className="mr-2 text-gray-400" size={16} />
+                          <span>
+                            Nhóm máu: <strong>{record.bloodType}</strong>
+                          </span>
+                        </div>
+                        <div className="flex items-center">
+                          <Activity className="mr-2 text-gray-400" size={16} />
+                          <span>
+                            Tổng quát: <strong>{record.overall}</strong>
+                          </span>
+                        </div>
+                        <div className="flex items-center">
+                          <Eye className="mr-2 text-gray-400" size={16} />
+                          <span>
+                            Thị lực: <strong>{record.vision}</strong>
+                          </span>
+                          {record.vision < 8 && (
+                            <AlertTriangle
+                              className="ml-1 text-yellow-500"
+                              size={14}
+                            />
+                          )}
+                        </div>
+                        <div className="flex items-center">
+                          <Activity className="mr-2 text-gray-400" size={16} />
+                          <span>
+                            Thính giác: <strong>{record.spine}</strong>
+                          </span>
+                          {record.spine >= 8 ? (
+                            <CheckCircle
+                              className="ml-1 text-green-500"
+                              size={14}
+                            />
+                          ) : (
+                            <AlertTriangle
+                              className="ml-1 text-yellow-500"
+                              size={14}
+                            />
+                          )}
                         </div>
                       </div>
-                    )}
-                  </div>
-                ))
+
+                      {record.allergies && (
+                        <div className="mt-3 p-2 bg-red-50 rounded border border-red-200">
+                          <div className="flex items-center text-red-700">
+                            <AlertTriangle className="mr-2" size={16} />
+                            <span className="font-medium">
+                              Dị ứng: {record.allergies}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {record.notes && (
+                        <div className="mt-3">
+                          <div className="flex items-start">
+                            <FileText
+                              className="mr-2 text-gray-400 mt-0.5"
+                              size={16}
+                            />
+                            <div>
+                              <span className="font-medium text-gray-700">
+                                Ghi chú:
+                              </span>
+                              <p className="text-gray-600">{record.notes}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Load More Button */}
+                  {hasMoreRecords && (
+                    <div className="flex justify-center mt-6">
+                      <button
+                        onClick={loadMoreRecords}
+                        className="inline-flex items-center px-6 py-3 bg-[#407CE2] hover:bg-[#223A6A] text-white font-medium rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+                      >
+                        <ChevronDown className="mr-2" size={20} />
+                        Xem thêm ({healthHistory.length - displayedRecords} hồ sơ)
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   {selectedStudent === "" ? (
