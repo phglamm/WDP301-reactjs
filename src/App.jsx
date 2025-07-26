@@ -29,7 +29,9 @@ import HealthEvent from "./pages/NursePages/HealthEvent/HealthEvent";
 import Appointment from "./pages/NursePages/Appointment/Appointment";
 import UserManagement from "./pages/AdminPages/UserManagement/UserManagement";
 import ParentAppointment from "./pages/ParentAppointment/ParentAppointment";
-import Profile from "./pages/Profile/ProfilePage";
+import Profile from "./pages/UserPages/Profile/ProfilePage";
+
+
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRoles = [], requireAuth = true }) {
