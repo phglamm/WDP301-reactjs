@@ -23,15 +23,21 @@ import {
   FileTextOutlined,
   PlusOutlined,
   MinusCircleOutlined,
-  ReloadOutlined
-} from '@ant-design/icons';
-import AccidentService from '../../../../services/Nurse/AccidentService/AccidentService';
-import medicineStorageService from '../../../../services/Nurse/MedicineStorage/MedicineStorage';
+  ReloadOutlined,
+} from "@ant-design/icons";
+import AccidentService from "../../../../services/Nurse/AccidentService/AccidentService";
+import medicineStorageService from "../../../../services/Nurse/MedicineStorage/MedicineStorage";
 
 const { TextArea } = Input;
 const { Option } = Select;
 
-const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onRefresh }) => {
+const AccidentCase = ({
+  accidents,
+  searchText,
+  onAccidentReported,
+  students,
+  onRefresh,
+}) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [medicineModalVisible, setMedicineModalVisible] = useState(false);
@@ -70,7 +76,6 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
       message.error("Không thể tải danh sách thuốc");
     }
   };
-
   const columns = [
     {
       title: "Mã Tai Nạn",
@@ -137,6 +142,24 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
       },
     },
     {
+      title: "Trạng Thái",
+      dataIndex: "status",
+      key: "status",
+      width: 120,
+      render: (status) => {
+        const statusConfig = {
+          medical_room: { color: "blue", text: "Phòng Y Tế" },
+          hospital: { color: "red", text: "Bệnh Viện" },
+          parent_pickup: { color: "green", text: "Phụ Huynh Đón" },
+        };
+        const config = statusConfig[status] || {
+          color: "default",
+          text: status,
+        };
+        return <Tag color={config.color}>{config.text}</Tag>;
+      },
+    },
+    {
       title: "Y Tá",
       dataIndex: ["nurse", "fullName"],
       key: "nurseName",
@@ -172,24 +195,23 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
   ];
   const handleViewDetail = async (accident) => {
     try {
-      console.log('View detail for accident:', accident);
+      console.log("View detail for accident:", accident);
       setLoading(true);
       setSelectedAccident(accident); // Set basic accident data first
       setModalVisible(true);
-      
+
       // Fetch detailed accident information including medicines
       const response = await AccidentService.getAccidentById(accident.id);
       if (response && response.status && response.data) {
         setSelectedAccident(response.data);
       }
     } catch (error) {
-      console.error('Error fetching accident details:', error);
-      message.error('Có lỗi xảy ra khi tải chi tiết tai nạn');
+      console.error("Error fetching accident details:", error);
+      message.error("Có lỗi xảy ra khi tải chi tiết tai nạn");
     } finally {
       setLoading(false);
     }
   };
-
 
   // Handle Add Medicine Row
   const addMedicineRow = () => {
@@ -231,10 +253,10 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
 
       const assignmentData = {
         accidentId: selectedAccident.id.toString(),
-        medicines: validMedicines.map(med => ({
+        medicines: validMedicines.map((med) => ({
           medicineId: med.medicineId.toString(),
-          quantity: parseInt(med.quantity)
-        }))
+          quantity: parseInt(med.quantity),
+        })),
       };
 
       console.log("Assigning medicines:", assignmentData);
@@ -249,9 +271,11 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
         setSelectedMedicines([{ medicineId: "", quantity: 1 }]);
         medicineForm.resetFields();
         //reload accident details
-        const updatedAccident = await AccidentService.getAccidentById(selectedAccident.id);
+        const updatedAccident = await AccidentService.getAccidentById(
+          selectedAccident.id
+        );
         setSelectedAccident(updatedAccident.data);
-        
+
         // Callback to refresh accidents list if needed
         if (onAccidentReported) {
           onAccidentReported();
@@ -274,7 +298,7 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
   const handleRefresh = () => {
     if (onRefresh) {
       onRefresh();
-      message.success('Đã làm mới danh sách tai nạn');
+      message.success("Đã làm mới danh sách tai nạn");
     }
   };
 
@@ -282,21 +306,21 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
   const handleSubmitReport = async (values) => {
     try {
       setLoading(true);
-
       const reportData = {
         studentCode: values.studentCode,
         summary: values.summary,
         type: values.type,
+        status: values.status,
       };
 
       console.log("Submitting accident report:", reportData);
 
       const response = await AccidentService.createAccidentReport(reportData);
-
       if (response && response.status) {
         message.success("Báo cáo tai nạn đã được tạo thành công");
         setReportModalVisible(false);
         form.resetFields();
+        onRefresh(); // Refresh the accidents list after reporting
 
         // Callback to refresh accidents list
         if (onAccidentReported) {
@@ -306,6 +330,45 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
     } catch (error) {
       console.error("Error creating accident report:", error);
       message.error("Có lỗi xảy ra khi tạo báo cáo tai nạn");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle Update Accident Status
+  const handleUpdateAccidentStatus = async (accidentId, newStatus) => {
+    try {
+      setLoading(true);
+
+      const response = await AccidentService.updateAccidentReport(
+        accidentId,
+        newStatus
+      );
+
+      if (response && response.status) {
+        message.success("Trạng thái tai nạn đã được cập nhật thành công");
+
+        // Refresh accident details
+        const updatedAccident = await AccidentService.getAccidentById(
+          accidentId
+        );
+        if (updatedAccident && updatedAccident.status && updatedAccident.data) {
+          setSelectedAccident(updatedAccident.data);
+        }
+
+        // Refresh the accidents list
+        if (onRefresh) {
+          onRefresh();
+        }
+
+        // Callback to refresh accidents list
+        if (onAccidentReported) {
+          onAccidentReported();
+        }
+      }
+    } catch (error) {
+      console.error("Error updating accident status:", error);
+      message.error("Có lỗi xảy ra khi cập nhật trạng thái tai nạn");
     } finally {
       setLoading(false);
     }
@@ -332,18 +395,11 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
     return colors[type] || "default";
   };
 
-  const getSeverityColor = (severity) => {
-    const colors = {
-      Nhẹ: "green",
-      Vừa: "orange",
-      Nặng: "red",
-      "Nghiêm trọng": "volcano",
-    };
-    return colors[severity] || "default";
-  };
 
   return (
-    <div className="w-full h-[90%] flex flex-wrap justify-center items-center">      {/* Header with Report Button */}
+    <div className="w-full h-[90%] flex flex-wrap justify-center items-center">
+      {" "}
+      {/* Header with Report Button */}
       <div className="w-full mb-4 flex justify-between items-center">
         <div>
           <h3 className="text-lg font-semibold mb-1">Danh Sách Tai Nạn</h3>
@@ -353,7 +409,7 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
           </p>
         </div>
         <Space>
-          <Button 
+          <Button
             icon={<ReloadOutlined />}
             onClick={handleRefresh}
             size="large"
@@ -361,8 +417,8 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
           >
             Làm Mới
           </Button>
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<PlusOutlined />}
             onClick={handleReportAccident}
             size="large"
@@ -372,22 +428,20 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
           </Button>
         </Space>
       </div>
-
       <Table
         columns={columns}
         dataSource={filteredAccidents}
         rowKey="id"
-        pagination={{ 
+        pagination={{
           pageSize: 8,
-          showTotal: (total, range) => 
-            `${range[0]}-${range[1]} trong ${total} tai nạn`
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} trong ${total} tai nạn`,
         }}
         bordered
         scroll={{ x: 1200 }}
         style={{ width: "100%", height: "100%" }}
         size="small"
       />
-
       {/* Report Accident Modal */}
       <Modal
         title={
@@ -445,7 +499,7 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
               maxLength={200}
               showCount
             />
-          </Form.Item>
+          </Form.Item>{" "}
           <Form.Item
             name="type"
             label="Loại Tai Nạn"
@@ -458,6 +512,19 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
               <Option value="Y tế">Bệnh Tật</Option>
             </Select>
           </Form.Item>
+          <Form.Item
+            name="status"
+            label="Trạng Thái Xử Lý"
+            rules={[
+              { required: true, message: "Vui lòng chọn trạng thái xử lý" },
+            ]}
+          >
+            <Select placeholder="Chọn trạng thái xử lý">
+              <Option value="medical_room">Phòng Y Tế</Option>
+              <Option value="hospital">Bệnh Viện</Option>
+              <Option value="parent_pickup">Phụ Huynh Đón</Option>
+            </Select>
+          </Form.Item>
           <Form.Item className="mb-0 text-right">
             <Space>
               <Button onClick={() => setReportModalVisible(false)}>Hủy</Button>
@@ -467,7 +534,8 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
             </Space>
           </Form.Item>
         </Form>
-      </Modal>      {/* Accident Detail Modal */}
+      </Modal>{" "}
+      {/* Accident Detail Modal */}
       <Modal
         title={
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -576,17 +644,6 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
                     {selectedAccident.type}
                   </Tag>
                 </Descriptions.Item>
-                <Descriptions.Item label="Mức Độ">
-                  <Tag
-                    color={getSeverityColor(selectedAccident.severity)}
-                    style={{ fontSize: "12px" }}
-                  >
-                    {selectedAccident.severity || "Chưa xác định"}
-                  </Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label="Địa Điểm">
-                  {selectedAccident.location || "Không có"}
-                </Descriptions.Item>
                 <Descriptions.Item label="Trạng Thái">
                   <Tag
                     color={
@@ -601,6 +658,136 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
                   </Tag>
                 </Descriptions.Item>
               </Descriptions>
+
+              {/* Status Update Section */}
+              <Divider orientation="left" style={{ margin: "16px 0" }}>
+                Cập Nhật Trạng Thái
+              </Divider>
+              <div
+                style={{
+                  backgroundColor: "#f0f9ff",
+                  padding: "16px",
+                  borderRadius: "8px",
+                  border: "1px solid #91caff",
+                  marginBottom: "16px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <span style={{ fontWeight: "500", color: "#0958d9" }}>
+                    Thay đổi trạng thái xử lý:
+                  </span>
+                  <Space>
+                    <Button
+                      size="small"
+                      type={
+                        selectedAccident.status === "medical_room"
+                          ? "primary"
+                          : "default"
+                      }
+                      onClick={() =>
+                        handleUpdateAccidentStatus(
+                          selectedAccident.id,
+                          "medical_room"
+                        )
+                      }
+                      loading={loading}
+                      style={{
+                        backgroundColor:
+                          selectedAccident.status === "medical_room"
+                            ? "#1890ff"
+                            : undefined,
+                        borderColor: "#1890ff",
+                        color:
+                          selectedAccident.status === "medical_room"
+                            ? "#fff"
+                            : "#1890ff",
+                      }}
+                    >
+                      Phòng Y Tế
+                    </Button>
+                    <Button
+                      size="small"
+                      type={
+                        selectedAccident.status === "hospital"
+                          ? "primary"
+                          : "default"
+                      }
+                      onClick={() =>
+                        handleUpdateAccidentStatus(
+                          selectedAccident.id,
+                          "hospital"
+                        )
+                      }
+                      loading={loading}
+                      danger={selectedAccident.status === "hospital"}
+                      style={{
+                        backgroundColor:
+                          selectedAccident.status === "hospital"
+                            ? "#ff4d4f"
+                            : undefined,
+                        borderColor: "#ff4d4f",
+                        color:
+                          selectedAccident.status === "hospital"
+                            ? "#fff"
+                            : "#ff4d4f",
+                      }}
+                    >
+                      Bệnh Viện
+                    </Button>
+                    <Button
+                      size="small"
+                      type={
+                        selectedAccident.status === "parent_pickup"
+                          ? "primary"
+                          : "default"
+                      }
+                      onClick={() =>
+                        handleUpdateAccidentStatus(
+                          selectedAccident.id,
+                          "parent_pickup"
+                        )
+                      }
+                      loading={loading}
+                      style={{
+                        backgroundColor:
+                          selectedAccident.status === "parent_pickup"
+                            ? "#52c41a"
+                            : undefined,
+                        borderColor: "#52c41a",
+                        color:
+                          selectedAccident.status === "parent_pickup"
+                            ? "#fff"
+                            : "#52c41a",
+                      }}
+                    >
+                      Phụ Huynh Đón
+                    </Button>
+                  </Space>
+                </div>
+                <div
+                  style={{ marginTop: "8px", fontSize: "12px", color: "#666" }}
+                >
+                  <strong>Trạng thái hiện tại:</strong>{" "}
+                  {(() => {
+                    const statusConfig = {
+                      medical_room: "Phòng Y Tế",
+                      hospital: "Bệnh Viện",
+                      parent_pickup: "Phụ Huynh Đón",
+                    };
+                    return (
+                      statusConfig[selectedAccident.status] ||
+                      selectedAccident.status
+                    );
+                  })()}
+                </div>
+              </div>
 
               <Divider orientation="left" style={{ margin: "16px 0" }}>
                 Tóm Tắt
@@ -637,28 +824,9 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
                   </div>
                 </>
               )}
-
-              {selectedAccident.treatment && (
-                <>
-                  <Divider orientation="left" style={{ margin: "16px 0" }}>
-                    Phương Pháp Điều Trị
-                  </Divider>
-                  <div
-                    style={{
-                      backgroundColor: "#f6ffed",
-                      padding: "12px",
-                      borderRadius: "6px",
-                      border: "1px solid #b7eb8f",
-                    }}
-                  >
-                    <p style={{ margin: 0, lineHeight: "1.6" }}>
-                      {selectedAccident.treatment}
-                    </p>
-                  </div>
-                </>
-              )}
-            </Card>            {/* Nurse Information Card */}
-            <Card 
+            </Card>
+            {/* Nurse Information Card */}
+            <Card
               title={
                 <div
                   style={{ display: "flex", alignItems: "center", gap: "8px" }}
@@ -677,10 +845,10 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
                   </strong>
                 </Descriptions.Item>
                 <Descriptions.Item label="Mã Nhân Viên">
-                  {selectedAccident.nurse?.employeeId || "Không có"}
+                  {selectedAccident.nurse?.id || "Không có"}
                 </Descriptions.Item>
-                <Descriptions.Item label="Phòng Ban">
-                  {selectedAccident.nurse?.department || "Phòng Y Tế Trường"}
+                <Descriptions.Item label="Email">
+                  {selectedAccident.nurse?.email || "Phòng Y Tế Trường"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Liên Hệ">
                   {selectedAccident.nurse?.phone ||
@@ -688,103 +856,160 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
                     "Không có"}
                 </Descriptions.Item>
               </Descriptions>
-            </Card>            {/* Medicine Information Card */}
-            <Card 
+            </Card>{" "}
+            {/* Medicine Information Card */}
+            <Card
               title={
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <MedicineBoxOutlined style={{ color: '#722ed1' }} />
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  <MedicineBoxOutlined style={{ color: "#722ed1" }} />
                   <span>Thuốc Đã Phân Bổ</span>
                 </div>
               }
-              
               size="small"
             >
               {/* Assigned Medicines Display */}
-              {selectedAccident.accidentMedicines && selectedAccident.accidentMedicines.length > 0 && (
-                <div style={{ marginBottom: 16 }}>
-                  <h4 style={{ margin: '0 0 12px 0', color: '#722ed1' }}>Thuốc đã phân bổ:</h4>
-                  {selectedAccident.accidentMedicines.map((accidentMedicine, index) => (
-                    <Card
-                      key={index}
-                      size="small"
-                      style={{ 
-                        marginBottom: index === selectedAccident.accidentMedicines.length - 1 ? 0 : 12,
-                        backgroundColor: '#f8f4ff',
-                        border: '1px solid #d3adf7'
+              {selectedAccident.accidentMedicines &&
+                selectedAccident.accidentMedicines.length > 0 && (
+                  <div style={{ marginBottom: 16 }}>
+                    <h4 style={{ margin: "0 0 12px 0", color: "#722ed1" }}>
+                      Thuốc đã phân bổ:
+                    </h4>
+                    {selectedAccident.accidentMedicines.map(
+                      (accidentMedicine, index) => (
+                        <Card
+                          key={index}
+                          size="small"
+                          style={{
+                            marginBottom:
+                              index ===
+                              selectedAccident.accidentMedicines.length - 1
+                                ? 0
+                                : 12,
+                            backgroundColor: "#f8f4ff",
+                            border: "1px solid #d3adf7",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <div style={{ flex: 1 }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px",
+                                  marginBottom: "8px",
+                                }}
+                              >
+                                <Tag
+                                  color="purple"
+                                  style={{ fontSize: "12px" }}
+                                >
+                                  {accidentMedicine.medicine?.name}
+                                </Tag>
+                                <Tag color="blue" style={{ fontSize: "11px" }}>
+                                  {accidentMedicine.medicine?.type}
+                                </Tag>
+                              </div>
+                              <div style={{ fontSize: "12px", color: "#666" }}>
+                                <strong>Nhà sản xuất:</strong>{" "}
+                                {accidentMedicine.medicine?.manufacturer ||
+                                  "Không có"}
+                              </div>
+                              {accidentMedicine.medicine?.description && (
+                                <div
+                                  style={{
+                                    fontSize: "12px",
+                                    color: "#666",
+                                    marginTop: "4px",
+                                  }}
+                                >
+                                  <strong>Mô tả:</strong>{" "}
+                                  {accidentMedicine.medicine.description}
+                                </div>
+                              )}
+                            </div>
+                            <div
+                              style={{ textAlign: "center", minWidth: "80px" }}
+                            >
+                              <div
+                                style={{
+                                  fontSize: "18px",
+                                  fontWeight: "bold",
+                                  color: "#722ed1",
+                                }}
+                              >
+                                {accidentMedicine.quantity}
+                              </div>
+                              <div style={{ fontSize: "11px", color: "#666" }}>
+                                {accidentMedicine.medicine?.type || "viên"}
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      )
+                    )}
+                    <div
+                      style={{
+                        marginTop: 12,
+                        padding: "8px 12px",
+                        backgroundColor: "#f0f9ff",
+                        border: "1px solid #91caff",
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        color: "#0958d9",
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                            <Tag color="purple" style={{ fontSize: '12px' }}>
-                              {accidentMedicine.medicine?.name}
-                            </Tag>
-                            <Tag color="blue" style={{ fontSize: '11px' }}>
-                              {accidentMedicine.medicine?.type}
-                            </Tag>
-                          </div>
-                          <div style={{ fontSize: '12px', color: '#666' }}>
-                            <strong>Nhà sản xuất:</strong> {accidentMedicine.medicine?.manufacturer || 'Không có'}
-                          </div>
-                          {accidentMedicine.medicine?.description && (
-                            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                              <strong>Mô tả:</strong> {accidentMedicine.medicine.description}
-                            </div>
-                          )}
-                        </div>
-                        <div style={{ textAlign: 'center', minWidth: '80px' }}>
-                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#722ed1' }}>
-                            {accidentMedicine.quantity}
-                          </div>
-                          <div style={{ fontSize: '11px', color: '#666' }}>
-                            {accidentMedicine.medicine?.type || 'viên'}
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                  <div style={{ 
-                    marginTop: 12, 
-                    padding: '8px 12px', 
-                    backgroundColor: '#f0f9ff', 
-                    border: '1px solid #91caff',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    color: '#0958d9'
-                  }}>
-                    <strong>Tổng số loại thuốc:</strong> {selectedAccident.accidentMedicines.length} loại
+                      <strong>Tổng số loại thuốc:</strong>{" "}
+                      {selectedAccident.accidentMedicines.length} loại
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Medicine Assignment Section */}
               <div>
-                <h4 style={{ margin: '16px 0 12px 0', color: '#52c41a' }}>Phân bổ thuốc mới:</h4>
+                <h4 style={{ margin: "16px 0 12px 0", color: "#52c41a" }}>
+                  Phân bổ thuốc mới:
+                </h4>
                 {selectedMedicines.map((medicine, index) => (
-                  <div key={index} style={{ 
-                    display: 'flex', 
-                    gap: '12px', 
-                    alignItems: 'center', 
-                    marginBottom: 12,
-                    padding: '12px',
-                    backgroundColor: '#f6ffed',
-                    border: '1px solid #b7eb8f',
-                    borderRadius: '6px'
-                  }}>
+                  <div
+                    key={index}
+                    style={{
+                      display: "flex",
+                      gap: "12px",
+                      alignItems: "center",
+                      marginBottom: 12,
+                      padding: "12px",
+                      backgroundColor: "#f6ffed",
+                      border: "1px solid #b7eb8f",
+                      borderRadius: "6px",
+                    }}
+                  >
                     <div style={{ flex: 2 }}>
                       <Select
                         placeholder="Chọn thuốc"
-                        style={{ width: '100%' }}
+                        style={{ width: "100%" }}
                         value={medicine.medicineId}
-                        onChange={(value) => handleMedicineChange(index, 'medicineId', value)}
+                        onChange={(value) =>
+                          handleMedicineChange(index, "medicineId", value)
+                        }
                         showSearch
                         filterOption={(input, option) =>
-                          option?.children?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                          option?.children
+                            ?.toLowerCase()
+                            .indexOf(input.toLowerCase()) >= 0
                         }
                       >
-                        {medicines.map(med => (
+                        {medicines.map((med) => (
                           <Option key={med.id} value={med.id}>
-                            {med.name} - {med.type} ({med.availableQuantity} có sẵn)
+                            {med.name} - {med.type} ({med.availableQuantity} có
+                            sẵn)
                           </Option>
                         ))}
                       </Select>
@@ -795,14 +1020,20 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
                         placeholder="Số lượng"
                         min={1}
                         value={medicine.quantity}
-                        onChange={(e) => handleMedicineChange(index, 'quantity', parseInt(e.target.value) || 1)}
+                        onChange={(e) =>
+                          handleMedicineChange(
+                            index,
+                            "quantity",
+                            parseInt(e.target.value) || 1
+                          )
+                        }
                         addonBefore="Số lượng"
                       />
                     </div>
                     <Space>
                       {selectedMedicines.length > 1 && (
-                        <Button 
-                          type="text" 
+                        <Button
+                          type="text"
                           danger
                           icon={<MinusCircleOutlined />}
                           onClick={() => removeMedicineRow(index)}
@@ -810,8 +1041,8 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
                         />
                       )}
                       {index === selectedMedicines.length - 1 && (
-                        <Button 
-                          type="dashed" 
+                        <Button
+                          type="dashed"
                           icon={<PlusOutlined />}
                           onClick={addMedicineRow}
                           size="small"
@@ -821,15 +1052,28 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
                     </Space>
                   </div>
                 ))}
-                
-                <div style={{ textAlign: 'center', marginTop: 16, marginBottom: 8 }}>
-                  <Button 
-                    type="primary" 
+
+                <div
+                  style={{
+                    textAlign: "center",
+                    marginTop: 16,
+                    marginBottom: 8,
+                  }}
+                >
+                  <Button
+                    type="primary"
                     icon={<MedicineBoxOutlined />}
                     loading={loading}
                     onClick={handleSubmitMedicineAssignment}
-                    style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
-                    disabled={!selectedMedicines.some(med => med.medicineId && med.quantity > 0)}
+                    style={{
+                      backgroundColor: "#52c41a",
+                      borderColor: "#52c41a",
+                    }}
+                    disabled={
+                      !selectedMedicines.some(
+                        (med) => med.medicineId && med.quantity > 0
+                      )
+                    }
                   >
                     Phân Bổ Thuốc
                   </Button>
@@ -837,24 +1081,29 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
               </div>
 
               {/* Empty State when no medicines assigned */}
-              {(!selectedAccident.accidentMedicines || selectedAccident.accidentMedicines.length === 0) && (
-                <div style={{ 
-                  textAlign: 'center', 
-                  padding: '20px', 
-                  color: '#999',
-                  backgroundColor: '#fafafa',
-                  borderRadius: '6px',
-                  border: '1px dashed #d9d9d9',
-                  marginBottom: 16
-                }}>
-                  <MedicineBoxOutlined style={{ fontSize: '24px', marginBottom: '8px' }} />
+              {(!selectedAccident.accidentMedicines ||
+                selectedAccident.accidentMedicines.length === 0) && (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "20px",
+                    color: "#999",
+                    backgroundColor: "#fafafa",
+                    borderRadius: "6px",
+                    border: "1px dashed #d9d9d9",
+                    marginBottom: 16,
+                  }}
+                >
+                  <MedicineBoxOutlined
+                    style={{ fontSize: "24px", marginBottom: "8px" }}
+                  />
                   <div>Chưa có thuốc nào được phân bổ</div>
                 </div>
               )}
-            </Card></div>
+            </Card>
+          </div>
         )}
       </Modal>
-
       {/* Medicine Assignment Modal */}
       <Modal
         title={
@@ -979,7 +1228,13 @@ const AccidentCase = ({ accidents, searchText, onAccidentReported, students, onR
                       placeholder="Số lượng"
                       min={1}
                       value={medicine.quantity}
-                      onChange={(e) => handleMedicineChange(index, 'quantity', parseInt(e.target.value) || 1)}
+                      onChange={(e) =>
+                        handleMedicineChange(
+                          index,
+                          "quantity",
+                          parseInt(e.target.value) || 1
+                        )
+                      }
                       addonBefore="Số Lượng"
                     />
                   </div>
