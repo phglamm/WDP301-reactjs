@@ -28,6 +28,7 @@ import {
   UserOutlined,
   MedicineBoxOutlined,
 } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import injectionEventService from "../../../services/Nurse/InjectionEvent/InjectionEvent";
 import CardData from "../../../components/CardData/CardData";
 import moment from "moment";
@@ -65,10 +66,10 @@ const InjectionEvent = () => {
   const [searchText, setSearchText] = useState("");
   const [selectedCard, setSelectedCard] = useState("all");
   const [selectedGrade, setSelectedGrade] = useState(1);
-  const [selectedVaccineType, setSelectedVaccineType] = useState(null);
-  const [form] = Form.useForm();
+  const [selectedVaccineType, setSelectedVaccineType] = useState(null);  const [form] = Form.useForm();
   const [vaccineForm] = Form.useForm();
   const user = useSelector(selectUser);
+  const navigate = useNavigate();
 
   // Fetch injection events
   const fetchInjectionEvents = async () => {
@@ -1834,14 +1835,30 @@ const InjectionEvent = () => {
           setInjectionRecordDetailModalVisible(false);
           setSelectedInjectionRecordReports(null);
         }}
-        footer={[
-          <Button
+        footer={[          <Button
             key="createAppointment"
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => {
-              // Handle create appointment logic here
-              message.info("Chức năng tạo lịch hẹn sẽ được phát triển sau.");
+              // Navigate to appointment page with parent info from the first report
+              const firstReport = selectedInjectionRecordReports?.[0];
+              const parentInfo = firstReport?.createdBy;
+                if (parentInfo && parentInfo.role === "parent") {
+                message.success(`Đang chuyển đến trang tạo lịch hẹn cho phụ huynh: ${parentInfo.fullName}`);
+                navigate("/nurse/appointment", {
+                  state: {
+                    autoOpenModal: true,
+                    preSelectedParent: {
+                      id: parentInfo.id,
+                      fullName: parentInfo.fullName,
+                      phone: parentInfo.phone,
+                      email: parentInfo.email
+                    }
+                  }
+                });
+              } else {
+                message.warning("Không tìm thấy thông tin phụ huynh để tạo lịch hẹn.");
+              }
             }}
           >
             Tạo Lịch Hẹn

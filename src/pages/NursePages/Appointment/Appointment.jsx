@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Form, message } from "antd";
+import { useLocation } from "react-router-dom";
 import moment from "moment";
 import AppointmentService from "../../../services/Nurse/AppointmentService/AppointmentService";
 
@@ -39,6 +40,9 @@ const Appointment = () => {
     cancelled: 0,
     inProgress: 0,
   });
+
+  // Get location state for navigation handling
+  const location = useLocation();
 
   const getParent = async () => {
     try {
@@ -194,6 +198,23 @@ const Appointment = () => {
       applyFilters(appointments, activeFilter, dateRange);
     }
   }, [todayAppointments, appointments, activeFilter, dateRange, applyFilters]);
+
+  // Handle navigation state for auto-opening modal with pre-selected parent
+  useEffect(() => {
+    if (location.state?.autoOpenModal && location.state?.preSelectedParent) {
+      // Set the modal visible
+      setModalVisible(true);
+      
+      // Pre-fill the form with the parent information
+      form.setFieldsValue({
+        parentId: location.state.preSelectedParent.id
+      });
+
+      // Clear the navigation state to prevent re-triggering
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, form]);
+
     // Convert appointments to calendar events
   const calendarEvents = filteredAppointments.map((appointment) => {
     const startTime = moment(appointment.appointmentTime);
