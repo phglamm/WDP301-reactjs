@@ -35,6 +35,9 @@ const injectionEventService = {
   getAllPostInjectionRecords: (id) =>
     request("GET", `post-injection-report/injection-event/${id}`),
 
+  //Get post injection record by ID
+  getPostInjectionRecordById: (id) =>
+    request("GET", `post-injection-report/injection-record/${id}`),
 };
 
 export default injectionEventService;

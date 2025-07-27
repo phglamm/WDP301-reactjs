@@ -16,6 +16,7 @@ import {
   Descriptions,
   InputNumber,
   Upload,
+  Spin,
 } from "antd";
 import {
   PlusOutlined,
@@ -49,14 +50,17 @@ const InjectionEvent = () => {
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [postInjectionModalVisible, setPostInjectionModalVisible] =
+    useState(false);  const [postInjectionDetailModalVisible, setPostInjectionDetailModalVisible] =
     useState(false);
-  const [postInjectionDetailModalVisible, setPostInjectionDetailModalVisible] =
+  const [injectionRecordDetailModalVisible, setInjectionRecordDetailModalVisible] =
     useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [postInjectionRecords, setPostInjectionRecords] = useState([]);
   const [selectedPostInjectionRecord, setSelectedPostInjectionRecord] =
     useState(null);
+  const [selectedInjectionRecordReports, setSelectedInjectionRecordReports] = useState(null);
   const [postInjectionLoading, setPostInjectionLoading] = useState(false);
+  const [injectionRecordLoading, setInjectionRecordLoading] = useState(false);
   const [uploadFileList, setUploadFileList] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [selectedCard, setSelectedCard] = useState("all");
@@ -324,11 +328,33 @@ const InjectionEvent = () => {
       setPostInjectionLoading(false);
     }
   };
-
   // Handle view post injection record detail
   const handleViewPostInjectionDetail = (record) => {
     setSelectedPostInjectionRecord(record);
     setPostInjectionDetailModalVisible(true);
+  };
+
+  // Handle view injection record reports by injection record ID
+  const handleViewInjectionRecordReports = async (injectionRecordId) => {
+    try {
+      setInjectionRecordLoading(true);
+      setInjectionRecordDetailModalVisible(true);
+      
+      const response = await injectionEventService.getPostInjectionRecordById(injectionRecordId);
+      
+      if (response && response.status) {
+        setSelectedInjectionRecordReports(response.data);
+      } else {
+        message.error('Không thể tải thông tin báo cáo tiêm chủng');
+        setSelectedInjectionRecordReports([]);
+      }
+    } catch (error) {
+      console.error('Error fetching injection record reports:', error);
+      message.error('Có lỗi xảy ra khi tải thông tin báo cáo tiêm chủng');
+      setSelectedInjectionRecordReports([]);
+    } finally {
+      setInjectionRecordLoading(false);
+    }
   };
 
   const handleViewDetail = (event) => {
@@ -741,7 +767,8 @@ const InjectionEvent = () => {
                     const openDate = form.getFieldValue("registrationOpenDate");
                     if (!openDate) {
                       // If no open date selected, disable all past dates
-                      return current && current < moment().startOf("day");                    }
+                      return current && current < moment().startOf("day");
+                    }
                     // Disable dates before registration open date + 1 day
                     return (
                       current &&
@@ -1329,11 +1356,24 @@ const InjectionEvent = () => {
                   </div>
                 </div>
               </Card>
-            </div>
-
+            </div>{" "}
             {/* Post Injection Records Table */}
             <Table
               columns={[
+                {
+                  title: "ID",
+                  dataIndex: "id",
+                  key: "id",
+                  width: 80,
+                  render: (id) => <Tag color="purple">#{id}</Tag>,
+                },
+                {
+                  title: "ID Bản ghi tiêm",
+                  dataIndex: ["injectionRecord", "id"],
+                  key: "injectionRecordId",
+                  width: 130,
+                  render: (id) => <Tag color="blue">#{id}</Tag>,
+                },
                 {
                   title: "Mức độ nghiêm trọng",
                   dataIndex: "severityLevel",
@@ -1353,30 +1393,21 @@ const InjectionEvent = () => {
                   },
                 },
                 {
-                  title: "Lớp",
-                  dataIndex: ["injectionRecord", "student", "class"],
-                  key: "class",
-                  width: 100,
-                  render: (className) => <Tag color="blue">{className}</Tag>,
-                },
-                {
-                  title: "Họ và tên",
+                  title: "Tên học sinh",
                   dataIndex: ["injectionRecord", "student", "fullName"],
-                  key: "fullName",
+                  key: "parentName",
                   width: 200,
                   render: (name) => (
                     <span style={{ fontWeight: "medium" }}>{name}</span>
                   ),
                 },
                 {
-                  title: "Giới tính",
-                  dataIndex: ["injectionRecord", "student", "gender"],
-                  key: "gender",
-                  width: 100,
-                  render: (gender) => (
-                    <Tag color={gender === "Nam" ? "blue" : "pink"}>
-                      {gender}
-                    </Tag>
+                  title: "Lớp",
+                  dataIndex: ["injectionRecord", "student", "class"],
+                  key: "parentPhone",
+                  width: 130,
+                  render: (phone) => (
+                    <span style={{ color: "#1890ff" }}>{phone}</span>
                   ),
                 },
                 {
@@ -1400,9 +1431,15 @@ const InjectionEvent = () => {
                   dataIndex: "hoursPostInjection",
                   key: "hoursPostInjection",
                   width: 150,
-                  render: (hours) => `${hours} giờ`,
+                  render: (hours) => <Tag color="cyan">{hours} giờ</Tag>,
                 },
                 {
+                  title: "Ngày báo cáo",
+                  dataIndex: "createdAt",
+                  key: "createdAt",
+                  width: 150,
+                  render: (date) => moment(date).format("DD/MM/YYYY HH:mm"),
+                },                {
                   title: "Thao tác",
                   key: "actions",
                   width: 120,
@@ -1411,8 +1448,8 @@ const InjectionEvent = () => {
                       icon={<EyeOutlined />}
                       size="small"
                       type="primary"
-                      onClick={() => handleViewPostInjectionDetail(record)}
-                      title="Xem chi tiết"
+                      onClick={() => handleViewInjectionRecordReports(record.injectionRecord?.id)}
+                      title="Xem báo cáo tiêm chủng"
                     />
                   ),
                 },
@@ -1425,7 +1462,7 @@ const InjectionEvent = () => {
                 showTotal: (total, range) =>
                   `${range[0]}-${range[1]} của ${total} báo cáo`,
               }}
-              scroll={{ x: 800 }}
+              scroll={{ x: 900 }}
               size="small"
             />
           </div>
@@ -1457,71 +1494,48 @@ const InjectionEvent = () => {
       >
         {selectedPostInjectionRecord && (
           <div>
-            {/* Student Information */}
+            {" "}
+            {/* Parent Information */}
             <Card
               title={
                 <div
                   style={{ display: "flex", alignItems: "center", gap: "8px" }}
                 >
                   <UserOutlined style={{ color: "#1890ff" }} />
-                  <span>Thông Tin Học Sinh</span>
+                  <span>Thông Tin Phụ Huynh Báo Cáo</span>
                 </div>
               }
               style={{ marginBottom: 16 }}
               size="small"
             >
               <Descriptions bordered column={2} size="small">
-                <Descriptions.Item label="Mã học sinh">
+                <Descriptions.Item label="ID Phụ huynh">
                   <Tag color="blue">
-                    {
-                      selectedPostInjectionRecord.injectionRecord?.student
-                        ?.studentCode
-                    }
+                    {selectedPostInjectionRecord.createdBy?.id}
                   </Tag>
                 </Descriptions.Item>
                 <Descriptions.Item label="Họ và tên">
                   <strong>
-                    {
-                      selectedPostInjectionRecord.injectionRecord?.student
-                        ?.fullName
-                    }
+                    {selectedPostInjectionRecord.createdBy?.fullName}
                   </strong>
                 </Descriptions.Item>
-                <Descriptions.Item label="Lớp">
+                <Descriptions.Item label="Email">
+                  <span style={{ color: "#1890ff" }}>
+                    {selectedPostInjectionRecord.createdBy?.email}
+                  </span>
+                </Descriptions.Item>
+                <Descriptions.Item label="Số điện thoại">
+                  {selectedPostInjectionRecord.createdBy?.phone}
+                </Descriptions.Item>
+                <Descriptions.Item label="Vai trò" span={2}>
                   <Tag color="green">
-                    {
-                      selectedPostInjectionRecord.injectionRecord?.student
-                        ?.class
-                    }
+                    {selectedPostInjectionRecord.createdBy?.role === "parent"
+                      ? "Phụ huynh"
+                      : selectedPostInjectionRecord.createdBy?.role}
                   </Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label="Giới tính">
-                  <Tag
-                    color={
-                      selectedPostInjectionRecord.injectionRecord?.student
-                        ?.gender === "Nam"
-                        ? "blue"
-                        : "pink"
-                    }
-                  >
-                    {
-                      selectedPostInjectionRecord.injectionRecord?.student
-                        ?.gender
-                    }
-                  </Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label="Ngày sinh" span={2}>
-                  {selectedPostInjectionRecord.injectionRecord?.student?.dob}
-                </Descriptions.Item>
-                <Descriptions.Item label="Địa chỉ" span={2}>
-                  {
-                    selectedPostInjectionRecord.injectionRecord?.student
-                      ?.address
-                  }
                 </Descriptions.Item>
               </Descriptions>
             </Card>
-
             {/* Post Injection Report Information */}
             <Card
               title={
@@ -1590,8 +1604,7 @@ const InjectionEvent = () => {
                   </div>
                 </Descriptions.Item>
               </Descriptions>
-            </Card>
-
+            </Card>{" "}
             {/* Injection Record Information */}
             <Card
               title={
@@ -1605,6 +1618,11 @@ const InjectionEvent = () => {
               size="small"
             >
               <Descriptions bordered column={2} size="small">
+                <Descriptions.Item label="ID bản ghi tiêm">
+                  <Tag color="purple">
+                    {selectedPostInjectionRecord.injectionRecord?.id}
+                  </Tag>
+                </Descriptions.Item>
                 <Descriptions.Item label="Ngày đăng ký">
                   {moment(
                     selectedPostInjectionRecord.injectionRecord
@@ -1626,30 +1644,132 @@ const InjectionEvent = () => {
                       : "Chưa hoàn thành"}
                   </Tag>
                 </Descriptions.Item>
-                <Descriptions.Item label="Nhiệt độ trước tiêm">
-                  {
-                    selectedPostInjectionRecord.injectionRecord
-                      ?.preInjectionTemperature
-                  }
-                  °C
-                </Descriptions.Item>
-                <Descriptions.Item label="Nhiệt độ sau tiêm">
-                  {
-                    selectedPostInjectionRecord.injectionRecord
-                      ?.postInjectionTemperature
-                  }
-                  °C
-                </Descriptions.Item>
-                <Descriptions.Item label="Vị trí tiêm">
-                  {selectedPostInjectionRecord.injectionRecord?.injectionSite ||
-                    "Không có"}
-                </Descriptions.Item>
-                <Descriptions.Item label="Tình trạng sức khỏe">
-                  <Tag color="blue">
+                <Descriptions.Item label="Đủ điều kiện tiêm">
+                  <Tag
+                    color={
+                      selectedPostInjectionRecord.injectionRecord
+                        ?.eligibleForInjection
+                        ? "green"
+                        : "red"
+                    }
+                  >
                     {selectedPostInjectionRecord.injectionRecord
-                      ?.healthStatus || "Bình thường"}
+                      ?.eligibleForInjection
+                      ? "Đủ điều kiện"
+                      : "Không đủ điều kiện"}
                   </Tag>
                 </Descriptions.Item>
+                <Descriptions.Item label="Nhiệt độ trước tiêm">
+                  <span
+                    style={{
+                      color:
+                        parseFloat(
+                          selectedPostInjectionRecord.injectionRecord
+                            ?.preInjectionTemperature
+                        ) > 37.5
+                          ? "#ff4d4f"
+                          : "#52c41a",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {
+                      selectedPostInjectionRecord.injectionRecord
+                        ?.preInjectionTemperature
+                    }
+                    °C
+                  </span>
+                </Descriptions.Item>
+                <Descriptions.Item label="Nhiệt độ sau tiêm">
+                  <span
+                    style={{
+                      color:
+                        parseFloat(
+                          selectedPostInjectionRecord.injectionRecord
+                            ?.postInjectionTemperature
+                        ) > 37.5
+                          ? "#ff4d4f"
+                          : "#52c41a",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {
+                      selectedPostInjectionRecord.injectionRecord
+                        ?.postInjectionTemperature
+                    }
+                    °C
+                  </span>
+                </Descriptions.Item>
+                <Descriptions.Item label="Vị trí tiêm">
+                  <Tag color="blue">
+                    {selectedPostInjectionRecord.injectionRecord
+                      ?.injectionSite || "Không có thông tin"}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Tình trạng sức khỏe">
+                  <Tag color="cyan">
+                    {selectedPostInjectionRecord.injectionRecord
+                      ?.healthStatus === "normal"
+                      ? "Bình thường"
+                      : selectedPostInjectionRecord.injectionRecord
+                          ?.healthStatus || "Không có thông tin"}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Có bệnh lý trước đó">
+                  <Tag
+                    color={
+                      selectedPostInjectionRecord.injectionRecord
+                        ?.hasPreExistingConditions
+                        ? "orange"
+                        : "green"
+                    }
+                  >
+                    {selectedPostInjectionRecord.injectionRecord
+                      ?.hasPreExistingConditions
+                      ? "Có"
+                      : "Không"}
+                  </Tag>
+                </Descriptions.Item>
+                {selectedPostInjectionRecord.injectionRecord
+                  ?.hasPreExistingConditions &&
+                  selectedPostInjectionRecord.injectionRecord
+                    ?.preExistingConditions && (
+                    <Descriptions.Item label="Bệnh lý trước đó" span={2}>
+                      <div
+                        style={{
+                          backgroundColor: "#fff7e6",
+                          padding: "12px",
+                          borderRadius: "6px",
+                          border: "1px solid #ffd591",
+                        }}
+                      >
+                        {
+                          selectedPostInjectionRecord.injectionRecord
+                            .preExistingConditions
+                        }
+                      </div>
+                    </Descriptions.Item>
+                  )}
+                {selectedPostInjectionRecord.injectionRecord
+                  ?.preInjectionHealthNotes && (
+                  <Descriptions.Item
+                    label="Ghi chú sức khỏe trước tiêm"
+                    span={2}
+                  >
+                    <div
+                      style={{
+                        backgroundColor: "#f0f9ff",
+                        padding: "12px",
+                        borderRadius: "6px",
+                        border: "1px solid #91caff",
+                      }}
+                    >
+                      {
+                        selectedPostInjectionRecord.injectionRecord
+                          .preInjectionHealthNotes
+                      }
+                    </div>
+                  </Descriptions.Item>
+                )}
                 {selectedPostInjectionRecord.injectionRecord?.sideEffects && (
                   <Descriptions.Item label="Tác dụng phụ" span={2}>
                     <div
@@ -1678,8 +1798,196 @@ const InjectionEvent = () => {
                     </div>
                   </Descriptions.Item>
                 )}
+                {selectedPostInjectionRecord.injectionRecord
+                  ?.deferralReason && (
+                  <Descriptions.Item label="Lý do hoãn tiêm" span={2}>
+                    <div
+                      style={{
+                        backgroundColor: "#fff1f0",
+                        padding: "12px",
+                        borderRadius: "6px",
+                        border: "1px solid #ffccc7",
+                      }}
+                    >
+                      {
+                        selectedPostInjectionRecord.injectionRecord
+                          .deferralReason
+                      }
+                    </div>
+                  </Descriptions.Item>
+                )}
               </Descriptions>
-            </Card>
+            </Card>          </div>
+        )}
+      </Modal>
+
+      {/* Injection Record Reports Modal */}
+      <Modal
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <MedicineBoxOutlined style={{ color: "#52c41a" }} />
+            <span>Báo Cáo Tiêm Chủng</span>
+          </div>
+        }
+        open={injectionRecordDetailModalVisible}
+        onCancel={() => {
+          setInjectionRecordDetailModalVisible(false);
+          setSelectedInjectionRecordReports(null);
+        }}
+        footer={[
+          <Button
+            key="createAppointment"
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              // Handle create appointment logic here
+              message.info("Chức năng tạo lịch hẹn sẽ được phát triển sau.");
+            }}
+          >
+            Tạo Lịch Hẹn
+          </Button>,
+          <Button
+            key="close"
+            onClick={() => {
+              setInjectionRecordDetailModalVisible(false);
+              setSelectedInjectionRecordReports(null);
+            }}
+          >
+            Đóng
+          </Button>
+        ]}
+        width={1000}
+        centered
+      >
+        {injectionRecordLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <Spin size="large" />
+            <span className="ml-3">Đang tải báo cáo tiêm chủng...</span>
+          </div>
+        ) : selectedInjectionRecordReports && selectedInjectionRecordReports.length > 0 ? (
+          <div>
+            {/* Reports List */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {selectedInjectionRecordReports.map((report) => (
+                <Card
+                  key={report.id}
+                  size="small"
+                  style={{
+                    border: `2px solid ${
+                      report.severityLevel === "high"
+                        ? "#ff4d4f"
+                        : report.severityLevel === "medium"
+                        ? "#fa8c16"
+                        : "#52c41a"
+                    }`,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px" }}>
+                    <div>
+                      <strong>Báo cáo #{report.id}</strong>
+                      <div style={{ color: "#666", fontSize: "12px" }}>
+                        {moment(report.createdAt).format("DD/MM/YYYY HH:mm")}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      <Tag
+                        color={
+                          report.severityLevel === "high"
+                            ? "red"
+                            : report.severityLevel === "medium"
+                            ? "orange"
+                            : "green"
+                        }
+                      >
+                        {report.severityLevel === "high"
+                          ? "Nghiêm trọng"
+                          : report.severityLevel === "medium"
+                          ? "Trung bình"
+                          : "Nhẹ"}
+                      </Tag>
+                      <Tag color="blue">{report.hoursPostInjection} giờ sau tiêm</Tag>
+                    </div>
+                  </div>
+
+                  <Descriptions bordered column={2} size="small">
+                    <Descriptions.Item label="Nhiệt độ">
+                      <span
+                        style={{
+                          color: parseFloat(report.temperature) > 38 ? "#ff4d4f" : "#52c41a",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {report.temperature}°C
+                      </span>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Phụ huynh báo cáo">
+                      <div>
+                        <strong>{report.createdBy?.fullName}</strong>
+                        <br />
+                        <span style={{ color: "#1890ff" }}>{report.createdBy?.phone}</span>
+                      </div>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Mô tả triệu chứng" span={2}>
+                      <div
+                        style={{
+                          backgroundColor: "#f5f5f5",
+                          padding: "12px",
+                          borderRadius: "6px",
+                          border: "1px solid #d9d9d9",
+                        }}
+                      >
+                        {report.description || "Không có mô tả"}
+                      </div>
+                    </Descriptions.Item>
+                  </Descriptions>
+
+                  {/* Injection Record Information */}
+                  {report.injectionRecord && (
+                    <div style={{ marginTop: "16px" }}>
+                      <h4 style={{ margin: "0 0 12px 0", color: "#52c41a" }}>
+                        Thông tin bản ghi tiêm #{report.injectionRecord.id}
+                      </h4>
+                      <Descriptions bordered column={2} size="small">
+                        <Descriptions.Item label="Ngày đăng ký">
+                          {moment(report.injectionRecord.registrationDate).format("DD/MM/YYYY HH:mm")}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Trạng thái">
+                          <Tag
+                            color={
+                              report.injectionRecord.injectionStatus === "completed" ? "green" : "orange"
+                            }
+                          >
+                            {report.injectionRecord.injectionStatus === "completed"
+                              ? "Đã hoàn thành"
+                              : "Chưa hoàn thành"}
+                          </Tag>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Nhiệt độ trước tiêm">
+                          {report.injectionRecord.preInjectionTemperature}°C
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Nhiệt độ sau tiêm">
+                          {report.injectionRecord.postInjectionTemperature}°C
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Vị trí tiêm">
+                          {report.injectionRecord.injectionSite}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Tình trạng sức khỏe">
+                          <Tag color="cyan">
+                            {report.injectionRecord.healthStatus === "normal"
+                              ? "Bình thường"
+                              : report.injectionRecord.healthStatus}
+                          </Tag>
+                        </Descriptions.Item>
+                      </Descriptions>
+                    </div>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-500">Không có báo cáo tiêm chủng nào</p>
           </div>
         )}
       </Modal>
