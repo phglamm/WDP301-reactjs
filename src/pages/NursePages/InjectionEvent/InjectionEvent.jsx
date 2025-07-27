@@ -44,10 +44,10 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
   const [vaccineModalVisible, setVaccineModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [uploadFileList, setUploadFileList] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);  const [uploadFileList, setUploadFileList] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [selectedCard, setSelectedCard] = useState('all');
+  const [selectedGrade, setSelectedGrade] = useState(1);
   const [form] = Form.useForm();
   const [vaccineForm] = Form.useForm();
   const user = useSelector(selectUser);
@@ -233,7 +233,6 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
   const handleCardClick = (cardType) => {
     setSelectedCard(cardType);
   };
-
   const handleSubmit = async (values) => {
     try {
       const formData = {
@@ -241,15 +240,16 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
         registrationOpenDate: values.registrationOpenDate.toISOString(),
         registrationCloseDate: values.registrationCloseDate.toISOString(),
         date: values.date.toISOString(),
-        price: values.price || 0
+        price: values.price || 0,
+        grade: values.grade
       };
 
       const response = await injectionEventService.createInjectionEvent(formData);
-      
-      if (response.status) {
+        if (response.status) {
         message.success('Tạo sự kiện tiêm chủng thành công!');
         setModalVisible(false);
         form.resetFields();
+        setSelectedGrade(1);
         fetchInjectionEvents();
       } else {
         message.error('Có lỗi xảy ra khi tạo sự kiện!');
@@ -328,8 +328,7 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
       key: 'numberOfDoses',
       width: 100,
       render: (doses) => <Tag color="purple">{doses} liều</Tag>
-    },
-    {
+    },    {
       title: 'Giá',
       dataIndex: 'price',
       key: 'price',
@@ -339,6 +338,13 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
           {price === 0 ? 'Miễn phí' : `${price.toLocaleString()} VNĐ`}
         </span>
       )
+    },
+    {
+      title: 'Khối lớp',
+      dataIndex: 'grade',
+      key: 'grade',
+      width: 100,
+      render: (grade) => <Tag color="cyan">Lớp {grade}</Tag>
     },
     {
       title: 'Ngày mở đăng ký',
@@ -520,10 +526,10 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
       {/* Create/Edit Modal */}
       <Modal
         title="Tạo sự kiện tiêm chủng"
-        open={modalVisible}
-        onCancel={() => {
+        open={modalVisible}        onCancel={() => {
           setModalVisible(false);
           form.resetFields();
+          setSelectedGrade(1);
         }}
         footer={null}
         width={600}
@@ -576,9 +582,7 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
                 />
               </Form.Item>
             </Col>
-          </Row>
-
-          <Row gutter={16}>
+          </Row>          <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 label="Ngày tiêm"
@@ -608,13 +612,43 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
                 />
               </Form.Item>
             </Col>
-          </Row>
+          </Row>          <Form.Item
+            label="Khối lớp"
+            name="grade"
+            rules={[{ required: true, message: 'Vui lòng chọn khối lớp!' }]}
+            initialValue={1}
+          >
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {[1, 2, 3, 4, 5].map(grade => (
+                <Button
+                  key={grade}
+                  type={selectedGrade === grade ? 'primary' : 'default'}
+                  size="large"
+                  style={{
+                    minWidth: '60px',
+                    height: '40px',
+                    borderRadius: '8px',
+                    fontWeight: 'bold',
+                    backgroundColor: selectedGrade === grade ? '#1890ff' : '#fff',
+                    borderColor: selectedGrade === grade ? '#1890ff' : '#d9d9d9',
+                    color: selectedGrade === grade ? '#fff' : '#666',
+                  }}
+                  onClick={() => {
+                    setSelectedGrade(grade);
+                    form.setFieldsValue({ grade });
+                  }}
+                >
+                  Lớp {grade}
+                </Button>
+              ))}
+            </div>
+          </Form.Item>
 
           <Form.Item className="mb-0 text-right">
-            <Space>
-              <Button onClick={() => {
+            <Space>              <Button onClick={() => {
                 setModalVisible(false);
                 form.resetFields();
+                setSelectedGrade(1);
               }}>
                 Hủy
               </Button>
@@ -656,11 +690,13 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
             </Descriptions.Item>
             <Descriptions.Item label="Mô tả vaccine" span={2}>
               {selectedEvent.vaccination?.description}
-            </Descriptions.Item>
-            <Descriptions.Item label="Giá">
+            </Descriptions.Item>            <Descriptions.Item label="Giá">
               <span className={selectedEvent.price === 0 ? 'text-green-600 font-medium' : 'text-blue-600 font-medium'}>
                 {selectedEvent.price === 0 ? 'Miễn phí' : `${selectedEvent.price.toLocaleString()} VNĐ`}
               </span>
+            </Descriptions.Item>
+            <Descriptions.Item label="Khối lớp">
+              <Tag color="cyan">Lớp {selectedEvent.grade}</Tag>
             </Descriptions.Item>
             <Descriptions.Item label="Ngày mở đăng ký">
               {moment(selectedEvent.registrationOpenDate).format('DD/MM/YYYY HH:mm')}
