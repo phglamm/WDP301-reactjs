@@ -317,12 +317,6 @@ const UserManagement = () => {
       filterType: "parents"
     },
     {
-      title: "Quản trị viên",
-      value: statistics.admins,
-      subtitle: "admin hệ thống",
-      filterType: "admin"
-    },
-    {
       title: "Học sinh",
       value: statistics.totalStudents,
       subtitle: "tổng số học sinh",
