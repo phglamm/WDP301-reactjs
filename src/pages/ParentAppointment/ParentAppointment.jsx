@@ -166,19 +166,6 @@ const ParentAppointment = () => {
                           {app.purpose}
                         </span>
                       </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-blue-600" />
-                          <span className="font-semibold text-gray-700">
-                            Thời lượng:
-                          </span>
-                        </div>
-                        <span className="text-gray-900">
-                          {app.duration} phút
-                        </span>
-                      </div>
-
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <StatusIcon className="w-4 h-4 text-blue-600" />

@@ -62,15 +62,6 @@ const HealthProfile = () => {
 
       if (response.ok) {
         const data = await response.json();
-
-        // Debug: In ra toàn bộ cấu trúc data
-        console.log("Full data structure:", JSON.stringify(data, null, 2));
-        console.log("data type:", typeof data);
-        console.log("data is array:", Array.isArray(data));
-        console.log("data.data:", data.data);
-        console.log("data.data is array:", Array.isArray(data.data));
-        console.log("Object keys:", Object.keys(data));
-
         // Thử tất cả các cách có thể
         const possibleArrays = [
           data,
@@ -92,6 +83,7 @@ const HealthProfile = () => {
 
         console.log("Final students data:", studentsData);
         setStudents(studentsData);
+        setSelectedStudent(studentsData[0]?.id || ""); // Chọn học sinh đầu tiên nếu có
       } else {
         console.error("Failed to fetch students:", response.statusText);
         setStudents([]);
@@ -414,38 +406,6 @@ const HealthProfile = () => {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-              {/* Tất cả option */}
-              <div
-                onClick={() => handleStudentSelect("")}
-                className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 ${
-                  selectedStudent === ""
-                    ? "shadow-lg"
-                    : "border-gray-200 hover:border-opacity-50"
-                }`}
-                style={{
-                  borderColor: selectedStudent === "" ? "#407CE2" : undefined,
-                  backgroundColor:
-                    selectedStudent === "" ? "#f0f6ff" : undefined,
-                  borderWidth: selectedStudent === "" ? "2px" : "1px",
-                }}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center mb-2"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, #407CE2 0%, #223A6A 100%)",
-                    }}
-                  >
-                    <span className="text-2xl">📊</span>
-                  </div>
-                  <div className="font-medium" style={{ color: "#223A6A" }}>
-                    Tất cả
-                  </div>
-                  <div className="text-sm text-gray-500">Xem tổng quan</div>
-                </div>
-              </div>
-
               {/* Student options */}
               {students && students.length > 0
                 ? students.map((student) => (

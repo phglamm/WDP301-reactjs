@@ -3,7 +3,6 @@ import { Calendar, Plus, Edit, Check, Clock, AlertCircle, User, Stethoscope, Dol
 import { Modal } from 'antd';
 
 const VaccineReminder = () => {
-  const [selectedDate, setSelectedDate] = useState(null);
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState('');
   const [schoolVaccines, setSchoolVaccines] = useState([]);
@@ -13,34 +12,9 @@ const VaccineReminder = () => {
   const [injectionEvents, setInjectionEvents] = useState([]);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [registeredEventIds, setRegisteredEventIds] = useState([]);
   const [registeredVaccines, setRegisteredVaccines] = useState([]);
   const [registeredEvents, setRegisteredEvents] = useState([]);
 
-  // Tạo calendar cho tháng hiện tại
-  const generateCalendar = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
-
-    const days = [];
-    
-    // Thêm các ngày trống ở đầu tháng
-    for (let i = 0; i < startingDayOfWeek; i++) {
-      days.push(null);
-    }
-    
-    // Thêm các ngày trong tháng
-    for (let day = 1; day <= daysInMonth; day++) {
-      days.push(day);
-    }
-    
-    return days;
-  };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -51,21 +25,6 @@ const VaccineReminder = () => {
     });
   };
 
-  const getDayStatus = (day) => {
-    if (!day) return '';
-    const today = new Date();
-    const currentDay = new Date(today.getFullYear(), today.getMonth(), day);
-    
-    // Kiểm tra xem có vaccine nào trong ngày này không
-    const hasVaccine = schoolVaccines.some(vaccine => {
-      const vaccineDate = new Date(vaccine.date);
-      return vaccineDate.toDateString() === currentDay.toDateString();
-    });
-    
-    if (hasVaccine) return 'has-vaccine';
-    if (currentDay.toDateString() === today.toDateString()) return 'today';
-    return '';
-  };
 
   // Function to get vaccine type display
   const getVaccineTypeDisplay = (vaccination) => {
@@ -121,6 +80,7 @@ const VaccineReminder = () => {
     });
     const data = await res.json();
     setStudents(Array.isArray(data.data) ? data.data : []);
+    setSelectedStudent(data.data?.[0]?.id || ''); // Set first student as default if available
   };
 
   const fetchSchoolVaccines = async () => {
@@ -219,20 +179,7 @@ const VaccineReminder = () => {
     }
   }, [registeredEvents, injectionEvents, selectedStudent]);
 
-  const submitExternalVaccine = async (studentId, vaccinationId, doses) => {
-    const token = localStorage.getItem('access_token');
-    const res = await fetch(`${API_URL}/vaccination/student`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ studentId, vaccinationId, doses })
-    });
-    // Xử lý response...
-  };
 
-  const upcomingVaccines = schoolVaccines;
 
   // Filter available events - exclude events for vaccines that student has already completed
   const getAvailableEvents = () => {
@@ -305,13 +252,6 @@ const VaccineReminder = () => {
                 <p className="text-gray-600">Quản lý lịch tiêm vaccine cho con em</p>
               </div>
             </div>
-            <button 
-              className="flex items-center space-x-2 px-4 py-2 rounded-lg text-white font-medium transition-all hover:scale-105"
-              style={{backgroundColor: '#407CE2'}}
-            >
-              <Plus className="w-5 h-5" />
-              <span>Thêm lịch mới</span>
-            </button>
           </div>
         </div>
 
@@ -324,31 +264,6 @@ const VaccineReminder = () => {
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-              {/* Tất cả option */}
-              <div 
-                onClick={() => setSelectedStudent('')}
-                className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 ${
-                  selectedStudent === '' 
-                    ? 'shadow-lg' 
-                    : 'border-gray-200 hover:border-opacity-50'
-                }`}
-                style={{
-                  borderColor: selectedStudent === '' ? '#407CE2' : undefined,
-                  backgroundColor: selectedStudent === '' ? '#f0f6ff' : undefined,
-                  borderWidth: selectedStudent === '' ? '2px' : '1px'
-                }}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{
-                    background: 'linear-gradient(135deg, #407CE2 0%, #223A6A 100%)'
-                  }}>
-                    <span className="text-2xl">📊</span>
-                  </div>
-                  <div className="font-medium" style={{ color: '#223A6A' }}>Tất cả</div>
-                  <div className="text-sm text-gray-500">Xem tổng quan</div>
-                </div>
-              </div>
-
               {/* Student options */}
               {students.map(student => (
                 <div 
@@ -429,7 +344,6 @@ const VaccineReminder = () => {
                       doses: Number(form.doses)
                     })
                   });
-                  const result = await res.json().catch(() => ({}));
                   if (res.ok) {
                     setNotification('Khai báo thành công!');
                     fetchStudentVaccines(selectedStudent);

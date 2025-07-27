@@ -87,6 +87,7 @@ const DrugInfo = () => {
         // Parse data from API response structure shown in image
         if (data.code === 200 && data.status === true && data.data) {
           setStudents(Array.isArray(data.data) ? data.data : []);
+          setSelectedStudent(data.data[0]?.id || ""); // Automatically select first student if available
         } else {
           setStudents([]);
           showNotification("error", "Không có dữ liệu học sinh");

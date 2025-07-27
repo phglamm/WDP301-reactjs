@@ -30,6 +30,11 @@ const injectionEventService = {
       },
       timeout: 60000, // Increase timeout for file upload
     }),
+
+    //Get all post injection records for a specific injection event
+  getAllPostInjectionRecords: (id) =>
+    request("GET", `post-injection-report/injection-event/${id}`),
+
 };
 
 export default injectionEventService;

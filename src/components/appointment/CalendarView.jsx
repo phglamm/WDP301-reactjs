@@ -27,9 +27,9 @@ const CalendarView = ({
         eventClick={onEventClick}
         select={onDateSelect}
         selectable={true}
-        selectMirror={true}
+        selectMirror={true}     
         dayMaxEvents={true}
-        height="calc(100vh - 360px)"
+        height="calc(100vh - 320px)"
         slotMinTime="06:00:00"
         slotMaxTime="22:00:00"
         allDaySlot={false}
@@ -38,6 +38,7 @@ const CalendarView = ({
           minute: '2-digit',
           hour12: false
         }}
+        
         slotLabelFormat={{
           hour: '2-digit',
           minute: '2-digit',
@@ -46,18 +47,13 @@ const CalendarView = ({
         locale="vi"
         firstDay={1}
         eventContent={(eventInfo) => (
-          <div className="p-1">
-            <div className="font-medium text-xs truncate">
+          <div className="flex flex-col items-start pl-1 justify-center ">
+            <div className="font-medium text-[10px] truncate">
               {eventInfo.event.title}
             </div>
-            <div className="text-xs opacity-80">
+            <div className="text-[10px] opacity-80">
               {moment(eventInfo.event.start).format('HH:mm')} - {moment(eventInfo.event.end).format('HH:mm')}
             </div>
-            {eventInfo.event.extendedProps.googleMeetLink && (
-              <div className="text-xs">
-                <VideoCameraOutlined />
-              </div>
-            )}
           </div>
         )}
       />

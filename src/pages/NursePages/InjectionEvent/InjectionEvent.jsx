@@ -1,41 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Table, 
-  Button, 
-  Modal, 
-  Form, 
-  Input, 
-  DatePicker, 
-  Select, 
-  message, 
-  Tag, 
-  Space, 
-  Card, 
-  Row, 
+import React, { useState, useEffect } from "react";
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Input,
+  DatePicker,
+  Select,
+  message,
+  Tag,
+  Space,
+  Card,
+  Row,
   Col,
   Descriptions,
   InputNumber,
-  Upload
-} from 'antd';
-import { 
-  PlusOutlined, 
-  EyeOutlined, 
+  Upload,
+} from "antd";
+import {
+  PlusOutlined,
+  EyeOutlined,
   DownloadOutlined,
   UploadOutlined,
-  ReloadOutlined
-} from '@ant-design/icons';
-import injectionEventService from '../../../services/Nurse/InjectionEvent/InjectionEvent';
-import CardData from '../../../components/CardData/CardData';
-import moment from 'moment';
-import VaccinationService from '../../../services/Nurse/VaccinationService/VaccinationService';
-import { useSelector } from 'react-redux';
-import { selectUser } from '../../../redux/features/userSlice';
+  ReloadOutlined,
+  FileTextOutlined,
+  UserOutlined,
+  MedicineBoxOutlined,
+} from "@ant-design/icons";
+import injectionEventService from "../../../services/Nurse/InjectionEvent/InjectionEvent";
+import CardData from "../../../components/CardData/CardData";
+import moment from "moment";
+import VaccinationService from "../../../services/Nurse/VaccinationService/VaccinationService";
+import { useSelector } from "react-redux";
+import { selectUser } from "../../../redux/features/userSlice";
 
 const { Option } = Select;
 const { TextArea } = Input;
 const { Search } = Input;
 
-const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = useState([]);
+const InjectionEvent = () => {
+  const [injectionEvents, setInjectionEvents] = useState([]);
   const [vaccinations, setVaccinations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState({}); // Change to object
@@ -44,10 +48,20 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
   const [vaccineModalVisible, setVaccineModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);  const [uploadFileList, setUploadFileList] = useState([]);
-  const [searchText, setSearchText] = useState('');
-  const [selectedCard, setSelectedCard] = useState('all');
+  const [postInjectionModalVisible, setPostInjectionModalVisible] =
+    useState(false);
+  const [postInjectionDetailModalVisible, setPostInjectionDetailModalVisible] =
+    useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [postInjectionRecords, setPostInjectionRecords] = useState([]);
+  const [selectedPostInjectionRecord, setSelectedPostInjectionRecord] =
+    useState(null);
+  const [postInjectionLoading, setPostInjectionLoading] = useState(false);
+  const [uploadFileList, setUploadFileList] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [selectedCard, setSelectedCard] = useState("all");
   const [selectedGrade, setSelectedGrade] = useState(1);
+  const [selectedVaccineType, setSelectedVaccineType] = useState(null);
   const [form] = Form.useForm();
   const [vaccineForm] = Form.useForm();
   const user = useSelector(selectUser);
@@ -61,8 +75,8 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
         setInjectionEvents(response.data);
       }
     } catch (error) {
-      console.error('Error fetching injection events:', error);
-      message.error('Có lỗi xảy ra khi tải dữ liệu sự kiện tiêm chủng!');
+      console.error("Error fetching injection events:", error);
+      message.error("Có lỗi xảy ra khi tải dữ liệu sự kiện tiêm chủng!");
     } finally {
       setLoading(false);
     }
@@ -76,47 +90,56 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
         setVaccinations(response.data);
       }
     } catch (error) {
-      console.error('Error fetching vaccinations:', error);
+      console.error("Error fetching vaccinations:", error);
     }
   };
 
   // Download registered students list
   const handleDownloadStudents = async (event) => {
     try {
-      setDownloadLoading(prev => ({ ...prev, [event.id]: true }));
-      message.loading({ content: 'Đang tải danh sách học sinh...', key: `download-${event.id}` });
-      
-      const blob = await injectionEventService.downloadStudentRegisteredInjectionEvent(event.id);
-      
-      console.log('Blob received:', blob);
-      console.log('Blob size:', blob.size);
-      console.log('Blob type:', blob.type);
-      
+      setDownloadLoading((prev) => ({ ...prev, [event.id]: true }));
+      message.loading({
+        content: "Đang tải danh sách học sinh...",
+        key: `download-${event.id}`,
+      });
+
+      const blob =
+        await injectionEventService.downloadStudentRegisteredInjectionEvent(
+          event.id
+        );
+
+      console.log("Blob received:", blob);
+      console.log("Blob size:", blob.size);
+      console.log("Blob type:", blob.type);
+
       // Check if blob is valid
       if (!blob || blob.size === 0) {
-        throw new Error('Empty file received');
+        throw new Error("Empty file received");
       }
 
       // Create download link
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      
+
       // Generate filename
-      const eventName = event.vaccination?.name?.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_') || 'vaccination_event';
-      const eventDate = moment(event.date).format('YYYY-MM-DD');
-      const timestamp = moment().format('HHmmss');
-      
+      const eventName =
+        event.vaccination?.name
+          ?.replace(/[^a-zA-Z0-9\s]/g, "")
+          .replace(/\s+/g, "_") || "vaccination_event";
+      const eventDate = moment(event.date).format("YYYY-MM-DD");
+      const timestamp = moment().format("HHmmss");
+
       link.download = `${eventName}_Event_${event.id}_${eventDate}_${timestamp}.xlsx`;
-      
+
       // Set download attributes
-      link.setAttribute('download', link.download);
-      link.style.display = 'none';
-      
+      link.setAttribute("download", link.download);
+      link.style.display = "none";
+
       // Trigger download
       document.body.appendChild(link);
       link.click();
-      
+
       // Cleanup
       setTimeout(() => {
         if (document.body.contains(link)) {
@@ -124,20 +147,20 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
         }
         window.URL.revokeObjectURL(url);
       }, 100);
-      
-      message.success({ 
-        content: 'Tải xuống thành công!', 
-        key: `download-${event.id}` 
+
+      message.success({
+        content: "Tải xuống thành công!",
+        key: `download-${event.id}`,
       });
-      
     } catch (error) {
-      console.error('Error downloading students list:', error);
-      message.error({ 
-        content: `Có lỗi xảy ra khi tải danh sách học sinh: ${error.message}`, 
-        key: `download-${event.id}` 
+      console.error("Error downloading students list:", error);
+      message.error({
+        content: `Có lỗi xảy ra khi tải danh sách học sinh: ${error.message}`,
+        key: `download-${event.id}`,
       });
     } finally {
-      setDownloadLoading(prev => ({ ...prev, [event.id]: false }));    }
+      setDownloadLoading((prev) => ({ ...prev, [event.id]: false }));
+    }
   };
 
   // Handle upload result
@@ -149,53 +172,68 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
   // Handle file upload for result
   const handleUploadResultFile = async () => {
     if (!uploadFileList.length) {
-      message.error('Vui lòng chọn file Excel');
+      message.error("Vui lòng chọn file Excel");
       return;
     }
 
     try {
-      setUploadLoading(prev => ({ ...prev, [selectedEvent.id]: true }));
-      
+      setUploadLoading((prev) => ({ ...prev, [selectedEvent.id]: true }));
+
       const formData = new FormData();
       // Make sure we're using the actual file object, not just the file info
       const file = uploadFileList[0].originFileObj || uploadFileList[0];
-      formData.append('file', file);
+      formData.append("file", file);
 
-      console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
+      console.log(
+        "Uploading file:",
+        file.name,
+        "Size:",
+        file.size,
+        "Type:",
+        file.type
+      );
 
-      const response = await injectionEventService.importInjectionEventResult(selectedEvent.id, formData);
-      
+      const response = await injectionEventService.importInjectionEventResult(
+        selectedEvent.id,
+        formData
+      );
+
       if (response.status) {
-        message.success('Upload kết quả thành công!');
+        message.success("Upload kết quả thành công!");
         setUploadModalVisible(false);
         setUploadFileList([]);
         fetchInjectionEvents();
       } else {
-        message.error(response.message || 'Có lỗi xảy ra khi upload kết quả!');
+        message.error(response.message || "Có lỗi xảy ra khi upload kết quả!");
       }
     } catch (error) {
-      console.error('Error uploading result:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Có lỗi xảy ra khi upload kết quả!';
+      console.error("Error uploading result:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Có lỗi xảy ra khi upload kết quả!";
       message.error(errorMessage);
     } finally {
-      setUploadLoading(prev => ({ ...prev, [selectedEvent.id]: false }));
+      setUploadLoading((prev) => ({ ...prev, [selectedEvent.id]: false }));
     }
   };
 
   // Upload props
   const uploadProps = {
     beforeUpload: (file) => {
-      const isExcel = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-                     file.type === 'application/vnd.ms-excel';
+      const isExcel =
+        file.type ===
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+        file.type === "application/vnd.ms-excel";
       if (!isExcel) {
-        message.error('Chỉ có thể upload file Excel (.xlsx, .xls)!');
+        message.error("Chỉ có thể upload file Excel (.xlsx, .xls)!");
         return false;
       }
       setUploadFileList([file]);
       return false;
     },
     fileList: uploadFileList,
-    onRemove: () => setUploadFileList([])
+    onRemove: () => setUploadFileList([]),
   };
 
   useEffect(() => {
@@ -204,22 +242,21 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
   }, []);
 
   // Filter events based on search and selected card
-  const filteredEvents = injectionEvents.filter(event => {
+  const filteredEvents = injectionEvents.filter((event) => {
     let matchesSearch = true;
     if (searchText) {
       const searchLower = searchText.toLowerCase();
-      matchesSearch = (
+      matchesSearch =
         event.vaccination?.name?.toLowerCase().includes(searchLower) ||
         event.vaccination?.description?.toLowerCase().includes(searchLower) ||
-        event.vaccination?.type?.toLowerCase().includes(searchLower)
-      );
+        event.vaccination?.type?.toLowerCase().includes(searchLower);
     }
 
     let matchesCard = true;
-    if (selectedCard === 'free') {
-      matchesCard = event.vaccination?.type === 'free';
-    } else if (selectedCard === 'paid') {
-      matchesCard = event.vaccination?.type === 'paid';
+    if (selectedCard === "free") {
+      matchesCard = event.vaccination?.type === "free";
+    } else if (selectedCard === "paid") {
+      matchesCard = event.vaccination?.type === "paid";
     }
 
     return matchesSearch && matchesCard;
@@ -227,8 +264,12 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
 
   // Calculate statistics
   const totalEvents = injectionEvents.length;
-  const freeEvents = injectionEvents.filter(event => event.vaccination?.type === 'free').length;
-  const paidEvents = injectionEvents.filter(event => event.vaccination?.type === 'paid').length;
+  const freeEvents = injectionEvents.filter(
+    (event) => event.vaccination?.type === "free"
+  ).length;
+  const paidEvents = injectionEvents.filter(
+    (event) => event.vaccination?.type === "paid"
+  ).length;
 
   const handleCardClick = (cardType) => {
     setSelectedCard(cardType);
@@ -241,24 +282,55 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
         registrationCloseDate: values.registrationCloseDate.toISOString(),
         date: values.date.toISOString(),
         price: values.price || 0,
-        grade: values.grade
+        grade: values.grade,
       };
 
-      const response = await injectionEventService.createInjectionEvent(formData);
-        if (response.status) {
-        message.success('Tạo sự kiện tiêm chủng thành công!');
+      const response = await injectionEventService.createInjectionEvent(
+        formData
+      );
+      if (response.status) {
+        message.success("Tạo sự kiện tiêm chủng thành công!");
         setModalVisible(false);
         form.resetFields();
         setSelectedGrade(1);
+        setSelectedVaccineType(null);
         fetchInjectionEvents();
       } else {
-        message.error('Có lỗi xảy ra khi tạo sự kiện!');
+        message.error("Có lỗi xảy ra khi tạo sự kiện!");
       }
     } catch (error) {
-      console.error('Error creating injection event:', error);
-      message.error('Có lỗi xảy ra khi tạo sự kiện tiêm chủng!');
+      console.error("Error creating injection event:", error);
+      message.error("Có lỗi xảy ra khi tạo sự kiện tiêm chủng!");
     }
   };
+
+  // Handle view post injection reports
+  const handleViewPostInjection = async (event) => {
+    try {
+      setPostInjectionLoading(true);
+      setSelectedEvent(event);
+      setPostInjectionModalVisible(true);
+
+      const response = await injectionEventService.getAllPostInjectionRecords(
+        event.id
+      );
+      if (response.status && response.data) {
+        setPostInjectionRecords(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching post injection records:", error);
+      message.error("Có lỗi xảy ra khi tải báo cáo sau tiêm!");
+    } finally {
+      setPostInjectionLoading(false);
+    }
+  };
+
+  // Handle view post injection record detail
+  const handleViewPostInjectionDetail = (record) => {
+    setSelectedPostInjectionRecord(record);
+    setPostInjectionDetailModalVisible(true);
+  };
+
   const handleViewDetail = (event) => {
     setSelectedEvent(event);
     setDetailModalVisible(true);
@@ -271,22 +343,22 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
         name: values.name,
         description: values.description,
         type: values.type,
-        numberOfDoses: values.numberOfDoses
+        numberOfDoses: values.numberOfDoses,
       };
 
       const response = await VaccinationService.createVaccine(vaccineData);
-      
+
       if (response.status) {
-        message.success('Tạo vaccine thành công!');
+        message.success("Tạo vaccine thành công!");
         setVaccineModalVisible(false);
         vaccineForm.resetFields();
         fetchVaccinations(); // Refresh vaccine list
       } else {
-        message.error('Có lỗi xảy ra khi tạo vaccine!');
+        message.error("Có lỗi xảy ra khi tạo vaccine!");
       }
     } catch (error) {
-      console.error('Error creating vaccine:', error);
-      message.error('Có lỗi xảy ra khi tạo vaccine!');
+      console.error("Error creating vaccine:", error);
+      message.error("Có lỗi xảy ra khi tạo vaccine!");
     }
   };
 
@@ -294,82 +366,89 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
   const handleRefresh = () => {
     fetchInjectionEvents();
     fetchVaccinations();
-    message.success('Đã làm mới danh sách sự kiện tiêm chủng');
+    message.success("Đã làm mới danh sách sự kiện tiêm chủng");
   };
 
   const columns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
       width: 80,
     },
     {
-      title: 'Tên vaccine',
-      dataIndex: ['vaccination', 'name'],
-      key: 'vaccinationName',
+      title: "Tên vaccine",
+      dataIndex: ["vaccination", "name"],
+      key: "vaccinationName",
       width: 200,
-      render: (text) => <span className="font-medium">{text}</span>
+      render: (text) => <span className="font-medium">{text}</span>,
     },
     {
-      title: 'Loại',
-      dataIndex: ['vaccination', 'type'],
-      key: 'vaccinationType',
+      title: "Loại",
+      dataIndex: ["vaccination", "type"],
+      key: "vaccinationType",
       width: 100,
       render: (type) => (
-        <Tag color={type === 'free' ? 'green' : 'blue'}>
-          {type === 'free' ? 'Miễn phí' : 'Có phí'}
+        <Tag color={type === "free" ? "green" : "blue"}>
+          {type === "free" ? "Miễn phí" : "Có phí"}
         </Tag>
-      )
+      ),
     },
     {
-      title: 'Số liều',
-      dataIndex: ['vaccination', 'numberOfDoses'],
-      key: 'numberOfDoses',
+      title: "Số liều",
+      dataIndex: ["vaccination", "numberOfDoses"],
+      key: "numberOfDoses",
       width: 100,
-      render: (doses) => <Tag color="purple">{doses} liều</Tag>
-    },    {
-      title: 'Giá',
-      dataIndex: 'price',
-      key: 'price',
+      render: (doses) => <Tag color="purple">{doses} liều</Tag>,
+    },
+    {
+      title: "Giá",
+      dataIndex: "price",
+      key: "price",
       width: 120,
       render: (price) => (
-        <span className={price === 0 ? 'text-green-600 font-medium' : 'text-blue-600 font-medium'}>
-          {price === 0 ? 'Miễn phí' : `${price.toLocaleString()} VNĐ`}
+        <span
+          className={
+            price === 0
+              ? "text-green-600 font-medium"
+              : "text-blue-600 font-medium"
+          }
+        >
+          {price === 0 ? "Miễn phí" : `${price.toLocaleString()} VNĐ`}
         </span>
-      )
+      ),
     },
     {
-      title: 'Khối lớp',
-      dataIndex: 'grade',
-      key: 'grade',
+      title: "Khối lớp",
+      dataIndex: "grade",
+      key: "grade",
       width: 100,
-      render: (grade) => <Tag color="cyan">Lớp {grade}</Tag>
+      render: (grade) => <Tag color="cyan">Lớp {grade}</Tag>,
     },
     {
-      title: 'Ngày mở đăng ký',
-      dataIndex: 'registrationOpenDate',
-      key: 'registrationOpenDate',
+      title: "Ngày mở đăng ký",
+      dataIndex: "registrationOpenDate",
+      key: "registrationOpenDate",
       width: 180,
-      render: (date) => moment(date).format('DD/MM/YYYY HH:mm')
+      render: (date) => moment(date).format("DD/MM/YYYY HH:mm"),
     },
     {
-      title: 'Ngày đóng đăng ký',
-      dataIndex: 'registrationCloseDate',
-      key: 'registrationCloseDate',
+      title: "Ngày đóng đăng ký",
+      dataIndex: "registrationCloseDate",
+      key: "registrationCloseDate",
       width: 180,
-      render: (date) => moment(date).format('DD/MM/YYYY HH:mm')
+      render: (date) => moment(date).format("DD/MM/YYYY HH:mm"),
     },
     {
-      title: 'Ngày tiêm',
-      dataIndex: 'date',
-      key: 'date',
+      title: "Ngày tiêm",
+      dataIndex: "date",
+      key: "date",
       width: 180,
-      render: (date) => moment(date).format('DD/MM/YYYY HH:mm')
+      render: (date) => moment(date).format("DD/MM/YYYY HH:mm"),
     },
     {
-      title: 'Trạng thái',
-      key: 'status',
+      title: "Trạng thái",
+      key: "status",
       width: 120,
       render: (_, record) => {
         const now = moment();
@@ -386,12 +465,13 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
         } else {
           return <Tag color="gray">Đã hoàn thành</Tag>;
         }
-      }
-    },    {
-      title: 'Thao tác',
-      key: 'actions',
+      },
+    },
+    {
+      title: "Thao tác",
+      key: "actions",
       width: 200,
-      fixed: 'right',
+      fixed: "right",
       render: (_, record) => (
         <Space size="small">
           <Button
@@ -411,9 +491,24 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
           <Button
             icon={<UploadOutlined />}
             size="small"
-            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', color: 'white' }}
+            style={{
+              backgroundColor: "#52c41a",
+              borderColor: "#52c41a",
+              color: "white",
+            }}
             onClick={() => handleUploadResult(record)}
             title="Upload kết quả"
+          />
+          <Button
+            icon={<FileTextOutlined />}
+            size="small"
+            style={{
+              backgroundColor: "#722ed1",
+              borderColor: "#722ed1",
+              color: "white",
+            }}
+            onClick={() => handleViewPostInjection(record)}
+            title="Xem báo cáo sau tiêm"
           />
         </Space>
       ),
@@ -425,20 +520,20 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
       title: "Tổng số sự kiện",
       value: totalEvents,
       subtitle: "sự kiện tiêm chủng",
-      filterType: "all"
+      filterType: "all",
     },
     {
       title: "Sự kiện miễn phí",
       value: freeEvents,
       subtitle: "không tính phí",
-      filterType: "free"
+      filterType: "free",
     },
     {
       title: "Sự kiện có phí",
       value: paidEvents,
       subtitle: "tính phí",
-      filterType: "paid"
-    }
+      filterType: "paid",
+    },
   ];
 
   return (
@@ -455,20 +550,25 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
           />
         ))}
       </div>
-
       {/* Filter Status */}
-      {selectedCard !== 'all' && (
+      {selectedCard !== "all" && (
         <div className="mb-4">
-          <Tag 
-            color="blue" 
-            closable 
-            onClose={() => setSelectedCard('all')}
-            style={{ fontSize: '14px', padding: '4px 8px' }}
+          <Tag
+            color="blue"
+            closable
+            onClose={() => setSelectedCard("all")}
+            style={{ fontSize: "14px", padding: "4px 8px" }}
           >
-            Lọc: {selectedCard === 'free' ? 'Sự kiện miễn phí' : selectedCard === 'paid' ? 'Sự kiện có phí' : 'Tất cả'}
+            Lọc:{" "}
+            {selectedCard === "free"
+              ? "Sự kiện miễn phí"
+              : selectedCard === "paid"
+              ? "Sự kiện có phí"
+              : "Tất cả"}
           </Tag>
         </div>
-      )}      {/* Header with Search and Add Button */}
+      )}{" "}
+      {/* Header with Search and Add Button */}
       <div className="mb-4 flex justify-between items-center">
         <h3 className="text-xl font-semibold">Quản lý sự kiện tiêm chủng</h3>
         <Space>
@@ -478,19 +578,24 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
             style={{ width: 300 }}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-          />          <Button
+          />{" "}
+          <Button
             icon={<ReloadOutlined />}
             onClick={handleRefresh}
             title="Làm mới danh sách"
           >
             Làm Mới
           </Button>
-          {user.role === 'admin' && (
+          {user.role === "admin" && (
             <Button
               type="default"
               icon={<PlusOutlined />}
               onClick={() => setVaccineModalVisible(true)}
-              style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', color: 'white' }}
+              style={{
+                backgroundColor: "#52c41a",
+                borderColor: "#52c41a",
+                color: "white",
+              }}
             >
               Thêm vaccine
             </Button>
@@ -504,7 +609,6 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
           </Button>
         </Space>
       </div>
-
       {/* Table */}
       <Table
         columns={columns}
@@ -522,49 +626,98 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
         scroll={{ x: 1400 }}
         size="small"
       />
-
       {/* Create/Edit Modal */}
       <Modal
         title="Tạo sự kiện tiêm chủng"
-        open={modalVisible}        onCancel={() => {
+        open={modalVisible}
+        onCancel={() => {
           setModalVisible(false);
           form.resetFields();
           setSelectedGrade(1);
+          setSelectedVaccineType(null);
         }}
         footer={null}
         width={600}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-        >
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+          {" "}
           <Form.Item
             label="Vaccine"
             name="vaccinationId"
-            rules={[{ required: true, message: 'Vui lòng chọn vaccine!' }]}
+            rules={[{ required: true, message: "Vui lòng chọn vaccine!" }]}
           >
-            <Select placeholder="Chọn vaccine">
-              {vaccinations.map(vaccine => (
+            <Select
+              placeholder="Chọn vaccine"
+              onChange={(value) => {
+                const selectedVaccine = vaccinations.find(
+                  (v) => v.id === value
+                );
+                setSelectedVaccineType(selectedVaccine?.type);
+                if (selectedVaccine?.type === "free") {
+                  form.setFieldsValue({ price: 0 });
+                }
+              }}
+            >
+              {vaccinations.map((vaccine) => (
                 <Option key={vaccine.id} value={vaccine.id}>
-                  {vaccine.name} ({vaccine.type === 'free' ? 'Miễn phí' : 'Có phí'})
+                  {vaccine.name} (
+                  {vaccine.type === "free" ? "Miễn phí" : "Có phí"})
                 </Option>
               ))}
             </Select>
-          </Form.Item>
-
+          </Form.Item>{" "}
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 label="Ngày mở đăng ký"
                 name="registrationOpenDate"
-                rules={[{ required: true, message: 'Vui lòng chọn ngày mở đăng ký!' }]}
+                rules={[
+                  { required: true, message: "Vui lòng chọn ngày mở đăng ký!" },
+                ]}
               >
                 <DatePicker
                   showTime
-                  style={{ width: '100%' }}
+                  style={{ width: "100%" }}
                   format="DD/MM/YYYY HH:mm"
                   placeholder="Chọn ngày mở đăng ký"
+                  disabledDate={(current) => {
+                    // Disable dates before today
+                    return current && current < moment().startOf("day");
+                  }}
+                  disabledTime={(current) => {
+                    // If selecting today, disable past hours
+                    if (
+                      current &&
+                      current.format("YYYY-MM-DD") ===
+                        moment().format("YYYY-MM-DD")
+                    ) {
+                      const now = moment();
+                      return {
+                        disabledHours: () =>
+                          Array.from({ length: now.hour() }, (_, i) => i),
+                        disabledMinutes: (selectedHour) => {
+                          if (selectedHour === now.hour()) {
+                            return Array.from(
+                              { length: now.minute() },
+                              (_, i) => i
+                            );
+                          }
+                          return [];
+                        },
+                      };
+                    }
+                    return {};
+                  }}
+                  onChange={() => {
+                    // Reset close date when open date changes
+                    const openDate = form.getFieldValue("registrationOpenDate");
+                    const closeDate = form.getFieldValue(
+                      "registrationCloseDate"
+                    );
+                    if (openDate && closeDate && closeDate.isBefore(openDate)) {
+                      form.setFieldsValue({ registrationCloseDate: null });
+                    }
+                  }}
                 />
               </Form.Item>
             </Col>
@@ -572,66 +725,170 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
               <Form.Item
                 label="Ngày đóng đăng ký"
                 name="registrationCloseDate"
-                rules={[{ required: true, message: 'Vui lòng chọn ngày đóng đăng ký!' }]}
+                rules={[
+                  {
+                    required: true,
+                    message: "Vui lòng chọn ngày đóng đăng ký!",
+                  },
+                ]}
               >
                 <DatePicker
                   showTime
-                  style={{ width: '100%' }}
+                  style={{ width: "100%" }}
                   format="DD/MM/YYYY HH:mm"
                   placeholder="Chọn ngày đóng đăng ký"
+                  disabledDate={(current) => {
+                    const openDate = form.getFieldValue("registrationOpenDate");
+                    if (!openDate) {
+                      // If no open date selected, disable all past dates
+                      return current && current < moment().startOf("day");                    }
+                    // Disable dates before registration open date + 1 day
+                    return (
+                      current &&
+                      current < openDate.clone().add(1, "day").startOf("day")
+                    );
+                  }}
+                  disabledTime={(current) => {
+                    const openDate = form.getFieldValue("registrationOpenDate");
+                    if (!current || !openDate) return {};
+
+                    // If selecting exactly 1 day after open date
+                    const oneDayAfterOpen = openDate.clone().add(1, "day");
+                    if (
+                      current.format("YYYY-MM-DD") ===
+                      oneDayAfterOpen.format("YYYY-MM-DD")
+                    ) {
+                      const openHour = openDate.hour();
+                      const openMinute = openDate.minute();
+                      return {
+                        disabledHours: () =>
+                          Array.from({ length: openHour }, (_, i) => i),
+                        disabledMinutes: (selectedHour) => {
+                          if (selectedHour === openHour) {
+                            return Array.from(
+                              { length: openMinute + 1 },
+                              (_, i) => i
+                            );
+                          }
+                          return [];
+                        },
+                      };
+                    }
+                    return {};
+                  }}
+                  onChange={() => {
+                    // Reset injection date when close date changes
+                    const closeDate = form.getFieldValue(
+                      "registrationCloseDate"
+                    );
+                    const injectionDate = form.getFieldValue("date");
+                    if (
+                      closeDate &&
+                      injectionDate &&
+                      injectionDate.isBefore(closeDate)
+                    ) {
+                      form.setFieldsValue({ date: null });
+                    }
+                  }}
                 />
               </Form.Item>
             </Col>
-          </Row>          <Row gutter={16}>
+          </Row>
+          <Row gutter={16}>
             <Col span={12}>
+              {" "}
               <Form.Item
                 label="Ngày tiêm"
                 name="date"
-                rules={[{ required: true, message: 'Vui lòng chọn ngày tiêm!' }]}
+                rules={[
+                  { required: true, message: "Vui lòng chọn ngày tiêm!" },
+                ]}
               >
                 <DatePicker
                   showTime
-                  style={{ width: '100%' }}
+                  style={{ width: "100%" }}
                   format="DD/MM/YYYY HH:mm"
                   placeholder="Chọn ngày tiêm"
+                  disabledDate={(current) => {
+                    const closeDate = form.getFieldValue(
+                      "registrationCloseDate"
+                    );
+                    if (!closeDate) {
+                      // If no close date selected, disable all past dates
+                      return current && current < moment().startOf("day");
+                    }
+                    // Disable dates before or on registration close date (must be at least 1 day after)
+                    return (
+                      current &&
+                      current <= closeDate.clone().add(1, "day").startOf("day")
+                    );
+                  }}
+                  disabledTime={() => {
+                    // Always restrict injection time to 8:00-17:00 (working hours)
+                    const disabledHours = [];
+                    for (let i = 0; i < 8; i++) {
+                      disabledHours.push(i); // 0-7 (before 8:00)
+                    }
+                    for (let i = 18; i < 24; i++) {
+                      disabledHours.push(i); // 18-23 (after 17:59)
+                    }
+
+                    // For injection date, we only enforce working hours (8:00-17:00)
+                    // Since date validation already ensures injection is at least 1 day after close date,
+                    // all working hours are available on any valid injection date
+                    return {
+                      disabledHours: () => disabledHours,
+                      disabledMinutes: () => [],
+                    };
+                  }}
                 />
               </Form.Item>
-            </Col>
+            </Col>{" "}
             <Col span={12}>
               <Form.Item
                 label="Giá (VNĐ)"
                 name="price"
-                rules={[{ required: true, message: 'Vui lòng nhập giá!' }]}
+                rules={[{ required: true, message: "Vui lòng nhập giá!" }]}
               >
                 <InputNumber
-                  style={{ width: '100%' }}
-                  placeholder="Nhập giá (0 nếu miễn phí)"
+                  style={{ width: "100%" }}
+                  placeholder={
+                    selectedVaccineType === "free"
+                      ? "Vaccine miễn phí"
+                      : "Nhập giá (0 nếu miễn phí)"
+                  }
                   min={0}
-                  formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                  disabled={selectedVaccineType === "free"}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
                 />
               </Form.Item>
             </Col>
-          </Row>          <Form.Item
+          </Row>{" "}
+          <Form.Item
             label="Khối lớp"
             name="grade"
-            rules={[{ required: true, message: 'Vui lòng chọn khối lớp!' }]}
+            rules={[{ required: true, message: "Vui lòng chọn khối lớp!" }]}
             initialValue={1}
           >
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {[1, 2, 3, 4, 5].map(grade => (
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {[1, 2, 3, 4, 5].map((grade) => (
                 <Button
                   key={grade}
-                  type={selectedGrade === grade ? 'primary' : 'default'}
+                  type={selectedGrade === grade ? "primary" : "default"}
                   size="large"
                   style={{
-                    minWidth: '60px',
-                    height: '40px',
-                    borderRadius: '8px',
-                    fontWeight: 'bold',
-                    backgroundColor: selectedGrade === grade ? '#1890ff' : '#fff',
-                    borderColor: selectedGrade === grade ? '#1890ff' : '#d9d9d9',
-                    color: selectedGrade === grade ? '#fff' : '#666',
+                    minWidth: "60px",
+                    height: "40px",
+                    borderRadius: "8px",
+                    fontWeight: "bold",
+                    backgroundColor:
+                      selectedGrade === grade ? "#1890ff" : "#fff",
+                    borderColor:
+                      selectedGrade === grade ? "#1890ff" : "#d9d9d9",
+                    color: selectedGrade === grade ? "#fff" : "#666",
                   }}
                   onClick={() => {
                     setSelectedGrade(grade);
@@ -643,13 +900,17 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
               ))}
             </div>
           </Form.Item>
-
           <Form.Item className="mb-0 text-right">
-            <Space>              <Button onClick={() => {
-                setModalVisible(false);
-                form.resetFields();
-                setSelectedGrade(1);
-              }}>
+            <Space>
+              {" "}
+              <Button
+                onClick={() => {
+                  setModalVisible(false);
+                  form.resetFields();
+                  setSelectedGrade(1);
+                  setSelectedVaccineType(null);
+                }}
+              >
                 Hủy
               </Button>
               <Button type="primary" htmlType="submit">
@@ -659,7 +920,6 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
           </Form.Item>
         </Form>
       </Modal>
-
       {/* Detail Modal */}
       <Modal
         title="Chi tiết sự kiện tiêm chủng"
@@ -668,7 +928,7 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
         footer={[
           <Button key="close" onClick={() => setDetailModalVisible(false)}>
             Đóng
-          </Button>
+          </Button>,
         ]}
         width={800}
       >
@@ -681,34 +941,56 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
               {selectedEvent.vaccination?.name}
             </Descriptions.Item>
             <Descriptions.Item label="Loại vaccine">
-              <Tag color={selectedEvent.vaccination?.type === 'free' ? 'green' : 'blue'}>
-                {selectedEvent.vaccination?.type === 'free' ? 'Miễn phí' : 'Có phí'}
+              <Tag
+                color={
+                  selectedEvent.vaccination?.type === "free" ? "green" : "blue"
+                }
+              >
+                {selectedEvent.vaccination?.type === "free"
+                  ? "Miễn phí"
+                  : "Có phí"}
               </Tag>
             </Descriptions.Item>
             <Descriptions.Item label="Số liều">
-              <Tag color="purple">{selectedEvent.vaccination?.numberOfDoses} liều</Tag>
+              <Tag color="purple">
+                {selectedEvent.vaccination?.numberOfDoses} liều
+              </Tag>
             </Descriptions.Item>
             <Descriptions.Item label="Mô tả vaccine" span={2}>
               {selectedEvent.vaccination?.description}
-            </Descriptions.Item>            <Descriptions.Item label="Giá">
-              <span className={selectedEvent.price === 0 ? 'text-green-600 font-medium' : 'text-blue-600 font-medium'}>
-                {selectedEvent.price === 0 ? 'Miễn phí' : `${selectedEvent.price.toLocaleString()} VNĐ`}
+            </Descriptions.Item>{" "}
+            <Descriptions.Item label="Giá">
+              <span
+                className={
+                  selectedEvent.price === 0
+                    ? "text-green-600 font-medium"
+                    : "text-blue-600 font-medium"
+                }
+              >
+                {selectedEvent.price === 0
+                  ? "Miễn phí"
+                  : `${selectedEvent.price.toLocaleString()} VNĐ`}
               </span>
             </Descriptions.Item>
             <Descriptions.Item label="Khối lớp">
               <Tag color="cyan">Lớp {selectedEvent.grade}</Tag>
             </Descriptions.Item>
             <Descriptions.Item label="Ngày mở đăng ký">
-              {moment(selectedEvent.registrationOpenDate).format('DD/MM/YYYY HH:mm')}
+              {moment(selectedEvent.registrationOpenDate).format(
+                "DD/MM/YYYY HH:mm"
+              )}
             </Descriptions.Item>
             <Descriptions.Item label="Ngày đóng đăng ký">
-              {moment(selectedEvent.registrationCloseDate).format('DD/MM/YYYY HH:mm')}
+              {moment(selectedEvent.registrationCloseDate).format(
+                "DD/MM/YYYY HH:mm"
+              )}
             </Descriptions.Item>
             <Descriptions.Item label="Ngày tiêm">
-              {moment(selectedEvent.date).format('DD/MM/YYYY HH:mm')}
-            </Descriptions.Item>          </Descriptions>        )}
+              {moment(selectedEvent.date).format("DD/MM/YYYY HH:mm")}
+            </Descriptions.Item>{" "}
+          </Descriptions>
+        )}
       </Modal>
-
       {/* Create Vaccine Modal (Admin Only) */}
       <Modal
         title="Tạo vaccine mới"
@@ -728,7 +1010,7 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
           <Form.Item
             label="Tên vaccine"
             name="name"
-            rules={[{ required: true, message: 'Vui lòng nhập tên vaccine!' }]}
+            rules={[{ required: true, message: "Vui lòng nhập tên vaccine!" }]}
           >
             <Input placeholder="Nhập tên vaccine" />
           </Form.Item>
@@ -736,12 +1018,11 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
           <Form.Item
             label="Mô tả"
             name="description"
-            rules={[{ required: true, message: 'Vui lòng nhập mô tả vaccine!' }]}
+            rules={[
+              { required: true, message: "Vui lòng nhập mô tả vaccine!" },
+            ]}
           >
-            <TextArea 
-              rows={4} 
-              placeholder="Nhập mô tả về vaccine" 
-            />
+            <TextArea rows={4} placeholder="Nhập mô tả về vaccine" />
           </Form.Item>
 
           <Row gutter={16}>
@@ -749,7 +1030,9 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
               <Form.Item
                 label="Loại vaccine"
                 name="type"
-                rules={[{ required: true, message: 'Vui lòng chọn loại vaccine!' }]}
+                rules={[
+                  { required: true, message: "Vui lòng chọn loại vaccine!" },
+                ]}
               >
                 <Select placeholder="Chọn loại vaccine">
                   <Option value="free">Miễn phí</Option>
@@ -761,13 +1044,13 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
               <Form.Item
                 label="Số liều"
                 name="numberOfDoses"
-                rules={[{ required: true, message: 'Vui lòng nhập số liều!' }]}
+                rules={[{ required: true, message: "Vui lòng nhập số liều!" }]}
               >
-                <InputNumber 
-                  min={1} 
+                <InputNumber
+                  min={1}
                   max={10}
-                  placeholder="Số liều" 
-                  style={{ width: '100%' }}
+                  placeholder="Số liều"
+                  style={{ width: "100%" }}
                 />
               </Form.Item>
             </Col>
@@ -775,10 +1058,12 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
 
           <Form.Item className="mb-0 text-right">
             <Space>
-              <Button onClick={() => {
-                setVaccineModalVisible(false);
-                vaccineForm.resetFields();
-              }}>
+              <Button
+                onClick={() => {
+                  setVaccineModalVisible(false);
+                  vaccineForm.resetFields();
+                }}
+              >
                 Hủy
               </Button>
               <Button type="primary" htmlType="submit">
@@ -788,12 +1073,11 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
           </Form.Item>
         </Form>
       </Modal>
-
       {/* Upload Result Modal */}
       <Modal
         title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <UploadOutlined style={{ color: '#52c41a' }} />
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <UploadOutlined style={{ color: "#52c41a" }} />
             <span>Upload Kết Quả Tiêm Chủng</span>
           </div>
         }
@@ -803,10 +1087,13 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
           setUploadFileList([]);
         }}
         footer={[
-          <Button key="cancel" onClick={() => {
-            setUploadModalVisible(false);
-            setUploadFileList([]);
-          }}>
+          <Button
+            key="cancel"
+            onClick={() => {
+              setUploadModalVisible(false);
+              setUploadFileList([]);
+            }}
+          >
             Hủy
           </Button>,
           <Button
@@ -816,41 +1103,57 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
             loading={uploadLoading[selectedEvent?.id] || false}
             onClick={handleUploadResultFile}
             disabled={!uploadFileList.length}
-            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+            style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
           >
             Upload Kết Quả
-          </Button>
+          </Button>,
         ]}
         width={600}
       >
         {selectedEvent && (
           <div>
             {/* Event Summary */}
-            <Card 
-              size="small" 
-              style={{ marginBottom: 16, backgroundColor: '#f6ffed' }}
+            <Card
+              size="small"
+              style={{ marginBottom: 16, backgroundColor: "#f6ffed" }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <div>
                   <strong>Sự kiện: {selectedEvent.vaccination?.name}</strong>
                 </div>
-                <Tag color={selectedEvent.vaccination?.type === 'free' ? 'green' : 'blue'}>
-                  {selectedEvent.vaccination?.type === 'free' ? 'Miễn phí' : 'Có phí'}
+                <Tag
+                  color={
+                    selectedEvent.vaccination?.type === "free"
+                      ? "green"
+                      : "blue"
+                  }
+                >
+                  {selectedEvent.vaccination?.type === "free"
+                    ? "Miễn phí"
+                    : "Có phí"}
                 </Tag>
               </div>
-              <div style={{ marginTop: 8, color: '#666' }}>
-                Ngày tiêm: {selectedEvent.date ? moment(selectedEvent.date).format('DD/MM/YYYY HH:mm') : 'N/A'}
+              <div style={{ marginTop: 8, color: "#666" }}>
+                Ngày tiêm:{" "}
+                {selectedEvent.date
+                  ? moment(selectedEvent.date).format("DD/MM/YYYY HH:mm")
+                  : "N/A"}
               </div>
             </Card>
 
             {/* File Upload */}
-            <Card 
-              title="Chọn File Kết Quả"
-              size="small"
-            >
+            <Card title="Chọn File Kết Quả" size="small">
               <Upload.Dragger {...uploadProps}>
                 <p className="ant-upload-drag-icon">
-                  <UploadOutlined style={{ fontSize: '48px', color: '#52c41a' }} />
+                  <UploadOutlined
+                    style={{ fontSize: "48px", color: "#52c41a" }}
+                  />
                 </p>
                 <p className="ant-upload-text">
                   Kéo thả file vào đây hoặc click để chọn file
@@ -859,25 +1162,27 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
                   Chỉ hỗ trợ file Excel (.xlsx, .xls) chứa kết quả tiêm chủng
                 </p>
               </Upload.Dragger>
-              
+
               {uploadFileList.length > 0 && (
                 <div style={{ marginTop: 16 }}>
                   <h4>File đã chọn:</h4>
-                  <div style={{ 
-                    padding: '8px 12px', 
-                    backgroundColor: '#f0f9ff', 
-                    border: '1px solid #91caff',
-                    borderRadius: '6px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
+                  <div
+                    style={{
+                      padding: "8px 12px",
+                      backgroundColor: "#f0f9ff",
+                      border: "1px solid #91caff",
+                      borderRadius: "6px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
                     <span>{uploadFileList[0].name}</span>
-                    <Button 
-                      type="text" 
-                      size="small" 
+                    <Button
+                      type="text"
+                      size="small"
                       onClick={() => setUploadFileList([])}
-                      style={{ color: '#ff4d4f' }}
+                      style={{ color: "#ff4d4f" }}
                     >
                       Xóa
                     </Button>
@@ -886,20 +1191,495 @@ const InjectionEvent = () => {  const [injectionEvents, setInjectionEvents] = us
               )}
             </Card>
 
-            <div style={{ 
-              marginTop: 16, 
-              padding: '12px', 
-              backgroundColor: '#fff7e6', 
-              border: '1px solid #ffd591',
-              borderRadius: '6px'
-            }}>
-              <h4 style={{ margin: '0 0 8px 0', color: '#fa8c16' }}>Lưu ý:</h4>
-              <ul style={{ margin: 0, paddingLeft: 16, color: '#666' }}>
-                <li>File Excel phải chứa kết quả tiêm chủng cho các học sinh đã đăng ký</li>
+            <div
+              style={{
+                marginTop: 16,
+                padding: "12px",
+                backgroundColor: "#fff7e6",
+                border: "1px solid #ffd591",
+                borderRadius: "6px",
+              }}
+            >
+              <h4 style={{ margin: "0 0 8px 0", color: "#fa8c16" }}>Lưu ý:</h4>
+              <ul style={{ margin: 0, paddingLeft: 16, color: "#666" }}>
+                <li>
+                  File Excel phải chứa kết quả tiêm chủng cho các học sinh đã
+                  đăng ký
+                </li>
                 <li>Đảm bảo định dạng file đúng theo mẫu quy định</li>
                 <li>Kiểm tra kỹ dữ liệu trước khi upload</li>
               </ul>
             </div>
+          </div>
+        )}
+      </Modal>
+      {/* Post Injection Reports Modal */}
+      <Modal
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <FileTextOutlined style={{ color: "#722ed1" }} />
+            <span>Báo Cáo Sau Tiêm - {selectedEvent?.vaccination?.name}</span>
+          </div>
+        }
+        open={postInjectionModalVisible}
+        onCancel={() => {
+          setPostInjectionModalVisible(false);
+          setPostInjectionRecords([]);
+        }}
+        footer={[
+          <Button
+            key="close"
+            onClick={() => setPostInjectionModalVisible(false)}
+          >
+            Đóng
+          </Button>,
+        ]}
+        width={1000}
+        centered
+      >
+        {selectedEvent && (
+          <div>
+            {/* Statistics Cards */}
+            <div
+              style={{
+                display: "flex",
+                gap: "16px",
+                marginBottom: "24px",
+                flexWrap: "wrap",
+              }}
+            >
+              <Card
+                size="small"
+                style={{
+                  flex: 1,
+                  minWidth: "200px",
+                  backgroundColor: "#f6ffed",
+                }}
+              >
+                <div style={{ textAlign: "center" }}>
+                  <div
+                    style={{
+                      fontSize: "24px",
+                      fontWeight: "bold",
+                      color: "#52c41a",
+                    }}
+                  >
+                    {postInjectionRecords.length}
+                  </div>
+                  <div style={{ color: "#666", fontSize: "14px" }}>
+                    Tổng báo cáo sau tiêm
+                  </div>
+                </div>
+              </Card>
+
+              <Card
+                size="small"
+                style={{
+                  flex: 1,
+                  minWidth: "200px",
+                  backgroundColor: "#fff7e6",
+                }}
+              >
+                <div style={{ textAlign: "center" }}>
+                  <div
+                    style={{
+                      fontSize: "24px",
+                      fontWeight: "bold",
+                      color: "#fa8c16",
+                    }}
+                  >
+                    {
+                      postInjectionRecords.filter(
+                        (r) =>
+                          r.severityLevel === "medium" ||
+                          r.severityLevel === "high"
+                      ).length
+                    }
+                  </div>
+                  <div style={{ color: "#666", fontSize: "14px" }}>
+                    Cần theo dõi
+                  </div>
+                </div>
+              </Card>
+
+              <Card
+                size="small"
+                style={{
+                  flex: 1,
+                  minWidth: "200px",
+                  backgroundColor: "#fff2f0",
+                }}
+              >
+                <div style={{ textAlign: "center" }}>
+                  <div
+                    style={{
+                      fontSize: "24px",
+                      fontWeight: "bold",
+                      color: "#ff4d4f",
+                    }}
+                  >
+                    {
+                      postInjectionRecords.filter(
+                        (r) => r.severityLevel === "high"
+                      ).length
+                    }
+                  </div>
+                  <div style={{ color: "#666", fontSize: "14px" }}>
+                    Mức độ nặng
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Post Injection Records Table */}
+            <Table
+              columns={[
+                {
+                  title: "Mức độ nghiêm trọng",
+                  dataIndex: "severityLevel",
+                  key: "severityLevel",
+                  width: 150,
+                  render: (level) => {
+                    const config = {
+                      low: { color: "green", text: "Nhẹ" },
+                      medium: { color: "orange", text: "Vừa" },
+                      high: { color: "red", text: "Nặng" },
+                    };
+                    const { color, text } = config[level] || {
+                      color: "default",
+                      text: level,
+                    };
+                    return <Tag color={color}>{text}</Tag>;
+                  },
+                },
+                {
+                  title: "Lớp",
+                  dataIndex: ["injectionRecord", "student", "class"],
+                  key: "class",
+                  width: 100,
+                  render: (className) => <Tag color="blue">{className}</Tag>,
+                },
+                {
+                  title: "Họ và tên",
+                  dataIndex: ["injectionRecord", "student", "fullName"],
+                  key: "fullName",
+                  width: 200,
+                  render: (name) => (
+                    <span style={{ fontWeight: "medium" }}>{name}</span>
+                  ),
+                },
+                {
+                  title: "Giới tính",
+                  dataIndex: ["injectionRecord", "student", "gender"],
+                  key: "gender",
+                  width: 100,
+                  render: (gender) => (
+                    <Tag color={gender === "Nam" ? "blue" : "pink"}>
+                      {gender}
+                    </Tag>
+                  ),
+                },
+                {
+                  title: "Nhiệt độ",
+                  dataIndex: "temperature",
+                  key: "temperature",
+                  width: 100,
+                  render: (temp) => (
+                    <span
+                      style={{
+                        color: parseFloat(temp) > 38 ? "#ff4d4f" : "#52c41a",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {temp}°C
+                    </span>
+                  ),
+                },
+                {
+                  title: "Thời gian sau tiêm",
+                  dataIndex: "hoursPostInjection",
+                  key: "hoursPostInjection",
+                  width: 150,
+                  render: (hours) => `${hours} giờ`,
+                },
+                {
+                  title: "Thao tác",
+                  key: "actions",
+                  width: 120,
+                  render: (_, record) => (
+                    <Button
+                      icon={<EyeOutlined />}
+                      size="small"
+                      type="primary"
+                      onClick={() => handleViewPostInjectionDetail(record)}
+                      title="Xem chi tiết"
+                    />
+                  ),
+                },
+              ]}
+              dataSource={postInjectionRecords}
+              rowKey="id"
+              loading={postInjectionLoading}
+              pagination={{
+                pageSize: 8,
+                showTotal: (total, range) =>
+                  `${range[0]}-${range[1]} của ${total} báo cáo`,
+              }}
+              scroll={{ x: 800 }}
+              size="small"
+            />
+          </div>
+        )}
+      </Modal>
+      {/* Post Injection Record Detail Modal */}
+      <Modal
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <FileTextOutlined style={{ color: "#1890ff" }} />
+            <span>Chi Tiết Báo Cáo Sau Tiêm</span>
+          </div>
+        }
+        open={postInjectionDetailModalVisible}
+        onCancel={() => {
+          setPostInjectionDetailModalVisible(false);
+          setSelectedPostInjectionRecord(null);
+        }}
+        footer={[
+          <Button
+            key="close"
+            onClick={() => setPostInjectionDetailModalVisible(false)}
+          >
+            Đóng
+          </Button>,
+        ]}
+        width={800}
+        centered
+      >
+        {selectedPostInjectionRecord && (
+          <div>
+            {/* Student Information */}
+            <Card
+              title={
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  <UserOutlined style={{ color: "#1890ff" }} />
+                  <span>Thông Tin Học Sinh</span>
+                </div>
+              }
+              style={{ marginBottom: 16 }}
+              size="small"
+            >
+              <Descriptions bordered column={2} size="small">
+                <Descriptions.Item label="Mã học sinh">
+                  <Tag color="blue">
+                    {
+                      selectedPostInjectionRecord.injectionRecord?.student
+                        ?.studentCode
+                    }
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Họ và tên">
+                  <strong>
+                    {
+                      selectedPostInjectionRecord.injectionRecord?.student
+                        ?.fullName
+                    }
+                  </strong>
+                </Descriptions.Item>
+                <Descriptions.Item label="Lớp">
+                  <Tag color="green">
+                    {
+                      selectedPostInjectionRecord.injectionRecord?.student
+                        ?.class
+                    }
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Giới tính">
+                  <Tag
+                    color={
+                      selectedPostInjectionRecord.injectionRecord?.student
+                        ?.gender === "Nam"
+                        ? "blue"
+                        : "pink"
+                    }
+                  >
+                    {
+                      selectedPostInjectionRecord.injectionRecord?.student
+                        ?.gender
+                    }
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Ngày sinh" span={2}>
+                  {selectedPostInjectionRecord.injectionRecord?.student?.dob}
+                </Descriptions.Item>
+                <Descriptions.Item label="Địa chỉ" span={2}>
+                  {
+                    selectedPostInjectionRecord.injectionRecord?.student
+                      ?.address
+                  }
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+
+            {/* Post Injection Report Information */}
+            <Card
+              title={
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  <FileTextOutlined style={{ color: "#ff4d4f" }} />
+                  <span>Thông Tin Báo Cáo Sau Tiêm</span>
+                </div>
+              }
+              style={{ marginBottom: 16 }}
+              size="small"
+            >
+              <Descriptions bordered column={2} size="small">
+                <Descriptions.Item label="Mức độ nghiêm trọng">
+                  {(() => {
+                    const config = {
+                      low: { color: "green", text: "Nhẹ" },
+                      medium: { color: "orange", text: "Vừa" },
+                      high: { color: "red", text: "Nặng" },
+                    };
+                    const { color, text } = config[
+                      selectedPostInjectionRecord.severityLevel
+                    ] || {
+                      color: "default",
+                      text: selectedPostInjectionRecord.severityLevel,
+                    };
+                    return <Tag color={color}>{text}</Tag>;
+                  })()}
+                </Descriptions.Item>
+                <Descriptions.Item label="Nhiệt độ">
+                  <span
+                    style={{
+                      color:
+                        parseFloat(selectedPostInjectionRecord.temperature) > 38
+                          ? "#ff4d4f"
+                          : "#52c41a",
+                      fontWeight: "bold",
+                      fontSize: "16px",
+                    }}
+                  >
+                    {selectedPostInjectionRecord.temperature}°C
+                  </span>
+                </Descriptions.Item>
+                <Descriptions.Item label="Thời gian sau tiêm">
+                  <Tag color="blue">
+                    {selectedPostInjectionRecord.hoursPostInjection} giờ
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Ngày báo cáo">
+                  {moment(selectedPostInjectionRecord.createdAt).format(
+                    "DD/MM/YYYY HH:mm"
+                  )}
+                </Descriptions.Item>
+                <Descriptions.Item label="Mô tả triệu chứng" span={2}>
+                  <div
+                    style={{
+                      backgroundColor: "#f5f5f5",
+                      padding: "12px",
+                      borderRadius: "6px",
+                      border: "1px solid #d9d9d9",
+                    }}
+                  >
+                    {selectedPostInjectionRecord.description ||
+                      "Không có mô tả"}
+                  </div>
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+
+            {/* Injection Record Information */}
+            <Card
+              title={
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  <MedicineBoxOutlined style={{ color: "#52c41a" }} />
+                  <span>Thông Tin Tiêm Chủng</span>
+                </div>
+              }
+              size="small"
+            >
+              <Descriptions bordered column={2} size="small">
+                <Descriptions.Item label="Ngày đăng ký">
+                  {moment(
+                    selectedPostInjectionRecord.injectionRecord
+                      ?.registrationDate
+                  ).format("DD/MM/YYYY HH:mm")}
+                </Descriptions.Item>
+                <Descriptions.Item label="Trạng thái tiêm">
+                  <Tag
+                    color={
+                      selectedPostInjectionRecord.injectionRecord
+                        ?.injectionStatus === "completed"
+                        ? "green"
+                        : "orange"
+                    }
+                  >
+                    {selectedPostInjectionRecord.injectionRecord
+                      ?.injectionStatus === "completed"
+                      ? "Đã hoàn thành"
+                      : "Chưa hoàn thành"}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Nhiệt độ trước tiêm">
+                  {
+                    selectedPostInjectionRecord.injectionRecord
+                      ?.preInjectionTemperature
+                  }
+                  °C
+                </Descriptions.Item>
+                <Descriptions.Item label="Nhiệt độ sau tiêm">
+                  {
+                    selectedPostInjectionRecord.injectionRecord
+                      ?.postInjectionTemperature
+                  }
+                  °C
+                </Descriptions.Item>
+                <Descriptions.Item label="Vị trí tiêm">
+                  {selectedPostInjectionRecord.injectionRecord?.injectionSite ||
+                    "Không có"}
+                </Descriptions.Item>
+                <Descriptions.Item label="Tình trạng sức khỏe">
+                  <Tag color="blue">
+                    {selectedPostInjectionRecord.injectionRecord
+                      ?.healthStatus || "Bình thường"}
+                  </Tag>
+                </Descriptions.Item>
+                {selectedPostInjectionRecord.injectionRecord?.sideEffects && (
+                  <Descriptions.Item label="Tác dụng phụ" span={2}>
+                    <div
+                      style={{
+                        backgroundColor: "#fff2e8",
+                        padding: "12px",
+                        borderRadius: "6px",
+                        border: "1px solid #ffb366",
+                      }}
+                    >
+                      {selectedPostInjectionRecord.injectionRecord.sideEffects}
+                    </div>
+                  </Descriptions.Item>
+                )}
+                {selectedPostInjectionRecord.injectionRecord?.notes && (
+                  <Descriptions.Item label="Ghi chú" span={2}>
+                    <div
+                      style={{
+                        backgroundColor: "#f6ffed",
+                        padding: "12px",
+                        borderRadius: "6px",
+                        border: "1px solid #b7eb8f",
+                      }}
+                    >
+                      {selectedPostInjectionRecord.injectionRecord.notes}
+                    </div>
+                  </Descriptions.Item>
+                )}
+              </Descriptions>
+            </Card>
           </div>
         )}
       </Modal>
