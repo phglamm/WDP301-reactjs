@@ -226,7 +226,7 @@ const Sidebar = ({ selectedItem, setSelectedItem }) => {
         onMouseLeave={() => setIsOpen(false)}
       >
         <motion.div
-          className={`flex ${isOpen ? 'py-2' : 'py-0'} flex-col justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-900 items-center mb-2 shadow-md cursor-pointer`}
+          className={`flex ${isOpen ? 'py-2' : 'py-0'} flex-col justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-900 mt-6 items-center mb-2 shadow-md cursor-pointer`}
           initial={{ scale: 1 }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}

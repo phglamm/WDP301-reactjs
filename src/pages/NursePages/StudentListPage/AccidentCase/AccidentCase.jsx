@@ -597,9 +597,7 @@ const AccidentCase = ({
                 </Descriptions.Item>
                 <Descriptions.Item label="Ngày Sinh" span={2}>
                   {selectedAccident.student?.dob
-                    ? new Date(selectedAccident.student.dob).toLocaleDateString(
-                        "vi-VN"
-                      )
+                    ? selectedAccident.student.dob
                     : "Không có"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Địa Chỉ" span={2}>
