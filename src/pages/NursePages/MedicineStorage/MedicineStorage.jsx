@@ -172,25 +172,7 @@ const MedicineStorage = () => {
         } finally {
             setLoading(false);
         }
-    };    const handleEdit = (medicine) => {
-        console.log('Edit medicine:', medicine);
-        // Add your edit logic here
-        // You can show a modal or navigate to edit page
-    };
-
-    const handleDelete = (medicine) => {
-        console.log('Delete medicine:', medicine);
-        // Add your delete logic here
-        // You might want to show a confirmation dialog
-    };
-
-    const handleAddNew = () => {
-        if (user.role !== 'admin') {
-            message.error('Chỉ admin mới có thể thêm thuốc mới!');
-            return;
-        }
-        setAddModalVisible(true);
-    };
+    };    
 
     const handleImportExcel = () => {
         if (user.role !== 'admin') {
@@ -344,7 +326,6 @@ const MedicineStorage = () => {
                 loading={loading}
                 pagination={{
                     pageSize: 10,
-                    showSizeChanger: true,
                     showQuickJumper: true,
                     showTotal: (total, range) =>
                         `${range[0]}-${range[1]} of ${total} medicines`

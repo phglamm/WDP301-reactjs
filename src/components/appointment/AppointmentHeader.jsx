@@ -13,10 +13,6 @@ const { Option } = Select;
 const AppointmentHeader = ({
   viewMode,
   setViewMode,
-  showDateFilter,
-  toggleDateFilter,
-  calendarView,
-  setCalendarView,
   onCreateNew,
   onRefresh
 }) => {
@@ -45,26 +41,6 @@ const AppointmentHeader = ({
           </Button>
         </Button.Group>
 
-        {/* Calendar specific controls */}
-        {viewMode === 'calendar' && (
-          <>
-            <Button 
-              type={showDateFilter ? "primary" : "default"}
-              icon={<FilterOutlined />}
-              onClick={toggleDateFilter}
-            >
-              {showDateFilter ? 'Ẩn Bộ Lọc' : 'Lọc Theo Ngày'}
-            </Button>
-            <Select
-              value={calendarView}
-              onChange={setCalendarView}
-              style={{ width: 150 }}
-            >
-              <Option value="dayGridMonth">Tháng</Option>
-              <Option value="timeGridWeek">Tuần</Option>
-              <Option value="timeGridDay">Ngày</Option>
-            </Select>          </>
-        )}
 
         <Button 
           icon={<ReloadOutlined />}
